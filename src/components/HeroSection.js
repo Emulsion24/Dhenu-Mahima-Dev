@@ -5,15 +5,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 const slides = [
-  { src: "/banner/1.jpg", alt: "Devotees gathered for a spiritual event" },
-  { src: "/banner/2.jpg", alt: "A tranquil Gaushala with cows" },
-  { src: "/banner/3.jpg", alt: "Peaceful cow sanctuary" },
-  { src: "/banner/4.jpg", alt: "Devotees gathered for a spiritual event" },
-  { src: "/banner/5.jpg", alt: "A tranquil Gaushala with cows" },
-  { src: "/banner/6.jpg", alt: "A person meditating peacefully at sunrise" },
-  { src: "/banner/7.jpg", alt: "A person meditating peacefully at sunrise" },
-];
-
+  { src: "/banner/1.JPG", alt: "Devotees gathered for a spiritual event" },
+  { src: "/banner/2.JPG", alt: "A tranquil Gaushala with cows" },
+  { src: "/banner/3.JPG", alt: "Peaceful cow sanctuary" },
+  { src: "/banner/4.JPG", alt: "Devotees gathered for a spiritual event" },
+  { src: "/banner/5.JPG", alt: "A tranquil Gaushala with cows" },
+  { src: "/banner/6.JPG", alt: "A person meditating peacefully at sunrise" },
+  { src: "/banner/7.JPG", alt: "A person meditating peacefully at sunrise" },
+]
 export default function HeroSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
 

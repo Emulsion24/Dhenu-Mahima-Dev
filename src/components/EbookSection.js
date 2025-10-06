@@ -5,14 +5,14 @@ export default function EbookSection() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   const books = [
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/1.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/2.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/3.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/4.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/5.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/6.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/7.jpg" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/8.jpg" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/1.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/2.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/3.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/4.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/5.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/6.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/7.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/8.JPG" },
   ];
 
   return (
