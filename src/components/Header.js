@@ -33,7 +33,7 @@ export default function Header() {
         >
           <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300">
           <Image
-      src="/logo/Dhenu Mahima PNG 1.png"
+      src="/logo/logo5.webp"
       alt="Logo"
       width={112}
       height={112}
