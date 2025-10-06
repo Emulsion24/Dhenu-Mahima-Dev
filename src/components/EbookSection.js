@@ -12,7 +12,7 @@ export default function EbookSection() {
     { title: "गो कपा चिकित्सा ज्योति", img: "/books/5.JPG" },
     { title: "गो कपा चिकित्सा ज्योति", img: "/books/6.JPG" },
     { title: "गो कपा चिकित्सा ज्योति", img: "/books/7.JPG" },
-    { title: "गो कपा चिकित्सा ज्योति", img: "/books/8.JPG" },
+    { title: "गो कपा चिकित्सा ज्योति", img: "/books/2.JPG" },
   ];
 
   return (

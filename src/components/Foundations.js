@@ -160,18 +160,19 @@ export default function Foundations() {
   const [hoveredId, setHoveredId] = useState(null);
   
   const foundations = [
-    { id: 1, logo: "/logo/logo1.png", name: "Foundation Name 1", nameHi: "संस्थान १", url: "/foundation-1" },
-    { id: 2, logo: "/logo/logo2.png", name: "Foundation Name 2", nameHi: "संस्थान २", url: "/foundation-2" },
-    { id: 3, logo: "/logo/logo3.png", name: "Foundation Name 3", nameHi: "संस्थान ३", url: "/foundation-3" },
-    { id: 4, logo: "/logo/logo4.png", name: "Foundation Name 4", nameHi: "संस्थान ४", url: "/foundation-4" },
-    { id: 5, logo: "/logo/logo5.png", name: "Foundation Name 5", nameHi: "संस्थान ५", url: "/foundation-5" },
-    { id: 6, logo: "/logo/logo6.png", name: "Foundation Name 6", nameHi: "संस्थान ६", url: "/foundation-6" },
-    { id: 7, logo: "/logo/logo7.png", name: "Foundation Name 7", nameHi: "संस्थान ७", url: "/foundation-7" },
-    { id: 8, logo: "/logo/logo8.png", name: "Foundation Name 8", nameHi: "संस्थान ८", url: "/foundation-8" },
-    { id: 9, logo: "/logo/logo9.png", name: "Foundation Name 9", nameHi: "संस्थान ९", url: "/foundation-9" },
-    { id: 10, logo: "/logo/logo10.png", name: "Foundation Name 10", nameHi: "संस्थान १०", url: "/foundation-10" },
-    { id: 11, logo: "/logo/logo11.png", name: "Foundation Name 11", nameHi: "संस्थान ११", url: "/foundation-11" },
-    { id: 12, logo: "/logo/logo12.png", name: "Foundation Name 12", nameHi: "संस्थान १२", url: "/foundation-12" },
+    { id: 1, logo: "/logo/logo2.webp", name: "Foundation Name 1", nameHi: "संस्थान १", url: "/foundation-1" },
+    { id: 2, logo: "/logo/logo10.webp", name: "Foundation Name 2", nameHi: "संस्थान २", url: "/foundation-2" },
+    { id: 3, logo: "/logo/logo3.webp", name: "Foundation Name 3", nameHi: "संस्थान ३", url: "/foundation-3" },
+    { id: 4, logo: "/logo/logo4.webp", name: "Foundation Name 4", nameHi: "संस्थान ४", url: "/foundation-4" },
+    { id: 5, logo: "/logo/logo5.webp", name: "Foundation Name 5", nameHi: "संस्थान ५", url: "/foundation-5" },
+    { id: 6, logo: "/logo/logo6.webp", name: "Foundation Name 6", nameHi: "संस्थान ६", url: "/foundation-6" },
+    { id: 7, logo: "/logo/logo7.webp", name: "Foundation Name 7", nameHi: "संस्थान ७", url: "/foundation-7" },
+    { id: 8, logo: "/logo/logo8.webp", name: "Foundation Name 8", nameHi: "संस्थान ८", url: "/foundation-8" },
+    { id: 9, logo: "/logo/logo9.webp", name: "Foundation Name 9", nameHi: "संस्थान ९", url: "/foundation-9" },
+    { id: 10, logo: "/logo/logo1.webp", name: "Foundation Name 10", nameHi: "संस्थान १०", url: "/foundation-10" },
+    { id: 11, logo: "/logo/logo11.webp", name: "Foundation Name 11", nameHi: "संस्थान ११", url: "/foundation-11" },
+    { id: 12, logo: "/logo/logo12.webp", name: "Foundation Name 12", nameHi: "संस्थान १२", url: "/foundation-12" },
+    { id: 13, logo: "/logo/logo13.webp", name: "Foundation Name 13", nameHi: "संस्थान १२", url: "/foundation-13" },
   ];
 
   const centralFoundation = foundations[0];
@@ -229,7 +230,7 @@ export default function Foundations() {
       WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent",
       paddingTop: "0.2em",
-      paddingBottom: "0.2em",
+      paddingBottom: "0.2ewebp",
       lineHeight: "1.2em",
       display: "inline-block",
     }}

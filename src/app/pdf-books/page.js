@@ -18,7 +18,7 @@ export default function PDFBookViewer() {
       title: "गो कपा चिकित्सा ज्योति",
       author: "Dr. Rajesh Kumar",
       pages: 245,
-      cover: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=600&fit=crop",
+      cover: "/books/1.JPG",
       category: "Ayurveda"
     },
     {
@@ -26,7 +26,7 @@ export default function PDFBookViewer() {
       title: "प्राचीन भारतीय चिकित्सा",
       author: "Dr. Sarah Johnson",
       pages: 312,
-      cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
+      cover: "/books/2.JPG",
       category: "Traditional Medicine"
     },
     {
@@ -34,7 +34,7 @@ export default function PDFBookViewer() {
       title: "योग और आयुर्वेद",
       author: "Swami Ramdev",
       pages: 198,
-      cover: "https://images.unsplash.com/photo-1589998059171-988d887df646?w=400&h=600&fit=crop",
+      cover: "/books/3.JPG",
       category: "Yoga"
     },
     {
@@ -42,7 +42,7 @@ export default function PDFBookViewer() {
       title: "हर्बल औषधि विज्ञान",
       author: "Dr. Emily Davis",
       pages: 428,
-      cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+      cover: "/books/4.JPG",
       category: "Herbal Medicine"
     },
     {
@@ -50,7 +50,7 @@ export default function PDFBookViewer() {
       title: "वैदिक चिकित्सा पद्धति",
       author: "Pandit David Wilson",
       pages: 356,
-      cover: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=400&h=600&fit=crop",
+      cover: "/books/5.JPG",
       category: "Vedic Medicine"
     },
     {
@@ -58,7 +58,7 @@ export default function PDFBookViewer() {
       title: "प्राकृतिक उपचार",
       author: "Dr. Lisa Anderson",
       pages: 289,
-      cover: "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&h=600&fit=crop",
+      cover: "/books/6.JPG",
       category: "Natural Healing"
     },
     {
@@ -66,7 +66,7 @@ export default function PDFBookViewer() {
       title: "आयुर्वेदिक पोषण",
       author: "Chef Anika Sharma",
       pages: 176,
-      cover: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=400&h=600&fit=crop",
+      cover: "/books/7.JPG",
       category: "Nutrition"
     },
     {
@@ -74,7 +74,7 @@ export default function PDFBookViewer() {
       title: "मन और शरीर का संतुलन",
       author: "Dr. Michael Chen",
       pages: 234,
-      cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+      cover: "/books/3.JPG",
       category: "Wellness"
     }
   ];

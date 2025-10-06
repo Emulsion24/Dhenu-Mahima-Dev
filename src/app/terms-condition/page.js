@@ -13,7 +13,6 @@ const ChakraIcon = () => (
     </svg>
 );
 
-
 const ChevronDownIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
     <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -80,11 +79,11 @@ export default function TermsAndConditions() {
           onClick={() => scrollToSection(section.id)}
           className={`group flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors duration-200 ${
             activeSection === section.id
-              ? 'bg-maroon-100 font-semibold text-maroon-800'
-              : 'text-gray-600 hover:bg-cream-100 hover:text-gray-900'
+              ? 'bg-green-100 font-semibold text-orange-500'
+              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
-          <span className={`mr-3 h-2 w-2 rounded-full ${activeSection === section.id ? 'bg-gold-500' : 'bg-transparent group-hover:bg-gray-300'}`}></span>
+          <span className={`mr-3 h-2 w-2 rounded-full ${activeSection === section.id ? 'bg-green-500' : 'bg-transparent group-hover:bg-gray-300'}`}></span>
           {section.title}
         </button>
       ))}
@@ -107,54 +106,54 @@ export default function TermsAndConditions() {
               <ChakraIcon />
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Terms of Seva (Service)</h1>
-            <p className="mx-auto mt-4 max-w-3xl text-lg text-gold-100">
+            <p className="mx-auto mt-4 max-w-3xl text-lg text-green-100">
               A guide to our shared values and commitments as we serve Gaumata (Mother Cow) together.
             </p>
-            <p className="mt-4 text-sm text-maroon-100">Last Updated: October 5, 2025</p>
+            <p className="mt-4 text-sm text-green-200">Last Updated: October 5, 2025</p>
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 bg-gray-50">
+        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
             
             <aside className="hidden lg:col-span-3 lg:block">
-              <div className="sticky top-24 rounded-2xl border border-cream-200 bg-cream-100 p-6 shadow-md">
-                <h2 className="mb-4 text-lg font-bold text-maroon-800">Sections</h2>
+              <div className="sticky top-24 rounded-xl border bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-lg font-bold text-gray-900">Table of Contents</h2>
                 <TableOfContents />
               </div>
             </aside>
 
             <div className="lg:col-span-9">
               <div className="mb-8 lg:hidden">
-                <div className="rounded-2xl border border-cream-200 bg-orange-500 shadow-md">
+                <div className="rounded-xl border bg-white shadow-sm">
                   <button
                     onClick={() => setMobileNavOpen(!isMobileNavOpen)}
-                    className="flex w-full items-center justify-between p-4 text-lg font-bold text-maroon-800"
+                    className="flex w-full items-center justify-between p-4 text-lg font-bold text-gray-900"
                     aria-expanded={isMobileNavOpen}
                   >
-                    <span>View Sections</span>
-                    <ChevronDownIcon className={`text-maroon-700 transform transition-transform duration-300 ${isMobileNavOpen ? 'rotate-180' : ''}`} />
+                    <span>Table of Contents</span>
+                    <ChevronDownIcon className={`transform transition-transform duration-300 ${isMobileNavOpen ? 'rotate-180' : ''}`} />
                   </button>
                   {isMobileNavOpen && (
-                    <div className="border-t border-cream-200 p-4">
+                    <div className="border-t p-4">
                       <TableOfContents />
                     </div>
                   )}
                 </div>
               </div>
               
-              <div className="space-y-8">
+              <div className="space-y-12">
                 {sections.map((section, index) => (
-                  <section key={section.id} id={section.id} className="scroll-mt-20 rounded-2xl border border-cream-200 bg-yellow-200 p-6 shadow-sm">
+                  <section key={section.id} id={section.id} className="scroll-mt-20">
                     <div className="flex items-center mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500text-xl font-bold text-white">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-white">
                         {index + 1}
                       </span>
-                      <h2 className="ml-4 text-3xl font-bold text-maroon-800">
+                      <h2 className="ml-4 text-3xl font-bold text-gray-900">
                         {section.title}
                       </h2>
                     </div>
-                    <article className="prose prose-lg max-w-none text-gray-700 prose-a:text-gold-600 hover:prose-a:text-gold-700">
+                    <article className="prose prose-lg max-w-none text-gray-700 prose-a:text-green-600 hover:prose-a:text-green-700">
                       {section.id === 'agreement' && (
                         <p>Jai Gaumata! Welcome to Acow Sheva. By accessing our website, making offerings, or acquiring prasadam, you enter into this sacred covenant, our Terms of Seva. This agreement ensures that our shared journey, dedicated to the welfare of Mother Cow, is conducted with respect, harmony, and devotion. If any part of these terms resonates not with your heart, we humbly request you to understand their purpose before proceeding.</p>
                       )}
@@ -201,7 +200,27 @@ export default function TermsAndConditions() {
                         <p>As the cycles of nature bring forth new beginnings, so too may our Terms of Seva evolve. We reserve the divine prerogative to update or refine these terms at any moment. We shall announce such changes by updating the Last Updated date, and your continued participation signifies your acceptance of this evolving grace.</p>
                       )}
                       {section.id === 'contact' && (
-                        <p>Should your heart seek guidance or clarification regarding these sacred Terms of Seva, please do not hesitate to reach out. We are ever-present to assist you on this path. You may find our connection points on our dedicated contact page or simply send a message to <a href="mailto:seva@acowsheva.com">seva@acowsheva.com</a>.</p>
+                        <div className="not-prose grid grid-cols-1 gap-6 sm:grid-cols-2">
+                          <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
+                            <h4 className="font-semibold text-gray-800">Email Us</h4>
+                            <p className="text-gray-500 text-sm mb-2">For any questions or concerns</p>
+                            <a href="mailto:seva@acowsheva.com" className="font-medium text-yellow-400 break-all group-hover:underline">seva@acowsheva.com</a>
+                          </div>
+                          <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
+                            <h4 className="font-semibold text-gray-800">Call Us</h4>
+                            <p className="text-gray-500 text-sm mb-2">Mon-Fri, 9am - 5pm IST</p>
+                            <a href="tel:+911234567890" className="font-medium text-yellow-400 group-hover:underline">+91 123 456 7890</a>
+                          </div>
+                          <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg sm:col-span-2">
+                            <h4 className="font-semibold text-gray-800">Mailing Address</h4>
+                            <p className="text-gray-500 text-sm mb-2">Send us mail</p>
+                            <address className="not-italic text-gray-600">
+                              123 Dairy Farm Road,<br />
+                              Sheva District, Maharashtra,<br />
+                              India - 400001
+                            </address>
+                          </div>
+                        </div>
                       )}
                     </article>
                   </section>
