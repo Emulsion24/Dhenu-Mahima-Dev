@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,15 +32,17 @@ export default function Header() {
           className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-0"
         >
           <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300">
-            <img
-              src="/images/logo.png"
-              alt="Logo"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src =
-                  "https://placehold.co/112x112/FF9933/fff?text=Logo";
-              }}
-            />
+          <Image
+      src="/logo/Dhenu Mahima PNG 1.png"
+      alt="Logo"
+      width={112}
+      height={112}
+      className="w-full h-full object-cover"
+      onError={() =>
+        setImgSrc("https://placehold.co/112x112/FF9933/fff?text=Logo")
+      }
+      priority
+    />
           </div>
           <div className="flex flex-col text-center md:text-left">
             <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] hover:scale-105 transition-transform duration-300">

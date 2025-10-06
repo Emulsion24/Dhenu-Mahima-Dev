@@ -96,7 +96,22 @@ export default function DonatePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mt-2.5"> गो सेवार्थ होने वाले सभी कार्यों में बने सहभागी</h1>
+              <h1
+  className="text-3xl font-bold mt-2.5 leading-[1.3]"
+>
+  <span
+    className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent inline-block"
+    style={{
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      paddingTop: "0.15em",
+      paddingBottom: "0.15em",
+      display: "inline-block",
+    }}
+  >
+    गो सेवार्थ होने वाले सभी कार्यों में बने सहभागी
+  </span>
+</h1>
               <p className="text-orange-700 mt-1 font-medium">Serve the sacred cows, serve humanity</p>
             </div>
             <div className="flex items-center gap-2 text-green-600">
@@ -108,6 +123,12 @@ export default function DonatePage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl shadow-lg p-6 border border-amber-200 mb-3.5">
+              <h3 className="text-xl italic text-red-950 mb-2 ">
+               श्री गोपाल परिवार संघ निष्काम भाव से अभावग्रस्त क्षेत्रों में विशेष आवश्यकता होने पर 12 फाउंडेशन के माध्यम से गौ चिकित्सालय को उचित आहार, औषधि, आश्रय, सुरक्षा, जल आदि व्यवस्था निःशुल्क करवाने का कार्य कर रहा है। आप भी इस पवित्र सेवा कार्य में सहयोगी बने। इस हेतु आप नीचे दिए गए अकाउंट में अपनी सेवा राशि भिजवाए।
+              </h3>
+             
+            </div>
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Donation Form */}
           <div className="lg:col-span-2">
@@ -122,23 +143,23 @@ export default function DonatePage() {
               <form onSubmit={initiatePhonePePayment}>
                 {/* Amount Selection */}
                 <div className="mb-8">
-                  <label className="block text-sm font-bold text-orange-700 mb-3">
+                  <label className="block text-sm font-bold  text-orange-700 mb-3">
                     Select Donation Amount (₹)
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-4 ">
                     {predefinedAmounts.map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => handleAmountSelect(amt)}
-                        className={`py-3 px-4 rounded-lg border-2 font-bold transition-all ${
-                          amount === amt
-                            ? 'border-orange-500 bg-orange-500 text-white'
-                            : 'border-gray-300 hover:border-orange-300 hover:bg-orange-50 text-gray-800'
-                        }`}
-                      >
-                        ₹{amt.toLocaleString('en-IN')}
-                      </button>
+                     <button
+  key={amt}
+  type="button"
+  onClick={() => handleAmountSelect(amt)}
+  className={`py-3 px-4 rounded-lg border-2 font-bold transition-all duration-300 ease-in-out 
+    ${amount === amt
+      ? 'border-orange-500 bg-gradient-to-br from-orange-600 to-amber-500 text-white shadow-lg scale-[1.03]'
+      : 'border-gray-300 bg-gradient-to-br from-amber-100 to-orange-50 text-gray-800 hover:border-orange-400 hover:bg-orange-100'
+    }`}
+>
+  ₹{amt.toLocaleString('en-IN')}
+</button>
                     ))}
                   </div>
                   <div className="relative">
@@ -233,32 +254,9 @@ export default function DonatePage() {
                   </p>
                 </div>
               </form>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Impact Card */}
-            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl shadow-lg p-6 text-white">
-              <h3 className="text-xl font-bold mb-4">Your Impact</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-3xl font-bold">₹500</p>
-                  <p className="text-orange-100 text-sm">Daily fodder for 5 cows</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold">₹2,500</p>
-                  <p className="text-orange-100 text-sm">Medical treatment for injured cow</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold">₹10,000</p>
-                  <p className="text-orange-100 text-sm">Monthly care for 1 cow</p>
-                </div>
-              </div>
-            </div>
-
+              
             {/* Gau Seva Activities */}
-            <div className="bg-white rounded-2xl shadow-lg p-6 border border-orange-100">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border border-orange-100 mb-1.5">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Our Gau Seva Activities</h3>
               <div className="space-y-4">
                 {impacts.map((impact, idx) => (
@@ -289,15 +287,98 @@ export default function DonatePage() {
               </p>
             </div>
 
-            {/* Quote */}
-            <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl shadow-lg p-6 border border-amber-200">
-              <p className="text-sm italic text-gray-800 mb-2">
-                गावो विश्वस्य मातरः
-              </p>
-              <p className="text-xs text-gray-700">
-                The cow is the mother of the universe
-              </p>
             </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Impact Card */}
+            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl shadow-lg p-6 text-white">
+              <h3 className="text-xl font-bold mb-4">Your Impact</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-3xl font-bold">₹500</p>
+                  <p className="text-orange-100 text-sm">Daily fodder for 5 cows</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">₹2,500</p>
+                  <p className="text-orange-100 text-sm">Medical treatment for injured cow</p>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">₹10,000</p>
+                  <p className="text-orange-100 text-sm">Monthly care for 1 cow</p>
+                </div>
+              </div>
+            </div>
+
+            {/*Bank Details */}
+           <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl shadow-xl p-6 text-white max-w-md mx-auto">
+  <h3 className="text-2xl font-extrabold mb-4 text-center">दान विवरण </h3>
+  <h3 className="text-2xl font-extrabold mb-4 text-center">Donation Details</h3>
+
+  {/* Bank Details */}
+<div className="bg-white/20 rounded-2xl p-6 shadow-lg backdrop-blur-md border border-white/30 text-white space-y-3">
+  
+
+  <p className="text-lg">
+    <span className="font-bold text-yellow-100">Bank Name:</span>{' '}
+    <span className="font-semibold text-white"> Punjab National Bank</span>
+  </p>
+
+  <p className="text-lg">
+    <span className="font-bold text-yellow-100">Account Name:</span>{' '}
+    <span className="font-semibold text-white">SWAMI RAM YOGA SADHNA SAMITI PUSHKAR
+
+</span>
+  </p>
+
+  <p className="text-lg">
+    <span className="font-bold text-yellow-100">Account No:</span>{' '}
+    <span className="font-semibold text-white"> 7289000100040339</span>
+  </p>
+
+  <p className="text-lg">
+    <span className="font-bold text-yellow-100">IFSC Code:</span>{' '}
+    <span className="font-semibold text-white"> PUNB0082500</span>
+  </p>
+
+  <p className="text-lg">
+    <span className="font-bold text-yellow-100">Branch:</span>{' '}
+    <span className="font-semibold text-white">Pushkar, Ajmer, Rajasthan</span>
+  </p>
+</div>
+
+
+  {/* Divider */}
+  <div className="flex items-center my-6">
+    <div className="flex-1 border-t border-white/40"></div>
+    <span className="px-4 text-sm font-semibold text-white/90">OR</span>
+    <div className="flex-1 border-t border-white/40"></div>
+  </div>
+
+  {/* UPI QR Section */}
+  <div className="flex flex-col items-center">
+    <div className="bg-white rounded-xl p-3 shadow-md">
+      <img
+        src="/images/upi-qr.png"
+        alt="UPI QR Code"
+        className="w-40 h-40 object-contain"
+      />
+    </div>
+    <p className="mt-3 text-sm text-white/90">Scan QR to donate via UPI</p>
+    <p className="text-lg font-semibold mt-1">UPI ID: <span className="text-white">9773687886m@pnb</span></p>
+  </div>
+
+  {/* Footer Impact */}
+ 
+</div>
+
+            
+
+            
+
+            {/* Quote */}
+          
           </div>
         </div>
       </div>

@@ -134,18 +134,29 @@ export default function AboutUsPage() {
     <Headers/>
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-yellow-50 to-orange-50">
       {/* Header Section */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500"></div>
-      
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-       
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6">
-            हमारा गोपाल परिवार
+      <div className="text-center mb-16 max-w-4xl mx-auto">
+          {/* Badge */}
+          <div className=" mt-3 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-100 to-orange-100 px-4 py-2 rounded-full mb-6 border border-yellow-300 shadow-lg">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-orange-700 uppercase tracking-wider">Gopal Pariwar</span>
+          </div>
+
+          {/* Main Title with modern styling */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+            <span className="inline-block bg-gradient-to-r from-yellow-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent drop-shadow-sm">
+             हमारा गोपाल परिवार
+            </span>
           </h1>
-         
+          
+          
+          
+          {/* Decorative element */}
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-orange-400"></div>
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-orange-400"></div>
+          </div>
         </div>
-      </section>
 
       {/* Team Members Section */}
       <section className="py-16 md:py-20 px-4 sm:px-6 lg:px-8">
@@ -258,9 +269,7 @@ export default function AboutUsPage() {
               गौ सेवा और समाज कल्याण के इस पुनीत कार्य में आप भी अपना योगदान दें
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <button className="bg-white text-orange-600 px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                स्वयंसेवक बनें
-              </button>
+              
               <button className="bg-orange-800 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105">
                 संपर्क करें
               </button>

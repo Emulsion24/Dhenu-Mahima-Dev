@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Calendar, MapPin, Clock, Youtube, Play, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, Clock, Youtube, Play, ChevronDown, Link } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
 
@@ -139,7 +139,7 @@ export default function AgamiKatha() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center text-white">
             <div className="inline-flex items-center justify-center p-3 mb-6 bg-white/20 backdrop-blur-md rounded-full">
-              <Play className="w-12 h-12" />
+            
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">
               ग्वाल संत श्री के
@@ -154,9 +154,17 @@ export default function AgamiKatha() {
               <button className="px-8 py-4 bg-white text-orange-600 rounded-full font-bold text-lg hover:bg-orange-50 transition-all transform hover:scale-105 shadow-2xl">
                 लाइव देखें
               </button>
-              <button className="px-8 py-4 bg-orange-500/30 backdrop-blur-sm text-white rounded-full font-bold text-lg hover:bg-orange-500/40 transition-all border-2 border-white/40 shadow-xl">
-                कार्यक्रम सूची
-              </button>
+              <button
+  onClick={() => {
+    const section = document.getElementById("program-list");
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  }}
+  className="px-8 py-4 bg-orange-500/30 backdrop-blur-sm text-white rounded-full font-bold text-lg hover:bg-orange-500/40 transition-all border-2 border-white/40 shadow-xl"
+>
+  कार्यक्रम सूची
+</button>
             </div>
           </div>
         </div>
@@ -166,7 +174,7 @@ export default function AgamiKatha() {
          
       </div>
       {/* Events Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 " id="program-list">
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           <div className="bg-white rounded-2xl p-6 shadow-lg text-center transform hover:scale-105 transition-transform">

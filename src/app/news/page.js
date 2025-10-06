@@ -179,19 +179,44 @@ const DainikSamachar = () => {
     <>
     <Headers/>
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-green-50">
-      <header className="bg-gradient-to-r from-yellow-400 to-orange-500 shadow-lg sticky top-0 z-50 border-b-4 border-orange-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              
-              <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-300">
-                दैनिक समाचार
-              </h1>
+       <div className="text-center mb-12 md:mb-16 ">
+          {/* Live indicator badge */}
+          <div className="mt-3 inline-flex items-center gap-3 bg-gradient-to-r from-red-50 to-orange-50 px-5 py-2.5 rounded-full mb-6 border border-red-200/50 shadow-sm">
+            <div className="relative flex items-center ">
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+              <div className="absolute w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></div>
             </div>
-          
+            <span className="text-sm font-bold text-red-700 uppercase tracking-wider">Live Updates</span>
+          </div>
+
+          {/* Main title */}
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 leading-snug">
+  <span
+    className="inline-block bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 bg-clip-text text-transparent"
+    style={{
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      paddingTop: "0.1em",
+      paddingBottom: "0.1em",
+      display: "inline-block",
+    }}
+  >
+    दैनिक समाचार
+  </span>
+</h2>
+
+
+          <p className="text-gray-600 text-base sm:text-lg font-medium max-w-2xl mx-auto">
+            Stay updated with the latest news and announcements
+          </p>
+
+          {/* Decorative line */}
+          <div className="flex items-center justify-center gap-2 mt-6 ">
+            <div className="h-px w-20 bg-gradient-to-r from-transparent to-amber-400"></div>
+            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+            <div className="h-px w-20 bg-gradient-to-l from-transparent to-amber-400"></div>
           </div>
         </div>
-      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">

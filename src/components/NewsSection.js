@@ -48,11 +48,21 @@ export default function NewsSection() {
           </div>
 
           {/* Main title */}
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4">
-            <span className="inline-block bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 bg-clip-text text-transparent">
-              दैनिक समाचार
-            </span>
-          </h2>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 leading-snug">
+  <span
+    className="inline-block bg-gradient-to-r from-amber-700 via-orange-600 to-amber-700 bg-clip-text text-transparent"
+    style={{
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      paddingTop: "0.1em",
+      paddingBottom: "0.1em",
+      display: "inline-block",
+    }}
+  >
+    दैनिक समाचार
+  </span>
+</h2>
+
 
           <p className="text-gray-600 text-base sm:text-lg font-medium max-w-2xl mx-auto">
             Stay updated with the latest news and announcements

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 const slides = [
   { src: "/banner/1.jpg", alt: "Devotees gathered for a spiritual event" },
@@ -47,14 +48,20 @@ export default function HeroSection() {
               index === currentIndex ? "opacity-100" : "opacity-0 absolute inset-0"
             }`}
           >
-            <img
-              src={slide.src}
-              alt={slide.alt}
-              className="w-full h-auto block"
-              onError={(e) => {
-                e.currentTarget.src = `https://placehold.co/1920x600/FF9933/fff?text=Banner+${index + 1}`;
-              }}
-            />
+           <div className="relative w-full h-auto">
+      <Image
+        src={slide.src}
+        alt={slide.alt || `Banner ${index + 1}`}
+        width={1920}
+        height={600}
+        className="w-full h-auto block"
+        onError={() =>
+          setImgSrc(`https://placehold.co/1920x600/FF9933/fff?text=Banner+${index + 1}`)
+        }
+        sizes="100vw"
+        unoptimized
+      />
+    </div>
           </div>
         ))}
       </div>

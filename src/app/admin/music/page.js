@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState, useRef } from "react";
 import { Edit, Trash2, Search, Plus, Mic, Upload, X, Play, Pause, Music, ImageIcon, Tag, User, Album } from "lucide-react";
 
@@ -292,7 +292,13 @@ export default function BhajanPage() {
                 {/* Image */}
                 <div className="relative h-48 bg-gradient-to-br from-orange-200 to-amber-200 overflow-hidden">
                   {bhajan.image ? (
-                    <img src={bhajan.image} alt={bhajan.name} className="w-full h-full object-cover" />
+                    <Image 
+  src={bhajan.image} 
+  alt={bhajan.name} 
+  fill 
+  className="object-cover w-full h-full" 
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+/>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Music className="w-16 h-16 text-orange-400" />
@@ -439,7 +445,17 @@ export default function BhajanPage() {
                 <div className="flex items-center gap-4">
                   {formData.image && (
                     <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-orange-200">
-                      <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    
+
+<div className="relative w-full h-full">
+  <Image
+    src={formData.image}
+    alt="Preview"
+    fill
+    className="object-cover"
+    sizes="100vw"
+  />
+</div>
                     </div>
                   )}
                   <div className="flex-1">

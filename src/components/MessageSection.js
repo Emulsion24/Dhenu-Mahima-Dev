@@ -22,7 +22,7 @@ export default function MessageSection() {
                 </svg>
          </div>
       {/* Top Floating Cards */}
-      <div className="absolute top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-nowrap justify-center items-center gap-4 sm:gap-6 px-4 z-20 w-full max-w-4xl">
+      <div className="mt-5 absolute top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-nowrap justify-center items-center gap-4 sm:gap-6 px-4 z-20 w-full max-w-4xl">
         
         {/* Sunrise Card */}
         <div className="flex-1 flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-3xl shadow-lg px-4 py-3 border border-orange-200 hover:-translate-y-1 transition-transform duration-300 min-w-[90px] sm:min-w-[120px]">

@@ -1,5 +1,6 @@
+'use client'
 import React, { useState } from 'react';
-
+import Image from 'next/image';
 export default function EbookSection() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
@@ -103,14 +104,20 @@ export default function EbookSection() {
                     <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-yellow-100 to-orange-100"></div>
                     
                     {/* Book image */}
-                    <img 
-                      src={book.img} 
-                      alt={book.title} 
-                      className={`w-full h-full object-cover transition-all duration-700 ${
-                        hoveredIndex === i ? 'scale-110 brightness-90' : 'scale-100'
-                      }`}
-                      loading={i < 4 ? "eager" : "lazy"}
-                    />
+                  <div className="relative w-full h-full overflow-hidden">
+  <Image
+    src={book.img}
+    alt={book.title}
+    fill
+    className={`object-cover transition-all duration-700 ${
+      hoveredIndex === i ? "scale-110 brightness-90" : "scale-100"
+    }`}
+    priority={i < 4}       // replaces loading="eager"
+    loading={i < 4 ? "eager" : "lazy"} // optional fallback
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    unoptimized             // keep this if images are from dynamic URLs
+  />
+</div>
                     
                     {/* Gradient overlays */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-40"></div>
@@ -151,12 +158,7 @@ export default function EbookSection() {
                     
                     {/* Mini stats/info */}
                     <div className="flex items-center justify-center gap-3 mt-3 text-xs text-white">
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-                        </svg>
-                        Free
-                      </span>
+                      
                       <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                       <span className="flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -175,7 +177,7 @@ export default function EbookSection() {
         {/* Modern CTA Section */}
         <div className="flex flex-col items-center gap-6 mt-16 md:mt-20">
           {/* Show All Button with modern design */}
-          <button className="group relative overflow-hidden bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white font-bold px-10 sm:px-12 py-4 sm:py-5 rounded-2xl shadow-2xl hover:shadow-orange-500/50 transform hover:scale-105 transition-all duration-500">
+          <button onClick={() => window.location.href = "/pdf-books"}className="group relative overflow-hidden bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white font-bold px-10 sm:px-12 py-4 sm:py-5 rounded-2xl shadow-2xl hover:shadow-orange-500/50 transform hover:scale-105 transition-all duration-500">
             {/* Animated shine effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             
@@ -197,12 +199,7 @@ export default function EbookSection() {
               <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Books Available</div>
             </div>
             <div className="w-px h-12 bg-gray-200"></div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                Free
-              </div>
-              <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Download</div>
-            </div>
+            
             <div className="w-px h-12 bg-gray-200"></div>
             <div>
               <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">

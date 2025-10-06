@@ -218,15 +218,25 @@ export default function Foundations() {
               <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse"></div>
               <div className="absolute w-2.5 h-2.5 bg-orange-500 rounded-full animate-ping"></div>
             </div>
-            <span className="text-sm font-bold text-orange-700 uppercase tracking-wider">Our Network</span>
+            <span className="text-sm font-bold text-orange-700 uppercase tracking-wider">Our Foundations</span>
           </div>
 
           {/* Main title */}
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4">
-            <span className="inline-block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
-              हमारे सेवा प्रकल्प
-            </span>
-          </h2>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 leading-[1.2]">
+  <span
+    className="inline-block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent"
+    style={{
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      paddingTop: "0.2em",
+      paddingBottom: "0.2em",
+      lineHeight: "1.2em",
+      display: "inline-block",
+    }}
+  >
+    हमारे सेवा प्रकल्प
+  </span>
+</h2>
 
           <p className="text-gray-600 text-base sm:text-lg font-medium max-w-2xl mx-auto">
             Discover our network of service foundations dedicated to Gau Seva

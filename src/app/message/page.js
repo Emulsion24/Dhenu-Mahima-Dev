@@ -121,11 +121,11 @@ export default function SendMessage() {
                   
                   {/* Name Field */}
                   <div className="group">
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <label className="block text-sm font-bold text-black mb-3 flex items-center gap-2">
                       <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                       </svg>
-                      Your Name
+                     नाम :
                       <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -133,7 +133,7 @@ export default function SendMessage() {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none font-medium ${
+                      className={`w-full text-black px-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none font-medium ${
                         errors.name 
                           ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100' 
                           : 'border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100'
@@ -157,7 +157,7 @@ export default function SendMessage() {
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
-                      Email Address
+                      ईमेल Id:
                       <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -165,7 +165,7 @@ export default function SendMessage() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none font-medium ${
+                      className={`w-full px-5 text-black py-4 border-2 rounded-2xl transition-all duration-300 outline-none font-medium ${
                         errors.email 
                           ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100' 
                           : 'border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100'
@@ -188,7 +188,7 @@ export default function SendMessage() {
                       <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                       </svg>
-                      Mobile Number
+                     फ़ोन 
                       <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -201,12 +201,12 @@ export default function SendMessage() {
                         value={formData.mobile}
                         onChange={handleChange}
                         maxLength="10"
-                        className={`w-full pl-16 pr-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none font-medium ${
+                        className={`w-full text-black pl-16 pr-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none font-medium ${
                           errors.mobile 
                             ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100' 
                             : 'border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100'
                         }`}
-                        placeholder="9876543210"
+                        placeholder="XXXXXXXXXX"
                       />
                     </div>
                     {errors.mobile && (
@@ -225,7 +225,7 @@ export default function SendMessage() {
                       <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
                       </svg>
-                      Your Message
+                    अपना अमूल्य संदेश - सुझाव यहाँ लिखे
                       <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -233,7 +233,7 @@ export default function SendMessage() {
                       value={formData.message}
                       onChange={handleChange}
                       rows={6}
-                      className={`w-full px-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none resize-none font-medium ${
+                      className={`w-full text-black px-5 py-4 border-2 rounded-2xl transition-all duration-300 outline-none resize-none font-medium ${
                         errors.message 
                           ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100' 
                           : 'border-gray-200 focus:border-orange-400 focus:ring-4 focus:ring-orange-100'
@@ -277,7 +277,7 @@ export default function SendMessage() {
                         </>
                       ) : (
                         <>
-                          <span>Send Message</span>
+                          <span>  संदेश भेजे </span>
                           <svg className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                           </svg>
@@ -320,7 +320,7 @@ export default function SendMessage() {
               </svg>
             </div>
             <h3 className="font-bold text-gray-800 mb-2">Email Us</h3>
-            <p className="text-sm text-gray-600">contact@example.com</p>
+            <p className="text-sm text-gray-600">shreegopalparivarsang@gmail.com</p>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow duration-300">
@@ -330,7 +330,7 @@ export default function SendMessage() {
               </svg>
             </div>
             <h3 className="font-bold text-gray-800 mb-2">Call Us</h3>
-            <p className="text-sm text-gray-600">+91 9876543210</p>
+            <p className="text-sm text-gray-600">+91 9414174880</p>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow duration-300">

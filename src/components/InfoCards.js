@@ -31,19 +31,19 @@ const TempleArchIcon = ({ className }) => (
 export default function InfoCards() {
   const cards = [
     { 
-      title_hi: "गोपाल परिवार", 
+      title_hi: "हमारा गोपाल परिवार", 
       title_en: "Gopal Pariwar",
       image: "/images/1.png",
       link: "/gopal-pariwar"
     },
     { 
-      title_hi: "हमारी नींव", 
+      title_hi: "हमारे सेवा प्रकल्प", 
       title_en: "Our Foundations",
       image: "/images/1.png",
       link: "/#foundation"
     },
     { 
-      title_hi: "दाता संस्थान", 
+      title_hi: "दाता भगवान के संस्थान", 
       title_en: "Data's Sansthan",
       image: "/images/1.png",
       link: "/sansthan"
@@ -55,7 +55,7 @@ export default function InfoCards() {
       link: "/gowshala"
     },
     { 
-      title_hi: "गौ सेवा दान", 
+      title_hi: "गौ सेवार्थ दान", 
       title_en: "Gau Seva Donations",
       image: "/images/1.png",
       link: "/donate"
@@ -67,7 +67,7 @@ export default function InfoCards() {
       link: "/objective"
     },
     { 
-      title_hi: "गौ कथा के लिए", 
+      title_hi: "कथा करवाने हेतु", 
       title_en: "For Gau Katha",
       image:"/images/1.png",
       link: "/contact"
@@ -85,17 +85,12 @@ export default function InfoCards() {
       link: "/news"
     },
     { 
-      title_hi: "मासिक पत्रिका", 
+      title_hi: "मासिक पत्रिका सदस्यता", 
       title_en: "Monthly Magazine",
       image: "/images/1.png",
       link: "/magazine"
     },
-    { 
-      title_hi: "ई-बुक", 
-      title_en: "E-Book",
-      image: "/images/1.png",
-      link: "/ebook"
-    },
+  
     { 
       title_hi: "पीडीएफ पुस्तकें", 
       title_en: "PDF-Books",
@@ -103,16 +98,16 @@ export default function InfoCards() {
       link: "/pdf-books"
     },
     { 
-      title_hi: "पद यात्रा", 
+      title_hi: "हमारी पदयात्रा", 
       title_en: "Pad Yatra's",
       image: "/images/1.png",
       link: "https://dhenudhamfoundation.com"
     },
     { 
-      title_hi: "भजन", 
+      title_hi: "जीवन सूत्र एवं गौ सत्संग", 
       title_en: "Bhajanas",
       image: "/images/1.png",
-      link: "/bhajanas"
+      link: "/#music"
     },
     { 
       title_hi: "संपर्क करें", 
@@ -120,12 +115,7 @@ export default function InfoCards() {
       image: "/images/1.png",
       link: "/message"
     },
-    { 
-      title_hi: "निदेशक का संदेश", 
-      title_en: "Directors Message",
-      image: "/images/1.png",
-      link: "/#director-message"
-    },
+   
   ];
 
   const handleCardClick = (link) => {
@@ -163,15 +153,15 @@ export default function InfoCards() {
                 अधिक जानकारी हेतु
               </h2>
               
-              <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-300 to-transparent rounded-full mx-auto mb-3" />
+   
               
-              <p 
+                <p 
                 className="text-lg sm:text-xl md:text-2xl text-amber-200 font-bold"
                 style={{ 
                   fontFamily: 'Noto Serif Devanagari, serif',
                   textShadow: '1px 1px 3px rgba(0,0,0,0.4)'
                 }}
-              >
+                 >
                 नीचे दिये बॉक्स पर क्लिक करें
               </p>
             </div>
@@ -179,7 +169,7 @@ export default function InfoCards() {
         </div>
 
         {/* Cards Grid with Staggered Animation */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {cards.map((card, i) => (
             <div
               key={i}
@@ -191,38 +181,41 @@ export default function InfoCards() {
               {/* Card Container */}
               <div className="relative h-full rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300 border-2 border-orange-100" style={{ backgroundColor: "#ADEED9" }}>
                 {/* Image section */}
-                <div className="relative h-56 sm:h-64 overflow-hidden">
-                  <Image 
-                    src={card.image} 
-                    alt={card.title_hi}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-all duration-500 group-hover:scale-110 group-hover:rotate-2"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                </div>
-                  <div 
-                  className="h-1.5" 
-                  style={{
-                    background: 'linear-gradient(to right, #f97316, #d97706)'
-                  }}
-                />
+               
                 {/* Content Section */}
-                <div className="p-6 sm:p-8 text-center">
-                  <h3 
-                    className="text-2xl sm:text-2xl font-bold text-orange-900 mb-2 leading-tight"
-                    style={{ 
-                      fontFamily: 'Noto Serif Devanagari, Georgia, serif',
-                    }}
-                  >
+                    <div className="relative w-full h-64 overflow-hidden rounded-2xl">
+      {/* Background Image */}
+      <Image
+        src="/images/1.png"
+        alt="Background Logo"
+        fill
+        className="object-cover blur-xs brightness-95"
+        onError={() =>
+          setImgSrc("https://placehold.co/800x400/FF9933/fff?text=Logo")
+        }
+        priority
+      />
+
+      {/* Foreground content (optional) */}
+      <div className="absolute inset-0 flex items-center justify-center">
+         <div className="p-6 sm:p-8 text-center">
+                 <h2
+  className="text-4xl sm:text-2xl text-orange-900 mb-2 leading-tight font-extrabold drop-shadow-[1px_1px_1px_rgba(0,0,0,0.3)]"
+  style={{
+    fontFamily: 'Noto Serif Devanagari, Georgia, serif',
+  }}
+>
                     {card.title_hi}
-                  </h3>
+                  </h2>
                   
-                  <p className="text-orange-600 text-base sm:text-lg font-bold mb-6">
+                  <p className= "text-orange-900 text-base font-bold sm:text-lg  mb-6">
                     {card.title_en}
                   </p>
                 
                 </div>
+      </div>
+    </div>
+
 
                 {/* Bottom accent line - UNIFORM FOR ALL CARDS */}
                 

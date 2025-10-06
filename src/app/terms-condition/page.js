@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Footer from '@/components/Footer';
+import Headers from '@/components/Header';
 
 // Icon components for visual enhancement
 // Chakra Icon - symbolizing order, energy, and spiritual journey
@@ -91,14 +93,15 @@ export default function TermsAndConditions() {
 
   return (
     <>
+    <Headers/>
       <Head>
         <title>Terms of Seva - Acow Sheva</title>
         <meta name="description" content="Understand the terms of service and community guidelines for participating in the Acow Sheva mission." />
         <meta name="robots" content="index, follow" />
       </Head>
 
-      <div className="min-h-screen bg-cream-50 text-gray-900">
-        <header className="bg-gradient-to-r from-maroon-700 to-maroon-800 text-white shadow-lg">
+      <div className="min-h-screen bg-gray-50 text-gray-900">
+        <header className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg">
           <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
             <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
               <ChakraIcon />
@@ -111,7 +114,7 @@ export default function TermsAndConditions() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 bg-gray-50">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
             
             <aside className="hidden lg:col-span-3 lg:block">
@@ -123,7 +126,7 @@ export default function TermsAndConditions() {
 
             <div className="lg:col-span-9">
               <div className="mb-8 lg:hidden">
-                <div className="rounded-2xl border border-cream-200 bg-cream-100 shadow-md">
+                <div className="rounded-2xl border border-cream-200 bg-orange-500 shadow-md">
                   <button
                     onClick={() => setMobileNavOpen(!isMobileNavOpen)}
                     className="flex w-full items-center justify-between p-4 text-lg font-bold text-maroon-800"
@@ -142,9 +145,9 @@ export default function TermsAndConditions() {
               
               <div className="space-y-8">
                 {sections.map((section, index) => (
-                  <section key={section.id} id={section.id} className="scroll-mt-20 rounded-2xl border border-cream-200 bg-white p-6 shadow-sm">
+                  <section key={section.id} id={section.id} className="scroll-mt-20 rounded-2xl border border-cream-200 bg-yellow-200 p-6 shadow-sm">
                     <div className="flex items-center mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-maroon-700 text-xl font-bold text-white">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500text-xl font-bold text-white">
                         {index + 1}
                       </span>
                       <h2 className="ml-4 text-3xl font-bold text-maroon-800">
@@ -209,6 +212,7 @@ export default function TermsAndConditions() {
           </div>
         </main>
       </div>
+      <Footer/>
     </>
   );
 }

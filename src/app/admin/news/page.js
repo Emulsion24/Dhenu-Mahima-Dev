@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { Plus, Edit2, Trash2, X, Image as ImageIcon, Calendar, MoreVertical } from "lucide-react";
 
 export default function NewsPage() {
@@ -159,11 +160,15 @@ export default function NewsPage() {
               {/* Image */}
               <div className="relative h-48 overflow-hidden bg-gray-200">
                 {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                 <div className="relative w-full h-full overflow-hidden">
+  <Image
+    src={item.image}
+    alt={item.title}
+    fill
+    className="object-cover group-hover:scale-105 transition-transform duration-500"
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  />
+</div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <ImageIcon size={48} className="text-gray-400" />
@@ -278,11 +283,16 @@ export default function NewsPage() {
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="max-h-64 mx-auto rounded-lg"
-                        />
+                       <div className="relative max-h-64 mx-auto rounded-lg w-full h-64 overflow-hidden">
+  <Image
+    src={imagePreview}
+    alt="Preview"
+    fill
+    className="object-contain rounded-lg"
+    sizes="100vw"
+    unoptimized
+  />
+</div>
                         <button
                           type="button"
                           onClick={() => {

@@ -41,11 +41,11 @@ const InstructionsSection = () => {
       <h2 className="text-3xl md:text-4xl font-extrabold text-orange-800 border-b-4 border-orange-500 pb-3 inline-block">
         कथा करवाने हेतु व्यवस्थात्मक निर्देश
       </h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid  md:grid-cols-2 lg:grid-cols-3 gap-6">
         {instructionsList.map((instruction, index) => (
           <div
             key={index}
-            className="p-6 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 rounded-2xl shadow-lg hover:shadow-2xl transition duration-300 border-l-4 border-orange-400 flex space-x-4 items-start"
+            className="p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition duration-300 border-l-4 border-orange-400 flex space-x-4 items-start"
           >
             <div className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
               {index + 1}
@@ -69,37 +69,58 @@ const GaukathaPage = () => {
     <Headers/>
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-orange-100 to-orange-50 font-sans">
       {/* Hero Section */}
-      <section className="text-center mb-16 bg-gradient-to-r from-orange-100 via-orange-50 to-orange-100 p-10 md:p-16 rounded-3xl shadow-xl border-t-4 border-orange-500">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-orange-800 mb-4 tracking-tight leading-snug">
-          भगवती गौमाता कथा
-        </h1>
-        <p className="text-lg md:text-xl text-gray-800 max-w-4xl mx-auto">
-          भगवती गौमाता की कथा एवं अन्य कथाएं अपने गांव, नगर, महानगर, गौशाला में करवाने हेतु आवेदन करें और व्यवस्थात्मक निर्देशों का पालन सुनिश्चित करें।
-        </p>
-      </section>
+    <div className="text-center mb-16 max-w-4xl mx-auto">
+          {/* Badge */}
+          <div className=" mt-2 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-100 to-orange-100 px-4 py-2 rounded-full mb-6 border border-yellow-300 shadow-lg">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+            <span className=" text-sm font-semibold text-orange-700 uppercase tracking-wider">For Gau Katha</span>
+          </div>
+
+          {/* Main Title with modern styling */}
+   <p className="text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 leading-snug text-center">
+  <span className="inline-block bg-gradient-to-r from-yellow-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent drop-shadow-sm">
+    भगवती गौमाता की कथा एवं अन्य कथाएं अपने गांव, नगर,
+  </span>
+  <br />
+  <span className="inline-block bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-500 bg-clip-text text-transparent">
+    महानगर, गौशाला में करवाने हेतु फॉर्म भरे
+  </span>
+</p>
+
+          
+          {/* Subtitle */}
+          
+          
+          {/* Decorative element */}
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <div className="h-px w-16 bg-gradient-to-r from-transparent to-orange-400"></div>
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <div className="h-px w-16 bg-gradient-to-l from-transparent to-orange-400"></div>
+          </div>
+        </div>
 
       {/* Main Content */}
       <div className="lg:grid lg:grid-cols-12 lg:gap-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {/* Form Section */}
         <div className="lg:col-span-4 mb-12 lg:mb-0">
-          <div className="p-8 bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 border border-orange-200 rounded-2xl shadow-xl lg:sticky lg:top-24">
+          <div className="p-8 bg-white border border-orange-200 rounded-2xl shadow-xl lg:sticky lg:top-24">
             <h3 className="text-2xl font-bold text-orange-700 mb-6 border-b pb-3">
               कथा हेतु ऑनलाइन आवेदन
             </h3>
             <form className="space-y-4">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">आपका नाम</label>
-                <input type="text" id="name" name="name" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="पूरा नाम" required />
+                <input type="text" id="name" name="name" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" placeholder="पूरा नाम" required />
               </div>
 
               <div>
                 <label htmlFor="contact" className="block text-sm font-medium text-gray-700">संपर्क नंबर</label>
-                <input type="tel" id="contact" name="contact" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="9876543210" required />
+                <input type="tel" id="contact" name="contact" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" placeholder="9876543210" required />
               </div>
 
               <div>
                 <label htmlFor="state" className="block text-sm font-medium text-gray-700">राज्य का चयन करें</label>
-                <select id="state" name="state" className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 rounded-md" required>
+                <select id="state" name="state" className="mt-1 text-black block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 rounded-md" required>
                   <option disabled>--Select--</option>
                   <option>राजस्थान</option>
                   <option>उत्तर प्रदेश</option>
@@ -110,7 +131,7 @@ const GaukathaPage = () => {
 
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700">शहर / गाँव</label>
-                <input type="text" id="city" name="city" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" placeholder="नगर का नाम" required />
+                <input type="text" id="city" name="city" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" placeholder="नगर का नाम" required />
               </div>
 
               <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-150 mt-6">

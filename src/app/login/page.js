@@ -227,7 +227,14 @@ export default function AuthComponent() {
                 type="button"
                 className="w-full flex items-center justify-center gap-3 py-3 border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
-                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                <Image
+  src="https://www.google.com/favicon.ico"
+  alt="Google"
+  width={20}
+  height={20}
+  className="w-5 h-5"
+  unoptimized
+/>
                 <span className="font-semibold text-gray-700">Continue with Google</span>
               </button>
               

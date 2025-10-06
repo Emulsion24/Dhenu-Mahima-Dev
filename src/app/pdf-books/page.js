@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
+import Image from 'next/image';
 
 export default function PDFBookViewer() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -127,11 +128,16 @@ export default function PDFBookViewer() {
               <div className="md:col-span-2">
                 <div className="relative">
                   <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl opacity-50"></div>
-                  <img
-                    src={selectedBook.cover}
-                    alt={selectedBook.title}
-                    className="relative w-full rounded-2xl shadow-2xl"
-                  />
+                 <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl">
+  <Image
+    src={selectedBook.cover}
+    alt={selectedBook.title}
+    fill
+    className="object-cover"
+    sizes="100vw"
+    unoptimized
+  />
+</div>
                 </div>
               </div>
               <div className="md:col-span-3">
@@ -308,15 +314,21 @@ export default function PDFBookViewer() {
                   <div className="relative aspect-[3/4] overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-yellow-100 to-orange-100"></div>
                     
-                    <img 
-                      src={book.cover} 
-                      alt={book.title} 
-                      className={`w-full h-full object-cover transition-all duration-700 ${
-                        hoveredIndex === i ? 'scale-110 brightness-90' : 'scale-100'
-                      }`}
-                      loading={i < 4 ? "eager" : "lazy"}
-                    />
-                    
+              
+
+<div className="relative w-full h-full overflow-hidden">
+  <Image
+    src={book.cover}
+    alt={book.title}
+    fill
+    className={`object-cover transition-all duration-700 ${
+      hoveredIndex === i ? "scale-110 brightness-90" : "scale-100"
+    }`}
+    priority={i < 4} // eager loading for first 4 images
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    unoptimized // use if the image is dynamic or external
+  />
+</div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-40"></div>
                     <div className={`absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 transition-opacity duration-700 ${
                       hoveredIndex === i ? 'opacity-100' : 'opacity-0'

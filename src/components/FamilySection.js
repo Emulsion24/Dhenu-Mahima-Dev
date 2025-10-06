@@ -61,7 +61,7 @@ export default function FamilySection() {
   ];
 
   return (
-    <section className="relative py-20 overflow-hidden bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
+    <section className="relative py-20 overflow-hidden bg-gradient-to-r from-yellow-400 via-yellow-600 to-orange-500">
        <div className="absolute bottom-0 left-0 right-0 rotate-180">
               <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-12 md:h-20">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fffbeb" opacity="0.3"></path>
@@ -92,21 +92,62 @@ export default function FamilySection() {
       <div className="relative z-10 container mx-auto px-4">
         {/* Modern Heading */}
         <div className="mb-10 lg:mb-16">
-          <div className="bg-gradient-to-r from-orange-900 via-orange-500 to-orange-950 rounded-3xl shadow-2xl px-8 py-6 flex items-center justify-center gap-4 max-w-3xl mx-auto">
-            <img src="/images/Heading.png" alt="" className="w-20 h-20 lg:w-20 lg:h-20"
-               style={{ 
-                filter: 'brightness(0) invert(1)', 
-                transform: 'rotate(180deg) scaleY(-1)' 
-                }}
-              onError={(e) => e.currentTarget.style.display = 'none'} />
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-wide text-center drop-shadow-lg">
-              गोपाल परिवार
-            </h1>
-            <img src="/images/Heading.png" alt="" className="w-20 h-20 lg:w-20 lg:h-20"
-              style={{ filter: 'brightness(0) invert(1)' }}
-              onError={(e) => e.currentTarget.style.display = 'none'} />
-          </div>
-        </div>
+  <div className="relative px-8 py-6 flex items-center justify-center gap-4 max-w-3xl mx-auto">
+    <svg 
+      className="absolute inset-0 w-full h-full" 
+      viewBox="0 0 1688 159" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      preserveAspectRatio="none"
+    >
+      <path d="M1504.67 23.3789H844V79.0889H1688C1661.24 78.0941 1601.52 65.5594 1576.68 23.3789C1551.84 -18.8016 1518.32 5.80369 1504.67 23.3789Z" fill="url(#paint0_linear_95_20)"/>
+      <path d="M1504.67 23.3789H844V79.0889H1688C1661.24 78.0941 1601.52 65.5594 1576.68 23.3789C1551.84 -18.8016 1518.32 5.80369 1504.67 23.3789Z" fill="url(#paint1_linear_95_20)"/>
+      <path d="M1504.67 134.799H844V79.0889H1688C1661.24 80.0837 1601.52 92.6184 1576.68 134.799C1551.84 176.979 1518.32 152.374 1504.67 134.799Z" fill="url(#paint2_linear_95_20)"/>
+      <path d="M1504.67 134.799H844V79.0889H1688C1661.24 80.0837 1601.52 92.6184 1576.68 134.799C1551.84 176.979 1518.32 152.374 1504.67 134.799Z" fill="url(#paint3_linear_95_20)"/>
+      <path d="M183.335 23.29H844V79H6.10352e-05C26.757 78.0052 86.4811 65.4705 111.322 23.29C136.163 -18.8905 169.681 5.71482 183.335 23.29Z" fill="url(#paint4_linear_95_20)"/>
+      <path d="M183.335 135.415H844V79H6.10352e-05C26.757 80.0074 86.4811 92.7008 111.322 135.415C136.163 178.13 169.681 153.213 183.335 135.415Z" fill="url(#paint5_linear_95_20)"/>
+      <defs>
+        <linearGradient id="paint0_linear_95_20" x1="844" y1="39.5889" x2="1688" y2="39.5889" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#571710"/>
+          <stop offset="1" stopColor="#732812"/>
+        </linearGradient>
+        <linearGradient id="paint1_linear_95_20" x1="844" y1="39.5889" x2="1688" y2="39.5889" gradientUnits="userSpaceOnUse">
+          <stop offset="0.370192" stopColor="#EE6C1B"/>
+          <stop offset="1" stopColor="#891313"/>
+        </linearGradient>
+        <linearGradient id="paint2_linear_95_20" x1="844" y1="118.589" x2="1688" y2="118.589" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#571710"/>
+          <stop offset="1" stopColor="#737373"/>
+        </linearGradient>
+        <linearGradient id="paint3_linear_95_20" x1="844" y1="118.589" x2="1688" y2="118.589" gradientUnits="userSpaceOnUse">
+          <stop offset="0.370192" stopColor="#EE6C1B"/>
+          <stop offset="1" stopColor="#891313"/>
+        </linearGradient>
+        <linearGradient id="paint4_linear_95_20" x1="844" y1="39.5" x2="0" y2="39.5" gradientUnits="userSpaceOnUse">
+          <stop offset="0.370192" stopColor="#EE6C1B"/>
+          <stop offset="1" stopColor="#891313"/>
+        </linearGradient>
+        <linearGradient id="paint5_linear_95_20" x1="844" y1="119" x2="0" y2="119" gradientUnits="userSpaceOnUse">
+          <stop offset="0.370192" stopColor="#EE6C1B"/>
+          <stop offset="1" stopColor="#891313"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    
+    <img src="/images/Heading.png" alt="" className="relative z-10 w-20 h-20 lg:w-20 lg:h-20"
+       style={{ 
+        filter: 'brightness(0) invert(1)', 
+        transform: 'rotate(180deg) scaleY(-1)' 
+        }}
+      onError={(e) => e.currentTarget.style.display = 'none'} />
+    <h1 className="relative z-10 text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-wide text-center drop-shadow-lg">
+      गोपाल परिवार
+    </h1>
+    <img src="/images/Heading.png" alt="" className="relative z-10 w-20 h-20 lg:w-20 lg:h-20"
+      style={{ filter: 'brightness(0) invert(1)' }}
+      onError={(e) => e.currentTarget.style.display = 'none'} />
+  </div>
+</div>
 
 
         {/* Logo and Button Section */}
@@ -148,8 +189,8 @@ export default function FamilySection() {
                   </div>
 
                   {/* Decorative Dots */}
-                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-orange-400 rounded-full animate-bounce" />
-                  <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-red-400 rounded-full animate-pulse" />
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-white rounded-full animate-bounce" />
+                  <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-white rounded-full animate-pulse" />
                 </div>
 
                 {/* Button */}
@@ -173,8 +214,7 @@ export default function FamilySection() {
                   <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover/button:translate-x-full transition-transform duration-700" />
 
                   {/* Icon */}
-                  <IconComponent className="w-6 h-6 relative z-10 transition-transform duration-300 group-hover/button:rotate-12 group-hover/button:scale-110" />
-
+                  
                   {/* Text */}
                   <span className="relative z-10">{card.title}</span>
 

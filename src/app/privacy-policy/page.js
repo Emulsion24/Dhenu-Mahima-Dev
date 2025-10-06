@@ -79,7 +79,7 @@ export default function PrivacyPolicy() {
           onClick={() => scrollToSection(section.id)}
           className={`group flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors duration-200 ${
             activeSection === section.id
-              ? 'bg-green-100 font-semibold text-green-800'
+              ? 'bg-green-100 font-semibold text-orange-500'
               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
         >
@@ -92,6 +92,7 @@ export default function PrivacyPolicy() {
 
   return (
     <>
+    <Headers/>
       <Head>
         <title>Privacy Policy - Acow Sheva</title>
         <meta name="description" content="Privacy Policy for Acow Sheva - Learn how we collect, use, and protect your personal information" />
@@ -100,7 +101,7 @@ export default function PrivacyPolicy() {
 
       <div className="min-h-screen bg-gray-50">
         {/* Header Banner */}
-        <header className="bg-gradient-to-r from-green-600 to-green-800 text-white shadow-lg">
+        <header className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg">
           <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
             <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
               <LockIcon />
@@ -150,7 +151,7 @@ export default function PrivacyPolicy() {
                 {sections.map((section, index) => (
                   <section key={section.id} id={section.id} className="scroll-mt-20">
                     <div className="flex items-center mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-xl font-bold text-white">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-white">
                         {index + 1}
                       </span>
                       <h2 className="ml-4 text-3xl font-bold text-gray-900">
@@ -200,12 +201,12 @@ export default function PrivacyPolicy() {
                             <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
                                 <h4 className="font-semibold text-gray-800">Email Us</h4>
                                 <p className="text-gray-500 text-sm mb-2">For any privacy concerns</p>
-                                <a href="mailto:privacy@acowsheva.com" className="font-medium text-green-600 break-all group-hover:underline">privacy@acowsheva.com</a>
+                                <a href="mailto:privacy@acowsheva.com" className="font-medium text-yellow-400 break-all group-hover:underline">privacy@acowsheva.com</a>
                             </div>
                             <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
                                 <h4 className="font-semibold text-gray-800">Call Us</h4>
                                 <p className="text-gray-500 text-sm mb-2">Mon-Fri, 9am - 5pm IST</p>
-                                <a href="tel:+911234567890" className="font-medium text-green-600 group-hover:underline">+91 123 456 7890</a>
+                                <a href="tel:+911234567890" className="font-medium text-yellow-400 group-hover:underline">+91 123 456 7890</a>
                             </div>
                              <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg sm:col-span-2">
                                 <h4 className="font-semibold text-gray-800">Mailing Address</h4>
@@ -227,6 +228,7 @@ export default function PrivacyPolicy() {
           </div>
         </main>
       </div>
+      <Footer/>
     </>
   );
 }
