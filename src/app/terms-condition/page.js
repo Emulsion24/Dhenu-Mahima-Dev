@@ -162,7 +162,7 @@ export default function TermsAndConditions() {
                         <p>All offerings (donations) and payments for our sacred products are channeled through secure gateways, ensuring the sanctity of your transaction. We do not retain your financial details within our direct care. By making an offering, you affirm your intention and capacity to contribute, empowering us (or our trusted facilitators) to receive your benevolent gift.</p>
                       )}
                       {section.id === 'products' && (
-                        <p>The precious items available on our platform are offered as "prasadam"—blessed remnants from our service to Gaumata, imbued with spiritual essence. We endeavor to depict these offerings truthfully. However, as many are handcrafted or natural, subtle variations in their divine form, shade, or presence may occur, reflecting their unique origin. All prasadam is offered subject to its divine availability.</p>
+                        <p>The precious items available on our platform are offered as prasadam—blessed remnants from our service to Gaumata, imbued with spiritual essence. We endeavor to depict these offerings truthfully. However, as many are handcrafted or natural, subtle variations in their divine form, shade, or presence may occur, reflecting their unique origin. All prasadam is offered subject to its divine availability.</p>
                       )}
                       {section.id === 'cancellations' && (
                         <>
@@ -189,13 +189,13 @@ export default function TermsAndConditions() {
                         <p>All divine expressions on this platform—be it sacred texts, evocative imagery, emblematic symbols, or digital creations—are the spiritual property of Acow Sheva or our revered contributors, safeguarded by universal laws of creation. These offerings are presented for your personal reflection and spiritual nourishment. Any replication or dissemination without our humble consent is considered an act against the sacred trust.</p>
                       )}
                       {section.id === 'liability' && (
-                        <p>We perform our seva with utmost sincerity and dedication. However, our digital platform and its offerings are presented "as is," without explicit guarantees. In moments of unforeseen challenge, Acow Sheva shall not be held responsible for any direct or indirect hardship arising from your interaction with our services. Our commitment extends to the highest dharma, within the bounds of earthly laws.</p>
+                        <p>We perform our seva with utmost sincerity and dedication. However, our digital platform and its offerings are presented as is, without explicit guarantees. In moments of unforeseen challenge, Acow Sheva shall not be held responsible for any direct or indirect hardship arising from your interaction with our services. Our commitment extends to the highest dharma, within the bounds of earthly laws.</p>
                       )}
                       {section.id === 'governing-law' && (
                         <p>This sacred pact shall be guided by the timeless principles and statutes of the land of India. Any spiritual or temporal disagreements arising from these terms shall be humbly presented before the righteous courts situated in Maharashtra, India.</p>
                       )}
                       {section.id === 'changes' && (
-                        <p>As the cycles of nature bring forth new beginnings, so too may our Terms of Seva evolve. We reserve the divine prerogative to update or refine these terms at any moment. We shall announce such changes by updating the "Last Updated" date, and your continued participation signifies your acceptance of this evolving grace.</p>
+                        <p>As the cycles of nature bring forth new beginnings, so too may our Terms of Seva evolve. We reserve the divine prerogative to update or refine these terms at any moment. We shall announce such changes by updating the Last Updated date, and your continued participation signifies your acceptance of this evolving grace.</p>
                       )}
                       {section.id === 'contact' && (
                         <p>Should your heart seek guidance or clarification regarding these sacred Terms of Seva, please do not hesitate to reach out. We are ever-present to assist you on this path. You may find our connection points on our dedicated contact page or simply send a message to <a href="mailto:seva@acowsheva.com">seva@acowsheva.com</a>.</p>

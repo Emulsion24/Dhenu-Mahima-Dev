@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useState } from "react";
 import {
   Plus,
@@ -214,7 +214,7 @@ export default function ContactUsPage() {
                   {/* Photo Section */}
                   <div className="relative h-64 lg:h-auto bg-gradient-to-br from-indigo-400 to-purple-500">
                     {sansthan.photo ? (
-                      <img
+                      <Image
                         src={sansthan.photo}
                         alt={sansthan.name}
                         className="w-full h-full object-cover"
@@ -386,7 +386,7 @@ export default function ContactUsPage() {
                   <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-500 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img
+                        <Image
                           src={imagePreview}
                           alt="Preview"
                           className="max-h-64 mx-auto rounded-lg"

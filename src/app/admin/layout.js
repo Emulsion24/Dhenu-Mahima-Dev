@@ -38,7 +38,7 @@ export default function AdminLayout({ children }) {
     { href: "/admin/director-message", label: "Director Message", icon: <MessageCircle className="w-5 h-5" /> },
     { href: "/admin/pdf-book", label: "PDF Book", icon: <BookOpen className="w-5 h-5" /> },
     { href: "/admin/terms-conditions", label: "Terms & Conditions", icon: <FileText className="w-5 h-5" /> },
-    { href: "/admin/banner", label: "Banner", icon: <Image className="w-5 h-5" /> },
+    { href: "/admin/banner", label: "Banner", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
 
   ];
 
@@ -82,7 +82,7 @@ export default function AdminLayout({ children }) {
         <div className="p-6 border-b border-white/20">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-              <img 
+              <Image
                 src="/logo-dhenumahima.png" 
                 alt="Logo" 
                 className="w-10 h-10 rounded-full"

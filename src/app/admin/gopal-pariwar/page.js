@@ -18,6 +18,7 @@ import {
   Mail,
   MapPin,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function GopalPariwarPage() {
   const [members, setMembers] = useState([
@@ -236,7 +237,7 @@ export default function GopalPariwarPage() {
                 {/* Photo Section */}
                 <div className="relative h-64 bg-gradient-to-br from-orange-400 to-amber-500">
                   {member.photo ? (
-                    <img
+                    <Image
                       src={member.photo}
                       alt={member.name}
                       className="w-full h-full object-cover"
@@ -383,7 +384,7 @@ export default function GopalPariwarPage() {
                   <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img
+                        <Image
                           src={imagePreview}
                           alt="Preview"
                           className="max-h-64 mx-auto rounded-lg"

@@ -292,7 +292,7 @@ export default function DonatePage() {
             {/* Quote */}
             <div className="bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl shadow-lg p-6 border border-amber-200">
               <p className="text-sm italic text-gray-800 mb-2">
-                "गावो विश्वस्य मातरः"
+                गावो विश्वस्य मातरः
               </p>
               <p className="text-xs text-gray-700">
                 The cow is the mother of the universe

@@ -56,7 +56,7 @@ export default function AdminDashboard() {
           Welcome Back, Admin! 👋
         </h1>
         <p className="text-slate-600 text-sm sm:text-base font-medium">
-          Here's what's happening with your platform today
+          Heres whats happening with your platform today
         </p>
       </div>
 
@@ -207,7 +207,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Activities */}
+     
         
       </div>
 

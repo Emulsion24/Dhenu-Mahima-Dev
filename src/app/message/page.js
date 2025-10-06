@@ -97,7 +97,7 @@ export default function SendMessage() {
           
           {/* Subtitle */}
           <p className="text-gray-600 text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-            Have any questions or feedback? We'd love to hear from you. Fill out the form below and our team will respond within 24 hours.
+            Have any questions or feedback? Wed love to hear from you. Fill out the form below and our team will respond within 24 hours.
           </p>
           
           {/* Decorative element */}

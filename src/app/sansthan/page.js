@@ -19,7 +19,7 @@ const Icon = ({ path, className = 'w-5 h-5' }) => (
 
 // --- Main Page Component ---
 
-export default function sansthan() {
+export default function Sansthan() {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -133,7 +133,7 @@ export default function sansthan() {
 
               {formStatus === 'success' && (
                 <div className="mt-4 text-center p-3 bg-green-100 text-green-800 rounded-lg">
-                  Thank you for reaching out! We'll get back to you soon.
+                  Thank you for reaching out! We ll get back to you soon.
                 </div>
               )}
             </form>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +26,7 @@ export default function Header() {
 
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-4 md:px-6 py-4">
         {/* Logo + Title */}
-        <a
+        <Link
           href="/"
           className="flex items-center space-x-3 md:space-x-4 mb-4 md:mb-0"
         >
@@ -48,36 +49,36 @@ export default function Header() {
               धेनु महिमा
             </p>
           </div>
-        </a>
+        </Link>
 
         {/* Desktop Navbar */}
         <nav className="hidden md:flex items-center gap-6">
-          <a
+          <Link
             href="/"
             className="text-lg font-semibold text-red-900 hover:text-white transition duration-300"
           >
             Home
-          </a>
-          <a
+          </Link>
+          <Link
             href="/gopal-pariwar"
             className="text-lg font-semibold text-red-900 hover:text-white transition duration-300"
           >
             Gopal Pariwar
-          </a>
-          <a
+          </Link>
+          <Link
             href="/login"
             className="text-lg font-semibold text-red-900 hover:text-white transition duration-300"
           >
             Login
-          </a>
-          <a
+          </Link>
+          <Link
             href="/donate"
             className="relative px-6 py-2 rounded-full font-bold text-white bg-red-950 shadow-lg hover:bg-yellow-500 transition-all duration-300"
           >
             Donate Now
             <span className="absolute inset-0 rounded-full bg-yellow-300 opacity-30 blur-xl animate-pulse"></span>
             <span className="absolute inset-0 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-300 bg-white/20"></span>
-          </a>
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -93,13 +94,13 @@ export default function Header() {
       {/* Mobile Dropdown Menu */}
       {isOpen && (
         <div className="md:hidden bg-yellow-400 text-center space-y-3 py-4 shadow-lg">
-          <a
+          <Link
             href="/"
             className="block text-lg font-semibold text-red-900 hover:text-white transition duration-300"
             onClick={toggleMenu}
           >
             Home
-          </a>
+          </Link>
           <a
             href="/gopal-pariwar"
             className="block text-lg font-semibold text-red-900 hover:text-white transition duration-300"

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useState } from "react";
 import {
@@ -307,7 +308,7 @@ export default function GauShalaPage() {
                 {/* Photo Header */}
                 <div className="relative h-48 bg-gradient-to-br from-green-400 to-emerald-500">
                   {gauShala.photo ? (
-                    <img
+                    <Image
                       src={gauShala.photo}
                       alt={gauShala.name}
                       className="w-full h-full object-cover"
@@ -481,7 +482,7 @@ export default function GauShalaPage() {
                   <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-green-500 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <img
+                        <Image
                           src={imagePreview}
                           alt="Preview"
                           className="max-h-64 mx-auto rounded-lg"
