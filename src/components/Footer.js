@@ -4,13 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
-  Facebook,
-  Instagram,
-  Youtube,
   Phone,
   Mail,
   MapPin,
-  MessageCircle,
 } from "lucide-react";
 
 export default function Footer() {
@@ -21,21 +17,43 @@ export default function Footer() {
   }, []);
 
   const socialLinks = [
-    { name: "Facebook", icon: <Facebook size={22} />, href: "#", color: "bg-[#1877F2]" },
-    { name: "Instagram", icon: <Instagram size={22} />, href: "#", color: "bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500" },
-    { name: "YouTube", icon: <Youtube size={22} />, href: "#", color: "bg-[#FF0000]" },
-    { name: "WhatsApp", icon: <MessageCircle size={22} />, href: "#", color: "bg-[#25D366]" },
+    { 
+      name: "Facebook", 
+      icon: "/icons/facebook.png", 
+      href: "https://www.facebook.com/gopal.pariwar.12/", 
+    },
+    { 
+      name: "Instagram", 
+      icon: "/icons/instagram.png", 
+      href: "https://www.instagram.com/gopalpariwar/", 
+    },
+    { 
+      name: "YouTube", 
+      icon: "/icons/youtube.png", 
+      href: "https://www.youtube.com/@DhenuTV", 
+    },
+    { 
+      name: "WhatsApp", 
+      icon: "/icons/social.png", 
+      href: "https://wa.me/+919414174880", 
+    },
   ];
 
-  const SocialLink = ({ href, icon, color, name }) => (
+  const SocialLink = ({ href, icon, name }) => (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-110 text-white ${color}`}
+      className="transition-transform duration-300 hover:scale-110"
       aria-label={name}
     >
-      {icon}
+      <Image
+        src={icon}
+        alt={`${name} icon`}
+        width={40}
+        height={40}
+        className="rounded-lg"
+      />
     </a>
   );
 
@@ -45,15 +63,17 @@ export default function Footer() {
         {/* Logo & Title */}
         <div className="flex flex-col sm:flex-row items-center justify-center pb-8 border-b border-white/20 mb-8">
           <Image
-            src="/images/logo.png"
+            src="/logo/logo5.webp"
             alt="Shri Gopal Pariwar Sangh Logo"
-            width={80}
-            height={80}
+            width={110}
+            height={110}
             className="rounded-full shadow-lg"
           />
           <div className="text-center sm:text-left sm:ml-4 mt-4 sm:mt-0">
             <h3 className="text-3xl font-bold text-yellow-300">श्री गोपाल परिवार संघ</h3>
-            <p className="text-2xl font-medium text-white/90">धेनु महिमा</p>
+            <p className="text-base sm:text-lg md:text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+              धेनु महिमा
+            </p>
           </div>
         </div>
 
@@ -85,20 +105,31 @@ export default function Footer() {
 
           {/* Right */}
           <div className="w-full lg:w-1/2 flex flex-col space-y-5 pt-8 lg:pt-0 items-center lg:items-end">
-            <div className="flex items-center space-x-3 text-xl font-medium">
+            <Link 
+              href="tel:+919414174880"
+              className="flex items-center space-x-3 text-xl font-medium hover:text-orange-400 transition"
+            >
               <Phone className="text-orange-400" size={22} />
               <span>9414174880</span>
-            </div>
+            </Link>
 
-            <div className="flex items-center space-x-3 text-xl font-medium">
+            <Link 
+              href="mailto:shreegopalparivarsang@gmail.com"
+              className="flex items-center space-x-3 text-xl font-medium hover:text-orange-400 transition"
+            >
               <Mail className="text-orange-400" size={22} />
               <span className="truncate">shreegopalparivarsang@gmail.com</span>
-            </div>
+            </Link>
 
-            <div className="flex items-center space-x-3 text-xl font-medium text-right lg:text-left">
-              <MapPin className="text-orange-400" size={22} />
+            <Link 
+              href="https://maps.google.com/?q=Sheetal+Ashram,+Ajmer+Road,+Pushkar,+Rajasthan+305022"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-3 text-xl font-medium text-right lg:text-left hover:text-orange-400 transition"
+            >
+              <MapPin className="text-orange-400 flex-shrink-0" size={22} />
               <p className="flex-1">Sheetal Ashram, Ajmer Road, Pushkar, Rajasthan - 305022</p>
-            </div>
+            </Link>
           </div>
         </div>
 

@@ -156,7 +156,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
 
         {/* Recent Donations - Takes 2 columns on large screens */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 shadow-xl rounded-2xl p-5 sm:p-6">
+        <div className="lg:col-span-4 mt-2 bg-white border border-slate-200 shadow-xl rounded-2xl p-5 sm:p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Music2, Volume2, Heart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const initialAudios = [
   { 
@@ -52,7 +53,7 @@ export default function AudioPlayer() {
   const [audios] = useState(initialAudios);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-
+   const router = useRouter();
   const currentAudio = audios[currentAudioIndex];
   
   const mostLovedAudios = audios
@@ -73,6 +74,9 @@ export default function AudioPlayer() {
     setCurrentAudioIndex(nextIndex);
     setIsPlaying(true);
   };
+  const handelViewall=()=>{
+   router.push(`/bhajan`); 
+  }
 
   const handlePrev = () => {
     const prevIndex = (currentAudioIndex - 1 + audios.length) % audios.length;
@@ -283,7 +287,7 @@ export default function AudioPlayer() {
               ))}
             </div>
 
-            <button className="w-full bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 text-white font-semibold py-4 px-6 rounded-2xl hover:shadow-2xl hover:shadow-orange-400 transition-all flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] text-base relative overflow-hidden group border-2 border-orange-400">
+            <button onClick ={ ()=>handelViewall()} className="w-full bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 text-white font-semibold py-4 px-6 rounded-2xl hover:shadow-2xl hover:shadow-orange-400 transition-all flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] text-base relative overflow-hidden group border-2 border-orange-400">
               <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
               <Music2 size={22} className="relative z-10 group-hover:rotate-12 transition-transform duration-300" strokeWidth={2} />

@@ -44,7 +44,7 @@ export default function FamilySection() {
   const cards = [
     {
       id: 1,
-      logo: "/logo/logo10.webp",
+      logo: "/logo/logo2.webp",
       title: "हमारा गोपाल परिवार",
       icon: OmIcon,
       gradient: "from-orange-500 to-red-500",
@@ -52,7 +52,7 @@ export default function FamilySection() {
     },
     {
       id: 2,
-      logo: "/logo/logo1.webp",
+      logo: "/logo/logo10.webp",
       title: "हमारी पदयात्राएं",
       icon: CowIcon,
       gradient: "from-amber-500 to-orange-500",

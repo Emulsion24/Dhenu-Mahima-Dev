@@ -238,6 +238,15 @@ export default function BhajanPage() {
               >
                 <Plus className="w-5 h-5" /> Add Bhajan
               </button>
+               <button
+                onClick={() => {
+                  setModalType("add");
+                  setShowModal(true);
+                }}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all duration-200 shadow-md font-medium"
+              >
+                <Plus className="w-5 h-5" /> Add catagory
+              </button>
             </div>
           </div>
         </div>
@@ -282,7 +291,7 @@ export default function BhajanPage() {
         </div>
 
         {/* Bhajan Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 grid-rows-2 ">
           {filteredBhajans.length > 0 ? (
             filteredBhajans.map((bhajan) => (
               <div

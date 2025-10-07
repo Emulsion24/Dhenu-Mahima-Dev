@@ -19,7 +19,8 @@ export default function PDFBookViewer() {
       author: "Dr. Rajesh Kumar",
       pages: 245,
       cover: "/books/1.JPG",
-      category: "Ayurveda"
+      category: "Ayurveda",
+          price:"150 R.s"
     },
     {
       id: 2,
@@ -27,7 +28,8 @@ export default function PDFBookViewer() {
       author: "Dr. Sarah Johnson",
       pages: 312,
       cover: "/books/2.JPG",
-      category: "Traditional Medicine"
+      category: "Traditional Medicine",
+          price:"150 R.s"
     },
     {
       id: 3,
@@ -35,7 +37,8 @@ export default function PDFBookViewer() {
       author: "Swami Ramdev",
       pages: 198,
       cover: "/books/3.JPG",
-      category: "Yoga"
+      category: "Yoga",
+          price:"150 R.s"
     },
     {
       id: 4,
@@ -43,7 +46,8 @@ export default function PDFBookViewer() {
       author: "Dr. Emily Davis",
       pages: 428,
       cover: "/books/4.JPG",
-      category: "Herbal Medicine"
+      category: "Herbal Medicine",
+          price:"150 R.s"
     },
     {
       id: 5,
@@ -51,7 +55,8 @@ export default function PDFBookViewer() {
       author: "Pandit David Wilson",
       pages: 356,
       cover: "/books/5.JPG",
-      category: "Vedic Medicine"
+      category: "Vedic Medicine",
+          price:"150 R.s"
     },
     {
       id: 6,
@@ -59,7 +64,9 @@ export default function PDFBookViewer() {
       author: "Dr. Lisa Anderson",
       pages: 289,
       cover: "/books/6.JPG",
-      category: "Natural Healing"
+      category: "Natural Healing",
+     
+       price:"150 R.s"
     },
     {
       id: 7,
@@ -67,7 +74,8 @@ export default function PDFBookViewer() {
       author: "Chef Anika Sharma",
       pages: 176,
       cover: "/books/7.JPG",
-      category: "Nutrition"
+      category: "Nutrition",
+       price:"150 R.s"
     },
     {
       id: 8,
@@ -75,7 +83,8 @@ export default function PDFBookViewer() {
       author: "Dr. Michael Chen",
       pages: 234,
       cover: "/books/3.JPG",
-      category: "Wellness"
+      category: "Wellness",
+      price:"150 R.s"
     }
   ];
 
@@ -102,10 +111,9 @@ export default function PDFBookViewer() {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
-  if (selectedBook) {
-    return (
-        <>
-      
+ if (selectedBook) {
+  return (
+    <>
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 relative overflow-hidden">
         {/* Animated background blobs */}
         <div className="absolute inset-0 opacity-30">
@@ -115,6 +123,7 @@ export default function PDFBookViewer() {
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 py-8">
+          {/* Back Button */}
           <button
             onClick={() => setSelectedBook(null)}
             className="mb-6 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
@@ -122,65 +131,68 @@ export default function PDFBookViewer() {
             <ChevronLeft size={20} />
             Back to Library
           </button>
-          
-          <div className="bg-white rounded-3xl p-8 shadow-2xl">
-            <div className="grid md:grid-cols-5 gap-8">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl opacity-50"></div>
-                 <div className="relative w-full rounded-2xl overflow-hidden shadow-2xl">
-  <Image
-    src={selectedBook.cover}
-    alt={selectedBook.title}
-    fill
-    className="object-cover"
-    sizes="100vw"
-    unoptimized
-  />
-</div>
+
+          {/* Book Card */}
+          <div className="bg-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+            <div className="grid md:grid-cols-5 gap-8 items-center">
+
+              {/* Book Image */}
+              <div className="md:col-span-2 relative">
+                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
+                <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={selectedBook.cover}
+                    alt={selectedBook.title}
+                    fill
+                    className="object-cover transition-transform duration-500 hover:scale-105"
+                    sizes="100vw"
+                    unoptimized
+                  />
                 </div>
               </div>
-              <div className="md:col-span-3">
+
+              {/* Book Details */}
+              <div className="md:col-span-3 flex flex-col justify-between">
+                {/* Category */}
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-4 border border-orange-200">
                   <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
                   <span className="text-sm font-semibold text-orange-700">{selectedBook.category}</span>
                 </div>
-                
-                <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">{selectedBook.title}</h1>
+
+                {/* Title & Author */}
+                <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
+                  {selectedBook.title}
+                </h1>
                 <p className="text-gray-600 text-xl mb-6">by {selectedBook.author}</p>
-                
-                <div className="flex gap-4 mb-8">
-                  <div className="flex items-center gap-2 text-gray-600">
+
+                {/* Pages & Price */}
+                <div className="flex items-center gap-6 mb-8 text-gray-600">
+                  <div className="flex items-center gap-2">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
                     </svg>
                     <span className="font-semibold">{selectedBook.pages} Pages</span>
                   </div>
-                  <div className="w-px bg-gray-300"></div>
-                  <div className="flex items-center gap-2 text-green-600">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="font-semibold">Free Download</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">Price: {selectedBook.price}</span>
                   </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="space-y-4">
-                  <button className="group relative overflow-hidden w-full bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl hover:shadow-orange-500/50 transform hover:scale-105 transition-all duration-500">
+                  <button className="group relative w-full bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                     <span className="relative flex items-center justify-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      Read Now
+                      Buy Now
                     </span>
                   </button>
-                  <button className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl hover:from-orange-200 hover:to-yellow-200 transition-all duration-300 flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download PDF
+
+                  <button className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl flex items-center justify-center gap-2 hover:from-orange-200 hover:to-yellow-200 transition-all duration-300">
+                    Price {selectedBook.price}
                   </button>
                 </div>
               </div>
@@ -188,10 +200,9 @@ export default function PDFBookViewer() {
           </div>
         </div>
       </div>
-
-      </>
-    );
-  }
+    </>
+  );
+}
 
   return (
     <>
@@ -361,12 +372,7 @@ export default function PDFBookViewer() {
                     </h3>
                     
                     <div className="flex items-center justify-center gap-3 mt-3 text-xs text-white">
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-                        </svg>
-                        Free
-                      </span>
+                     
                       <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
                       <span className="flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -442,9 +448,7 @@ export default function PDFBookViewer() {
               </div>
               <div className="w-px h-12 bg-gray-200"></div>
               <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  Free
-                </div>
+                
                 <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Download</div>
               </div>
               <div className="w-px h-12 bg-gray-200"></div>

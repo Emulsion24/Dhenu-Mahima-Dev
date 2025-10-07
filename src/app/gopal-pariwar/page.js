@@ -2,16 +2,19 @@
 import Footer from "@/components/Footer";
 import Headers from "@/components/Header";
 import React, { useState } from 'react';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ExternalLink, ChevronRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, ExternalLink, ChevronRight, ArrowRight } from 'lucide-react';
 
 export default function AboutUsPage() {
   const [expandedMember, setExpandedMember] = useState(null);
+  const router = useRouter();
 
   const teamMembers = [
     {
       id: 1,
       name: "स्वामी राम ज्ञान तीर्थ जी महाराज",
       nameEn: "Swami Ram Gyan Tirth Ji Maharaj",
+      slug: "swami-ram-gyan-tirth-ji-maharaj",
       role: "संस्थापक एवं मुख्य संरक्षक",
       roleEn: "Founder & Chief Patron",
       image: "https://placehold.co/400x500/FF6B6B/fff?text=Swami+Ji",
@@ -32,6 +35,7 @@ export default function AboutUsPage() {
       id: 2,
       name: "गोपालाचार्य स्वामी गोपालानन्द जी",
       nameEn: "Gopalacharya Swami Gopalanand Ji",
+      slug: "gopalacharya-swami-gopalanand-ji",
       role: "गुरुदेव एवं मार्गदर्शक",
       roleEn: "Gurudev & Mentor",
       image: "https://placehold.co/400x500/4ECDC4/fff?text=Gurudev",
@@ -51,6 +55,7 @@ export default function AboutUsPage() {
       id: 3,
       name: "ब्रह्मचारी राधे श्याम",
       nameEn: "Brahmachari Radhe Shyam",
+      slug: "brahmachari-radhe-shyam",
       role: "गौशाला प्रमुख",
       roleEn: "Gaushala Head",
       image: "https://placehold.co/400x500/45B7D1/fff?text=Brahmachari",
@@ -70,6 +75,7 @@ export default function AboutUsPage() {
       id: 4,
       name: "माता गीता देवी",
       nameEn: "Mata Geeta Devi",
+      slug: "mata-geeta-devi",
       role: "महिला प्रकोष्ठ प्रमुख",
       roleEn: "Women's Wing Head",
       image: "https://placehold.co/400x500/FFA07A/fff?text=Mata+Ji",
@@ -88,6 +94,7 @@ export default function AboutUsPage() {
       id: 5,
       name: "पंडित विजय शर्मा",
       nameEn: "Pandit Vijay Sharma",
+      slug: "pandit-vijay-sharma",
       role: "धार्मिक कार्य प्रमुख",
       roleEn: "Religious Activities Head",
       image: "https://placehold.co/400x500/98D8C8/fff?text=Pandit+Ji",
@@ -107,6 +114,7 @@ export default function AboutUsPage() {
       id: 6,
       name: "युवा कार्यकर्ता राज कुमार",
       nameEn: "Youth Activist Raj Kumar",
+      slug: "youth-activist-raj-kumar",
       role: "युवा प्रकोष्ठ संयोजक",
       roleEn: "Youth Coordinator",
       image: "https://placehold.co/400x500/F7DC6F/333?text=Raj+Kumar",
@@ -127,6 +135,11 @@ export default function AboutUsPage() {
 
   const toggleExpand = (id) => {
     setExpandedMember(expandedMember === id ? null : id);
+  };
+
+  const handleKnowMore = (member) => {
+    // Navigate to the member's detail page
+    router.push(`/gopal-pariwar-page/${member.slug}?id=${member.id}`);
   };
 
   return (
@@ -226,6 +239,15 @@ export default function AboutUsPage() {
                         <span>{member.contact.phone}</span>
                       </a>
                     </div>
+
+                    {/* Know More Button */}
+                    <button
+                      onClick={() => handleKnowMore(member)}
+                      className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 mb-4"
+                    >
+                      Know More
+                      <ArrowRight size={18} />
+                    </button>
 
                     {/* Social Links */}
                     <div className="flex items-center justify-center gap-3">

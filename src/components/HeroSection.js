@@ -53,7 +53,7 @@ export default function HeroSection() {
         alt={slide.alt || `Banner ${index + 1}`}
         width={1920}
         height={600}
-        className="w-full h-auto block"
+        className="w-full h-auto block "
         onError={() =>
           setImgSrc(`https://placehold.co/1920x600/FF9933/fff?text=Banner+${index + 1}`)
         }

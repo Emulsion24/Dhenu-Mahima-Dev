@@ -107,7 +107,7 @@ export default function InfoCards() {
       title_hi: "जीवन सूत्र एवं गौ सत्संग", 
       title_en: "Bhajanas",
       image: "/images/1.png",
-      link: "/#music"
+      link: "/bhajan"
     },
     { 
       title_hi: "संपर्क करें", 
