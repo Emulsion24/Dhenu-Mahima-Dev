@@ -178,9 +178,10 @@ export default function BhajanPage() {
   };
 
   const handleDownload = (bhajan) => {
-    if (bhajan.audioUrl) {
+    if (bhajan.audioFile) {
+      // Create a temporary link element
       const link = document.createElement('a');
-      link.href = bhajan.audioUrl;
+      link.href = bhajan.audioFile;
       link.download = `${bhajan.name} - ${bhajan.artist}.mp3`;
       document.body.appendChild(link);
       link.click();
@@ -198,6 +199,7 @@ export default function BhajanPage() {
     }
   };
 
+  // Optimized filtering with useMemo
   const filteredBhajans = useMemo(() => {
     return bhajanList.filter((b) => {
       const matchesSearch = 
@@ -213,22 +215,25 @@ export default function BhajanPage() {
   }, [bhajanList, search, categoryFilter]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-3 sm:p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg sm:rounded-xl shadow-lg">
+            <div className="p-1.5 sm:p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg sm:rounded-xl shadow-lg">
               <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
               Bhajan Management
             </h1>
           </div>
           <p className="text-neutral-600 text-sm sm:text-base ml-9 sm:ml-14">Manage your spiritual music collection</p>
         </div>
 
-        <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm">
+        {/* Action Bar */}
+        <div className="bg-white rounded-xl sm:rounded-2xl border border-orange-100 p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm">
           <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Search Bar */}
             <div className="relative flex-1">
               <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4 sm:w-5 sm:h-5" />
               <input
@@ -236,10 +241,11 @@ export default function BhajanPage() {
                 placeholder="Search by name, artist, album, or category..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-purple-50 border border-purple-100 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 placeholder-neutral-400 text-sm sm:text-base"
+                className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-orange-50 border border-orange-100 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-neutral-900 placeholder-neutral-400 text-sm sm:text-base"
               />
             </div>
 
+            {/* Filter & Action Buttons */}
             <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -263,19 +269,20 @@ export default function BhajanPage() {
                   setModalType("add");
                   setShowModal(true);
                 }}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-md font-medium text-sm sm:text-base"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg sm:rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all duration-200 shadow-md font-medium text-sm sm:text-base"
               >
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Bhajan
               </button>
             </div>
 
+            {/* Category Filter Dropdown */}
             {showFilters && (
-              <div className="pt-3 border-t border-purple-100">
+              <div className="pt-3 border-t border-orange-100">
                 <label className="block text-sm font-semibold text-neutral-700 mb-2">Filter by Category</label>
                 <select
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
-                  className="w-full sm:w-64 px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 text-neutral-900 text-sm sm:text-base"
+                  className="w-full sm:w-64 px-3 sm:px-4 py-2 sm:py-2.5 bg-orange-50 border border-orange-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 text-neutral-900 text-sm sm:text-base"
                 >
                   <option value="all">All Categories</option>
                   {categories.map((cat) => (
@@ -287,30 +294,31 @@ export default function BhajanPage() {
           </div>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-5 shadow-sm">
+          <div className="bg-white rounded-xl sm:rounded-2xl border border-orange-100 p-3 sm:p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
               <div className="text-center sm:text-left">
                 <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Total</p>
                 <p className="text-xl sm:text-2xl font-bold text-neutral-900">{bhajanList.length}</p>
               </div>
-              <div className="p-2 sm:p-3 bg-purple-100 rounded-lg sm:rounded-xl">
-                <Music className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600" />
+              <div className="p-2 sm:p-3 bg-orange-100 rounded-lg sm:rounded-xl">
+                <Music className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600" />
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-5 shadow-sm">
+          <div className="bg-white rounded-xl sm:rounded-2xl border border-orange-100 p-3 sm:p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
               <div className="text-center sm:text-left">
                 <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Categories</p>
                 <p className="text-xl sm:text-2xl font-bold text-neutral-900">{categories.length}</p>
               </div>
-              <div className="p-2 sm:p-3 bg-pink-100 rounded-lg sm:rounded-xl">
-                <Tag className="w-4 h-4 sm:w-6 sm:h-6 text-pink-600" />
+              <div className="p-2 sm:p-3 bg-amber-100 rounded-lg sm:rounded-xl">
+                <Tag className="w-4 h-4 sm:w-6 sm:h-6 text-amber-600" />
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-5 shadow-sm">
+          <div className="bg-white rounded-xl sm:rounded-2xl border border-orange-100 p-3 sm:p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
               <div className="text-center sm:text-left">
                 <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Artists</p>
@@ -318,31 +326,34 @@ export default function BhajanPage() {
                   {new Set(bhajanList.map(b => b.artist)).size}
                 </p>
               </div>
-              <div className="p-2 sm:p-3 bg-rose-100 rounded-lg sm:rounded-xl">
-                <User className="w-4 h-4 sm:w-6 sm:h-6 text-rose-600" />
+              <div className="p-2 sm:p-3 bg-green-100 rounded-lg sm:rounded-xl">
+                <User className="w-4 h-4 sm:w-6 sm:h-6 text-green-600" />
               </div>
             </div>
           </div>
         </div>
 
+        {/* Results Info */}
         {search || categoryFilter !== "all" ? (
           <div className="mb-4 px-2">
             <p className="text-sm text-neutral-600">
-              Found <span className="font-semibold text-purple-600">{filteredBhajans.length}</span> bhajan{filteredBhajans.length !== 1 ? 's' : ''}
+              Found <span className="font-semibold text-orange-600">{filteredBhajans.length}</span> bhajan{filteredBhajans.length !== 1 ? 's' : ''}
               {search && ` matching "${search}"`}
               {categoryFilter !== "all" && ` in ${categoryFilter}`}
             </p>
           </div>
         ) : null}
 
+        {/* Bhajan Cards - Responsive Grid */}
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {filteredBhajans.length > 0 ? (
             filteredBhajans.map((bhajan) => (
               <div
                 key={bhajan.id}
-                className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
+                className="bg-white rounded-xl sm:rounded-2xl border border-orange-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
               >
-                <div className="relative h-36 sm:h-44 md:h-48 bg-gradient-to-br from-purple-200 to-pink-200 overflow-hidden">
+                {/* Image */}
+                <div className="relative h-36 sm:h-44 md:h-48 bg-gradient-to-br from-orange-200 to-amber-200 overflow-hidden">
                   {bhajan.image ? (
                     <img 
                       src={bhajan.image} 
@@ -351,7 +362,7 @@ export default function BhajanPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <Music className="w-12 sm:w-14 md:w-16 h-12 sm:h-14 md:h-16 text-purple-400" />
+                      <Music className="w-12 sm:w-14 md:w-16 h-12 sm:h-14 md:h-16 text-orange-400" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3 sm:pb-4">
@@ -360,14 +371,15 @@ export default function BhajanPage() {
                       className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
                     >
                       {playingId === bhajan.id ? (
-                        <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                        <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                       ) : (
-                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 ml-0.5" />
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 ml-0.5" />
                       )}
                     </button>
                   </div>
                 </div>
 
+                {/* Content */}
                 <div className="p-3 sm:p-4">
                   <div className="mb-2 sm:mb-3">
                     <h3 className="font-bold text-sm sm:text-base md:text-lg text-neutral-900 mb-0.5 sm:mb-1 truncate" title={bhajan.name}>
@@ -379,7 +391,7 @@ export default function BhajanPage() {
                   </div>
 
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
-                    <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium border border-purple-200 truncate max-w-[120px] sm:max-w-none">
+                    <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium border border-orange-200 truncate max-w-[120px] sm:max-w-none">
                       {bhajan.category}
                     </span>
                     <span className="text-xs text-neutral-500 whitespace-nowrap">{bhajan.duration}</span>
@@ -390,7 +402,9 @@ export default function BhajanPage() {
                     <span className="truncate" title={bhajan.album}>{bhajan.album}</span>
                   </div>
 
+                  {/* Action Buttons - Responsive */}
                   <div className="flex flex-col gap-1.5 sm:gap-2 pt-3 border-t border-neutral-100">
+                    {/* Row 1: Edit and Delete */}
                     <div className="flex gap-1.5 sm:gap-2">
                       <button
                         onClick={() => openEditModal(bhajan)}
@@ -407,6 +421,7 @@ export default function BhajanPage() {
                         <span>Delete</span>
                       </button>
                     </div>
+                    {/* Row 2: Download */}
                     <button
                       onClick={() => handleDownload(bhajan)}
                       className="w-full flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors font-medium text-xs sm:text-sm"
@@ -419,7 +434,7 @@ export default function BhajanPage() {
               </div>
             ))
           ) : (
-            <div className="col-span-full bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-8 sm:p-12 text-center">
+            <div className="col-span-full bg-white rounded-xl sm:rounded-2xl border border-orange-100 p-8 sm:p-12 text-center">
               <Music className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-300 mx-auto mb-3" />
               <p className="text-neutral-400 font-medium text-sm sm:text-base">No bhajans found</p>
               <p className="text-neutral-400 text-xs sm:text-sm mt-1">Try adjusting your search or filters</p>
@@ -427,6 +442,7 @@ export default function BhajanPage() {
           )}
         </div>
 
+        {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-3 sm:p-4">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
@@ -437,10 +453,11 @@ export default function BhajanPage() {
                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent pr-8">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent pr-8">
                 {modalType === "record" ? "Record Bhajan" : editBhajan ? "Edit Bhajan" : "Add New Bhajan"}
               </h2>
 
+              {/* Recording Section */}
               {modalType === "record" && (
                 <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
                   <div className="flex flex-col items-center gap-3 sm:gap-4">
@@ -474,6 +491,7 @@ export default function BhajanPage() {
                 </div>
               )}
 
+              {/* Upload Audio */}
               <div className="mb-4 sm:mb-6">
                 <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-2 sm:mb-3">
                   Audio File {modalType !== "record" && <span className="text-red-500">*</span>}
@@ -488,21 +506,22 @@ export default function BhajanPage() {
                   />
                   <label
                     htmlFor="audio-upload"
-                    className="flex items-center justify-center gap-2 sm:gap-3 w-full px-4 sm:px-6 py-3 sm:py-4 bg-purple-50 border-2 border-dashed border-purple-300 rounded-xl cursor-pointer hover:bg-purple-100 transition-colors"
+                    className="flex items-center justify-center gap-2 sm:gap-3 w-full px-4 sm:px-6 py-3 sm:py-4 bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl cursor-pointer hover:bg-orange-100 transition-colors"
                   >
-                    <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
-                    <span className="text-purple-700 font-medium text-xs sm:text-base">
+                    <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+                    <span className="text-orange-700 font-medium text-xs sm:text-base">
                       {formData.audioFile ? "Audio uploaded" : "Upload audio file"}
                     </span>
                   </label>
                 </div>
               </div>
 
+              {/* Image Upload */}
               <div className="mb-4 sm:mb-6">
                 <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-2 sm:mb-3">Cover Image</label>
                 <div className="flex items-center gap-3 sm:gap-4">
                   {formData.image && (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-pink-200 flex-shrink-0">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-orange-200 flex-shrink-0">
                       <img
                         src={formData.image}
                         alt="Preview"
@@ -520,10 +539,10 @@ export default function BhajanPage() {
                     />
                     <label
                       htmlFor="image-upload"
-                      className="flex items-center justify-center gap-2 sm:gap-3 w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-pink-50 border-2 border-dashed border-pink-300 rounded-xl cursor-pointer hover:bg-pink-100 transition-colors"
+                      className="flex items-center justify-center gap-2 sm:gap-3 w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl cursor-pointer hover:bg-amber-100 transition-colors"
                     >
-                      <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
-                      <span className="text-pink-700 font-medium text-xs sm:text-sm">
+                      <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                      <span className="text-amber-700 font-medium text-xs sm:text-sm">
                         {formData.image ? "Change image" : "Upload cover"}
                       </span>
                     </label>
@@ -531,6 +550,7 @@ export default function BhajanPage() {
                 </div>
               </div>
 
+              {/* Form Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">
@@ -541,7 +561,7 @@ export default function BhajanPage() {
                     placeholder="Enter bhajan name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-orange-50 border border-orange-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
                   />
                 </div>
 
@@ -552,7 +572,7 @@ export default function BhajanPage() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-orange-50 border border-orange-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
                   >
                     <option value="">Select category</option>
                     {categories.map((cat) => (
@@ -570,7 +590,7 @@ export default function BhajanPage() {
                     placeholder="Enter artist name"
                     value={formData.artist}
                     onChange={(e) => setFormData({ ...formData, artist: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-orange-50 border border-orange-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
                   />
                 </div>
 
@@ -581,11 +601,12 @@ export default function BhajanPage() {
                     placeholder="Enter album name"
                     value={formData.album}
                     onChange={(e) => setFormData({ ...formData, album: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-orange-50 border border-orange-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
                   />
                 </div>
               </div>
 
+              {/* Action Buttons */}
               <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={resetForm}
@@ -595,7 +616,7 @@ export default function BhajanPage() {
                 </button>
                 <button
                   onClick={handleSaveBhajan}
-                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all shadow-md font-medium text-sm sm:text-base"
+                  className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 transition-all shadow-md font-medium text-sm sm:text-base"
                 >
                   {editBhajan ? "Update Bhajan" : "Save Bhajan"}
                 </button>

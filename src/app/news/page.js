@@ -150,14 +150,15 @@ export default function NewsSection() {
             <Newspaper size={20} className="text-orange-600" />
             <span className="text-sm font-semibold text-orange-700 uppercase">Latest Updates</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
-              ताज़ा समाचार
+    <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+  <span className="bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent inline-block pt-1.5">
+    गौ विषयक समाचार
+  </span>
+</h2>
+
+              <span className="bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
+            Gau Mata Breaking News
             </span>
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            गौ सेवा और सामाजिक कार्यों से जुड़ी नवीनतम जानकारी
-          </p>
         </div>
 
         {/* Category Filter */}

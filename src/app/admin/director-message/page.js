@@ -124,50 +124,133 @@ export default function DirectorMessagePage() {
       </div>
 
       {/* Preview & Confirmation Modal */}
+      {/* Preview & Confirmation Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-blue-600 text-white p-6 flex justify-between items-center rounded-t-2xl">
-              <div className="flex items-center gap-2">
-                <Eye size={24} />
-                <h2 className="text-xl font-bold">Preview Message</h2>
-              </div>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="absolute top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-slate-100 transition-colors"
+            >
+              <X size={24} className="text-slate-700" />
+            </button>
 
-            {/* Modal Body */}
-            <div className="p-6">
-              <div className="bg-slate-50 border-2 border-slate-200 rounded-lg p-6 mb-6">
-                <p className="text-slate-800 whitespace-pre-wrap text-lg">
-                  {message}
+            {/* Modal Body - Scroll Design */}
+            <div className="relative py-16 px-4">
+              {/* Main Scroll Section */}
+              <div className="relative w-full max-w-4xl mx-auto flex justify-center items-center">
+                
+                {/* Abstract Background */}
+                <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+                  <img
+                    src="/images/abs.png"
+                    alt="Abstract Background"
+                    className="object-contain opacity-50 w-[75%] h-auto"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                </div>
+
+                {/* Scroll Background */}
+                <div className="relative z-10 w-[90%] md:w-[85%] lg:w-[80%] rounded-2xl overflow-hidden">
+                  <img
+                    src="/images/scBg.png"
+                    alt="Ancient Scroll Background"
+                    className="w-full h-auto object-contain"
+                    onError={(e) =>
+                      (e.currentTarget.src =
+                        "https://upload.wikimedia.org/wikipedia/commons/d/d1/Parchment_background_02.jpg")
+                    }
+                  />
+
+                  {/* Scroll Text Content */}
+                  <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-8 sm:px-12 md:px-16 lg:px-20 py-12 md:py-16">
+                    
+                    {/* Title */}
+                    <div className="relative mb-6 md:mb-8">
+                      <div
+                        className="relative inline-block px-6 py-3 bg-cover bg-center rounded-lg shadow-xl border-2 border-amber-800"
+                        style={{
+                          backgroundImage: "url('/images/ancient.jpg')",
+                          backgroundBlendMode: "multiply",
+                          backgroundColor: "rgba(120, 70, 40, 0.85)",
+                        }}
+                      >
+                        <h2
+                          className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-amber-50 tracking-wider drop-shadow-lg"
+                          style={{
+                            fontFamily: "Noto Serif Devanagari, Georgia, serif",
+                            textShadow: "3px 3px 6px rgba(0,0,0,0.6)",
+                          }}
+                        >
+                          प्रेरक संदेश
+                        </h2>
+                      </div>
+                      <div className="flex justify-center mt-3">
+                        <div className="w-28 md:w-40 h-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-full" />
+                      </div>
+                    </div>
+
+                    {/* Message Content */}
+                    <blockquote
+                      className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md"
+                      style={{
+                        fontFamily: "Noto Serif Devanagari, Georgia, serif",
+                        textShadow: "1px 1px 2px rgba(0,0,0,0.25)",
+                        lineHeight: "1.8",
+                      }}
+                    >
+                      {message}
+                    </blockquote>
+
+                    {/* Writer */}
+                    <div className="w-full mt-8 flex flex-col items-end px-4">
+                      <div className="w-32 md:w-48 h-0.5 bg-gradient-to-l from-red-600 to-transparent rounded-full mb-2" />
+                      <div
+                        className="relative inline-block px-5 py-3 bg-cover bg-center rounded-md shadow-xl border-2 border-amber-700"
+                        style={{
+                          backgroundImage: "url('/images/ancient.jpg')",
+                          backgroundBlendMode: "multiply",
+                          backgroundColor: "rgba(100, 60, 30, 0.8)",
+                        }}
+                      >
+                        <p
+                          className="text-sm sm:text-base md:text-lg font-bold text-amber-50 italic drop-shadow-md"
+                          style={{
+                            fontFamily: "Noto Serif Devanagari, Georgia, serif",
+                            textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                          }}
+                        >
+                          ~ परम पूज्य ग्वाल संत श्री
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Confirmation Text and Buttons */}
+              <div className="mt-8 max-w-2xl mx-auto bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-xl">
+                <p className="text-lg text-slate-800 font-semibold mb-6 text-center">
+                  Are you sure you want to send this message?
                 </p>
-              </div>
 
-              <p className="text-sm text-slate-600 mb-6 text-center">
-                Are you sure you want to send this message?
-              </p>
-
-              {/* Buttons */}
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setShowPreviewModal(false)}
-                  className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmSend}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                >
-                  <Check size={18} />
-                  Confirm & Send
-                </button>
+                {/* Buttons */}
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setShowPreviewModal(false)}
+                    className="flex-1 px-6 py-3 border-2 border-slate-400 bg-white text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-semibold shadow-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmSend}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-md"
+                  >
+                    <Check size={18} />
+                    Confirm & Send
+                  </button>
+                </div>
               </div>
             </div>
           </div>

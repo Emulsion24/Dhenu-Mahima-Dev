@@ -7,11 +7,16 @@ export default function SendMessage() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const [submitMessage, setSubmitMessage] = useState('');
+  const [attachedFile, setAttachedFile] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+   const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setAttachedFile(file);
   };
 
   const validateForm = () => {
@@ -256,6 +261,40 @@ export default function SendMessage() {
                       </span>
                     )}
                   </div>
+                   <div className="group">
+                      <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8 2a2 2 0 00-2 2v10a4 4 0 108 0V6a1 1 0 112 0v8a6 6 0 11-12 0V4a4 4 0 118 0v8a2 2 0 11-4 0V6a1 1 0 112 0v6a1 1 0 102 0V6a3 3 0 00-6 0v8a5 5 0 0010 0V4a4 4 0 00-4-4H8z" clipRule="evenodd" />
+                        </svg>
+                        Attach File (optional)
+                      </label>
+                      <div className="relative flex items-center justify-between border-2 border-gray-200 rounded-2xl px-5 py-4 hover:border-orange-400 transition duration-300 cursor-pointer">
+                        <input
+                          type="file"
+                          id="file"
+                          name="file"
+                          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                          onChange={handleFileChange}
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        <div className="flex items-center gap-3 text-gray-700 font-medium">
+                          <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h4l2 2 2-2h4a2 2 0 002-2V5a2 2 0 00-2-2H4z" />
+                          </svg>
+                          {attachedFile ? attachedFile.name : 'No file chosen'}
+                        </div>
+                        <span className="text-sm text-orange-600 font-semibold hover:underline">Browse</span>
+                      </div>
+                      {attachedFile && (
+                        <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          File attached successfully
+                        </p>
+                      )}
+                    </div>
+
 
                   {/* Submit Button */}
                   <button

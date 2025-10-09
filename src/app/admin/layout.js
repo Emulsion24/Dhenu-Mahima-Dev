@@ -29,17 +29,21 @@ export default function AdminLayout({ children }) {
   const navItems = [
     { href: "/admin", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
     { href: "/admin/users", label: "Users", icon: <Users className="w-5 h-5" /> },
-    { href: "/admin/music", label: "Bhajan", icon: <Music className="w-5 h-5" /> },
+    { href: "/admin/music", label: "Jeevan Sutra", icon: <Music className="w-5 h-5" /> },
+    { href: "/admin/bhajan-music", label: "Gaumata Ji Bhajan", icon: <Music className="w-5 h-5" /> },
     { href: "/admin/news", label: "Daily News", icon: <Newspaper className="w-5 h-5" /> },
     { href: "/admin/gopal-pariwar", label: "Gopal Pariwar", icon: <UsersRound className="w-5 h-5" /> },
     { href: "/admin/gau-shalas", label: "Gau Shallas", icon: <LocateIcon className="w-5 h-5" /> },
+    { href: "/admin/foundations", label: "Foundations", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
+    { href: "/admin/cards", label: "Cards", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
     { href: "/admin/contact-us", label: "Data's Sansthan ", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/admin/donations", label: "Donations", icon: <Heart className="w-5 h-5" /> },
     { href: "/admin/director-message", label: "Director Message", icon: <MessageCircle className="w-5 h-5" /> },
     { href: "/admin/pdf-book", label: "PDF Book", icon: <BookOpen className="w-5 h-5" /> },
-    { href: "/admin/terms-conditions", label: "Terms & Conditions", icon: <FileText className="w-5 h-5" /> },
     { href: "/admin/banner", label: "Banner", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
-
+    { href: "/admin/privacy-policy", label: "Privacy Policy", icon: <FileText className="w-5 h-5" /> },
+  
+    { href: "/admin/terms-conditions", label: "Terms & Conditions", icon: <FileText className="w-5 h-5" /> },
   ];
 
   const toggleSidebar = () => {
@@ -51,8 +55,24 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-yellow-50">
-      
+    <>
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-yellow-50 pt-10">
+
+      {/* Fixed Slogan Bar */}
+<div className="fixed z-[60] top-0 left-0 w-full  bg-gradient-to-r from-orange-50 via-yellow-50 to-orange-50 border-b border-orange-200 shadow-sm py-2 px-6 flex items-center justify-between text-center">
+  <span className="text-sm sm:text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+    जय गौ माता
+  </span>
+
+  <span className="text-sm sm:text-base font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+    || ॐ करणी ||
+  </span>
+
+  <span className="text-sm sm:text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+    जय गोपाल
+  </span>
+</div>
+
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
@@ -83,13 +103,10 @@ export default function AdminLayout({ children }) {
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
               <Image
-                src="/logo-dhenumahima.png" 
+                src="g" 
                 alt="Logo" 
                 className="w-10 h-10 rounded-full"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = '<div class="text-2xl font-bold">🐄</div>';
-                }}
+               
               />
             </div>
             <div>
@@ -101,7 +118,7 @@ export default function AdminLayout({ children }) {
     
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <nav className=" flex-1 overflow-y-auto p-4 space-y-1 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -153,18 +170,7 @@ export default function AdminLayout({ children }) {
                 <Menu size={24} />
               </button>
 
-              {/* Slogans */}
-              <div className="hidden md:flex items-center gap-4 lg:gap-8">
-                <span className="text-sm lg:text-base font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                  जय गौ माता
-                </span>
-                <span className="text-sm lg:text-base font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  || ॐ करणी ||
-                </span>
-                <span className="text-sm lg:text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                  जय गोपाल
-                </span>
-              </div>
+             
             </div>
 
             {/* Right Section - Notifications + Profile */}
@@ -207,11 +213,9 @@ export default function AdminLayout({ children }) {
           </div>
 
           {/* Mobile Slogans */}
-          <div className="md:hidden flex items-center justify-around px-4 py-2 bg-gradient-to-r from-orange-50 to-amber-50 border-t border-slate-200">
-            <span className="text-xs font-bold text-orange-600">जय गौ माता</span>
-            <span className="text-xs font-bold text-purple-600">|| ॐ करणी ||</span>
-            <span className="text-xs font-bold text-blue-600">जय गोपाल</span>
-          </div>
+          {/* Mobile Slogans */}
+
+
         </header>
 
         {/* Page Content */}
@@ -230,5 +234,6 @@ export default function AdminLayout({ children }) {
         />
       )}
     </div>
+    </>
   );
 }

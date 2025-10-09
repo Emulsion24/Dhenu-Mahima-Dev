@@ -104,10 +104,16 @@ export default function InfoCards() {
       link: "https://dhenudhamfoundation.com"
     },
     { 
-      title_hi: "जीवन सूत्र एवं गौ सत्संग", 
-      title_en: "Bhajanas",
+      title_hi: "जीवन सूत्र", 
+      title_en: "Jeevan Sutra",
       image: "/images/1.png",
       link: "/bhajan"
+    },
+     { 
+      title_hi: "गौ माता जी के भजन", 
+      title_en: "Gau Mata Ji Bhajan's",
+      image: "/images/1.png",
+      link: "/Gau-mata-bhajan"
     },
     { 
       title_hi: "संपर्क करें", 

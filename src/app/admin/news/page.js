@@ -43,6 +43,13 @@ export default function NewsPage() {
       [name]: value
     }));
   };
+  const datevalue =(item)=>{
+    const d = new Date(item.date)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}/${month}/${year}`
+  }
 
   // Handle image upload
   const handleImageUpload = (e) => {
@@ -209,7 +216,7 @@ export default function NewsPage() {
               <div className="p-6">
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                   <Calendar size={16} />
-                  <span>{new Date(item.date).toLocaleDateString()}</span>
+                  <span>{datevalue(item)}</span>
                   <span className="ml-auto text-blue-600 font-medium">{item.author}</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2">
