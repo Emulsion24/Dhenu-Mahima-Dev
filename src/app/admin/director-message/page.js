@@ -1,32 +1,58 @@
 "use client";
 
-import { useState } from "react";
-import { Trash2, Eye, Send, X, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Trash2, Send, X, Check } from "lucide-react";
+import { useAdminStore } from "@/store/adminStore";
 
 export default function DirectorMessagePage() {
   const [message, setMessage] = useState("");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [messageHistory, setMessageHistory] = useState([
-    {
-      id: 1,
-      content: "Welcome to our organization! We are proud to serve the community with dedication.",
-      date: "2024-01-15",
-      time: "10:30 AM",
-    },
-    {
-      id: 2,
-      content: "Wishing everyone a blessed festival season. May this bring prosperity to all.",
-      date: "2024-01-10",
-      time: "02:15 PM",
-    },
-    {
-      id: 3,
-      content: "Thank you for your continuous support. Together we have achieved great milestones.",
-      date: "2023-12-31",
-      time: "11:00 AM",
-    },
-  ]);
+  const [messageHistory, setMessageHistory] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  
+  const {getMessage,deleteMessage,uploadMessage }=useAdminStore(); 
+
+  // 🟢 Fetch messages on load
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await getMessage();
+        
+        console.log("Response from getMessage:", res); // Debug log
+        
+        // Handle different response structures
+        let messageData = null;
+        
+        if (Array.isArray(res)) {
+          // If it's an array, take the first item
+          messageData = res[0];
+        } else if (res && typeof res === 'object') {
+          // If it's an object, use it directly
+          messageData = res;
+        }
+        
+        console.log("Processed messageData:", messageData); // Debug log
+        
+        if (messageData && messageData.info) {
+          setMessageHistory(messageData);
+        } else {
+          setError("No valid message data received");
+        }
+      } catch (err) {
+        console.error("Failed to fetch messages:", err);
+        setError(err.message || "Failed to load message");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMessages();
+  }, []);
+
+  // 🟡 Handle send click
   const handleSendClick = () => {
     if (!message.trim()) {
       alert("Please enter a message!");
@@ -35,26 +61,37 @@ export default function DirectorMessagePage() {
     setShowPreviewModal(true);
   };
 
-  const handleConfirmSend = () => {
-    const newMessage = {
-      id: Date.now(),
-      content: message,
-      date: new Date().toISOString().split("T")[0],
-      time: new Date().toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    setMessageHistory([newMessage, ...messageHistory]);
-    setMessage("");
-    setShowPreviewModal(false);
-    alert("Message sent successfully!");
+  // 🟢 Confirm & send message
+  const handleConfirmSend = async () => {
+    try {
+      const res = await uploadMessage(message);
+      const newMsg = res?.data || res;
+      
+      console.log("New message created:", newMsg); // Debug log
+      
+      // Update the message history with the new message
+      setMessageHistory(newMsg);
+      setMessage("");
+      setShowPreviewModal(false);
+      alert("Message sent successfully!");
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      alert("Error sending message.");
+    }
   };
 
-  const handleDelete = (id) => {
+  // 🔴 Delete a message
+  const handleDelete = async (id) => {
+    if (!id) return;
     if (window.confirm("Are you sure you want to delete this message?")) {
-      setMessageHistory(messageHistory.filter((msg) => msg.id !== id));
+      try {
+        await deleteMessage(id);
+        setMessageHistory(null);
+        alert("Message deleted successfully!");
+      } catch (err) {
+        console.error("Failed to delete message:", err);
+        alert("Error deleting message.");
+      }
     }
   };
 
@@ -92,38 +129,61 @@ export default function DirectorMessagePage() {
       {/* Previous Messages */}
       <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-4 sm:p-6">
         <h2 className="text-xl font-bold text-slate-800 mb-4">
-          Previous Messages
+          Current Message
         </h2>
 
-        {messageHistory.length === 0 ? (
-          <p className="text-slate-500 text-center py-8">No messages yet</p>
-        ) : (
+        {isLoading ? (
+          <div className="text-center py-8 text-slate-500">
+            <div className="animate-pulse">Loading message...</div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-2">Error: {error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="text-blue-600 hover:underline"
+            >
+              Retry
+            </button>
+          </div>
+        ) : messageHistory && messageHistory.info ? (
           <div className="space-y-4">
-            {messageHistory.map((msg) => (
-              <div
-                key={msg.id}
-                className="border-2 border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-colors"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="text-xs text-slate-500 font-medium">
-                    {msg.date} • {msg.time}
-                  </div>
-                  <button
-                    onClick={() => handleDelete(msg.id)}
-                    className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+            <div
+              className="border-2 border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-colors"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div className="text-xs text-slate-500 font-medium">
+                  {messageHistory.createdAt 
+                    ? new Date(messageHistory.createdAt).toLocaleString('en-IN', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : 'Date not available'}
                 </div>
-                <p className="text-slate-800 whitespace-pre-wrap">{msg.content}</p>
+                <button
+                  onClick={() => handleDelete(messageHistory.id)}
+                  className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
-            ))}
+              <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">
+                {messageHistory.info}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-slate-500">
+            <p className="mb-2">No message found</p>
+            <p className="text-sm">Create a new message to get started</p>
           </div>
         )}
       </div>
 
-      {/* Preview & Confirmation Modal */}
       {/* Preview & Confirmation Modal */}
       {showPreviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 overflow-y-auto">
@@ -136,12 +196,9 @@ export default function DirectorMessagePage() {
               <X size={24} className="text-slate-700" />
             </button>
 
-            {/* Modal Body - Scroll Design */}
+            {/* Scroll View */}
             <div className="relative py-16 px-4">
-              {/* Main Scroll Section */}
               <div className="relative w-full max-w-4xl mx-auto flex justify-center items-center">
-                
-                {/* Abstract Background */}
                 <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
                   <img
                     src="/images/abs.png"
@@ -151,7 +208,6 @@ export default function DirectorMessagePage() {
                   />
                 </div>
 
-                {/* Scroll Background */}
                 <div className="relative z-10 w-[90%] md:w-[85%] lg:w-[80%] rounded-2xl overflow-hidden">
                   <img
                     src="/images/scBg.png"
@@ -162,80 +218,23 @@ export default function DirectorMessagePage() {
                         "https://upload.wikimedia.org/wikipedia/commons/d/d1/Parchment_background_02.jpg")
                     }
                   />
-
-                  {/* Scroll Text Content */}
                   <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-8 sm:px-12 md:px-16 lg:px-20 py-12 md:py-16">
-                    
-                    {/* Title */}
-                    <div className="relative mb-6 md:mb-8">
-                      <div
-                        className="relative inline-block px-6 py-3 bg-cover bg-center rounded-lg shadow-xl border-2 border-amber-800"
-                        style={{
-                          backgroundImage: "url('/images/ancient.jpg')",
-                          backgroundBlendMode: "multiply",
-                          backgroundColor: "rgba(120, 70, 40, 0.85)",
-                        }}
-                      >
-                        <h2
-                          className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-amber-50 tracking-wider drop-shadow-lg"
-                          style={{
-                            fontFamily: "Noto Serif Devanagari, Georgia, serif",
-                            textShadow: "3px 3px 6px rgba(0,0,0,0.6)",
-                          }}
-                        >
-                          प्रेरक संदेश
-                        </h2>
-                      </div>
-                      <div className="flex justify-center mt-3">
-                        <div className="w-28 md:w-40 h-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-full" />
-                      </div>
-                    </div>
-
-                    {/* Message Content */}
-                    <blockquote
-                      className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md"
-                      style={{
-                        fontFamily: "Noto Serif Devanagari, Georgia, serif",
-                        textShadow: "1px 1px 2px rgba(0,0,0,0.25)",
-                        lineHeight: "1.8",
-                      }}
-                    >
+                    <h2 className="text-4xl font-extrabold text-amber-50 mb-6 drop-shadow-lg">
+                      प्रेरक संदेश
+                    </h2>
+                    <blockquote className="text-lg sm:text-xl font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md leading-relaxed">
                       {message}
                     </blockquote>
-
-                    {/* Writer */}
-                    <div className="w-full mt-8 flex flex-col items-end px-4">
-                      <div className="w-32 md:w-48 h-0.5 bg-gradient-to-l from-red-600 to-transparent rounded-full mb-2" />
-                      <div
-                        className="relative inline-block px-5 py-3 bg-cover bg-center rounded-md shadow-xl border-2 border-amber-700"
-                        style={{
-                          backgroundImage: "url('/images/ancient.jpg')",
-                          backgroundBlendMode: "multiply",
-                          backgroundColor: "rgba(100, 60, 30, 0.8)",
-                        }}
-                      >
-                        <p
-                          className="text-sm sm:text-base md:text-lg font-bold text-amber-50 italic drop-shadow-md"
-                          style={{
-                            fontFamily: "Noto Serif Devanagari, Georgia, serif",
-                            textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
-                          }}
-                        >
-                          ~ परम पूज्य ग्वाल संत श्री
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Confirmation Text and Buttons */}
+              {/* Confirmation Buttons */}
               <div className="mt-8 max-w-2xl mx-auto bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-xl">
                 <p className="text-lg text-slate-800 font-semibold mb-6 text-center">
                   Are you sure you want to send this message?
                 </p>
 
-                {/* Buttons */}
                 <div className="flex gap-4">
                   <button
                     onClick={() => setShowPreviewModal(false)}

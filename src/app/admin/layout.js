@@ -1,18 +1,18 @@
 "use client";
-
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import ProtectedAdmin from "@/components/ProtectedAdmin";
 import { 
   Users, Music, Newspaper, UsersRound, LayoutDashboard, 
   Heart, MessageCircle, FileText, Image, BookOpen, Home, LogOut,
-  Menu, X, ChevronDown, Bell, Settings,
-  LucideHome,
-  ShieldCheck,
-  LucideRouteOff,
+  Menu, X, ChevronDown,
   LocateIcon
 } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState,useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
@@ -20,13 +20,10 @@ export default function AdminLayout({ children }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Example user data (replace with actual auth state)
-  const user = {
-    name: "Shavandeb Kaiti",
-    role: "Super Admin",
-    photo: "/avatar.jpg", // Placeholder
-  };
+ 
 
   const navItems = [
+     { href: "/", label: "Home", icon: <Home className="w-5 h-5" /> },
     { href: "/admin", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
     { href: "/admin/users", label: "Users", icon: <Users className="w-5 h-5" /> },
     { href: "/admin/music", label: "Jeevan Sutra", icon: <Music className="w-5 h-5" /> },
@@ -41,11 +38,11 @@ export default function AdminLayout({ children }) {
     { href: "/admin/director-message", label: "Director Message", icon: <MessageCircle className="w-5 h-5" /> },
     { href: "/admin/pdf-book", label: "PDF Book", icon: <BookOpen className="w-5 h-5" /> },
     { href: "/admin/banner", label: "Banner", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
-    { href: "/admin/privacy-policy", label: "Privacy Policy", icon: <FileText className="w-5 h-5" /> },
+    { href: "/admin/privacy-policys", label: "Privacy Policy", icon: <FileText className="w-5 h-5" /> },
   
     { href: "/admin/terms-conditions", label: "Terms & Conditions", icon: <FileText className="w-5 h-5" /> },
   ];
-
+ const { user, logout } = useAuthStore();
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -54,8 +51,26 @@ export default function AdminLayout({ children }) {
     setIsSidebarOpen(false);
   };
 
+  const router = useRouter();
+  const handellogout=()=>{
+      logout();
+ 
+    
+  }
+
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login"); // or "/login" depending on your route
+    }
+  }, [user, router]);
+if (!user) {
+    return null; // Render nothing while redirecting
+  }
+  
   return (
     <>
+        <ProtectedAdmin>
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-yellow-50 pt-10">
 
       {/* Fixed Slogan Bar */}
@@ -102,12 +117,7 @@ export default function AdminLayout({ children }) {
         <div className="p-6 border-b border-white/20">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
-              <Image
-                src="g" 
-                alt="Logo" 
-                className="w-10 h-10 rounded-full"
-               
-              />
+            <img src="./logo/logo5.webp" alt="dhenu-mahima" />
             </div>
             <div>
               <h1 className="text-lg font-bold leading-tight">Dehenu Mahima</h1>
@@ -201,7 +211,7 @@ export default function AdminLayout({ children }) {
                    
                     <hr className="my-2 border-slate-200" />
                     <button 
-                      onClick={() => alert("Logout")}
+                      onClick={handellogout}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
                     >
                       Logout
@@ -234,6 +244,7 @@ export default function AdminLayout({ children }) {
         />
       )}
     </div>
+</ProtectedAdmin>
     </>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 import Footer from "@/components/Footer";
 import Headers from "@/components/Header";
-import Image from "next/image";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+
+import { useRouter } from "next/navigation";
+
+import { useState, useEffect } from "react";
+
 import MessageSection from "../components/MessageSection";
 import InfoCards from "../components/InfoCards";
 import HeroSection from "../components/HeroSection"; 
@@ -13,11 +15,50 @@ import AudioSection from "../components/AudioSection";
 import EbookSection from "../components/EbookSection";
 import DonateSection from "../components/DonateSection";
 import NewsSection from "../components/NewsSection";
+import {useAuthStore} from "@/store/authStore";
+
+
 
 
 export default function LandingPage() {
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(!isOpen);
+ const router = useRouter();
+  const { user, setUser, isAuthenticated,fetchUser } = useAuthStore();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    
+    const checkAuthStatus = async () => {
+ 
+
+  try {
+    const userData = await fetchUser();
+
+    if (userData && userData.role) {      // ✅ null check
+      console.log("User data:", userData);
+     setCheckingAuth(false);
+    } else {
+      setCheckingAuth(false);
+    }
+  } catch (error) {
+    console.error("Auth check failed:", error);
+   setCheckingAuth(false);
+  }
+};
+
+    checkAuthStatus();
+  }, [router, setUser]);
+
+ if (checkingAuth) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-700 font-semibold text-lg">Checking authentication...</p>
+      </div>
+    </div>
+  );
+}
+
 
   return (
     <main className="bg-gradient-to-b from-orange-400 via-orange-400 to-yellow-400 min-h-screen">

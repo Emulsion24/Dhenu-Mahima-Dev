@@ -1,73 +1,72 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Upload, X, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, Eye, EyeOff, GripVertical } from "lucide-react";
-
+import { useLandingStore } from "@/store/landingStore";
+import { useAdminStore } from "@/store/adminStore";
 export default function BannerManagement() {
   const [banners, setBanners] = useState([
-    {
-      id: 1,
-      image: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200",
-      title: "Welcome Banner",
-      active: true,
-      order: 1
-    },
-    {
-      id: 2,
-      image: "https://images.unsplash.com/photo-1557683316-973673baf926?w=1200",
-      title: "Devotional Music",
-      active: true,
-      order: 2
-    },
-    {
-      id: 3,
-      image: "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200",
-      title: "Special Offer",
-      active: false,
-      order: 3
-    }
+    
   ]);
-
+const {getBanners}=useLandingStore();
+const {uploadBanner,deleteBanner,updateBannerOrder}=useAdminStore();
   const [showModal, setShowModal] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [newBanner, setNewBanner] = useState({
     title: "",
     image: null
   });
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewBanner({ ...newBanner, image: reader.result });
-      };
-      reader.readAsDataURL(file);
+useEffect(() => {
+  const fetchBanners = async () => {
+    try {
+      const res = await getBanners(); // assuming it returns an array of banners
+      setBanners(res);
+    } catch (err) {
+      console.error("Failed to fetch banners:", err);
     }
   };
 
-  const handleAddBanner = () => {
-    if (!newBanner.title || !newBanner.image) {
-      alert("Please fill in all fields and upload an image");
-      return;
-    }
+  fetchBanners();
+}, []);
 
-    const maxOrder = banners.length > 0 ? Math.max(...banners.map(b => b.order)) : 0;
-    
-    const banner = {
-      id: Date.now(),
-      image: newBanner.image,
-      title: newBanner.title,
-      active: true,
-      order: maxOrder + 1
-    };
 
-    setBanners([...banners, banner]);
-    setNewBanner({ title: "", image: null });
+ const handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    setNewBanner({ 
+      ...newBanner, 
+      imageFile: file, // <-- keep actual file
+      image: URL.createObjectURL(file) // <-- for preview only
+    });
+  }
+};
+
+
+
+const handleAddBanner = async () => {
+  if (!newBanner.title || !newBanner.imageFile) {
+    alert("Please fill in all fields and upload an image");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("title", newBanner.title);
+  formData.append("order", banners.length + 1);
+  formData.append("file", newBanner.imageFile); // <-- must match multer field name
+
+  try {
+    const res = await uploadBanner(formData);
+    setBanners([...banners, res.banner]); // backend returns { banner: {...} }
+    setNewBanner({ title: "", image: null, imageFile: null });
     setShowModal(false);
-  };
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+};
 
-  const handleDelete = (id) => {
+
+  const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this banner?")) {
+      const res = await deleteBanner(id)
       const updatedBanners = banners.filter(b => b.id !== id);
       updatedBanners.forEach((banner, index) => {
         banner.order = index + 1;
@@ -82,7 +81,7 @@ export default function BannerManagement() {
     ));
   };
 
-  const moveUp = (id) => {
+  const moveUp = async (id) => {
     const index = banners.findIndex(b => b.id === id);
     if (index > 0) {
       const newBanners = [...banners];
@@ -93,10 +92,11 @@ export default function BannerManagement() {
       });
       
       setBanners(newBanners);
+       await updateBannerOrder(newBanners);
     }
   };
 
-  const moveDown = (id) => {
+  const moveDown = async(id) => {
     const index = banners.findIndex(b => b.id === id);
     if (index < banners.length - 1) {
       const newBanners = [...banners];
@@ -107,6 +107,7 @@ export default function BannerManagement() {
       });
       
       setBanners(newBanners);
+      await updateBannerOrder(newBanners);
     }
   };
 

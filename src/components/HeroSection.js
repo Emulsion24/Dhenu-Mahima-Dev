@@ -3,27 +3,41 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { useLandingStore } from "@/store/landingStore";
 
-const slides = [
-  { src: "/banner/01.JPG", alt: "Devotees gathered for a spiritual event" },
-  { src: "/banner/02.JPG", alt: "A tranquil Gaushala with cows" },
-  { src: "/banner/03.JPG", alt: "Peaceful cow sanctuary" },
-  { src: "/banner/04.JPG", alt: "Devotees gathered for a spiritual event" },
-  { src: "/banner/05.JPG", alt: "A tranquil Gaushala with cows" },
-  { src: "/banner/06.JPG", alt: "A person meditating peacefully at sunrise" },
-  { src: "/banner/07.JPG", alt: "A person meditating peacefully at sunrise" },
-]
 export default function HeroSection() {
+  const { getBanners } = useLandingStore();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [slides, setSlides] = useState([]);
+
+  // Fetch banners from backend
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const  data  = await getBanners();
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setSlides(data);
+        } else {
+          console.error("Expected an array from backend, got:", data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch banners:", err);
+      }
+    };
+    fetchBanners();
+  }, []);
 
   // Auto-slide effect
   useEffect(() => {
+    if (slides.length === 0) return;
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 3000); // Change slide every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [slides]);
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
@@ -37,6 +51,9 @@ export default function HeroSection() {
     setCurrentIndex(index);
   };
 
+  // Show nothing if no slides
+  if (!slides || slides.length === 0) return null;
+
   return (
     <div className="relative w-full bg-black">
       <div className="relative w-full">
@@ -47,20 +64,20 @@ export default function HeroSection() {
               index === currentIndex ? "opacity-100" : "opacity-0 absolute inset-0"
             }`}
           >
-           <div className="relative w-full h-auto">
-      <Image
-        src={slide.src}
-        alt={slide.alt || `Banner ${index + 1}`}
-        width={1920}
-        height={600}
-        className="w-full h-auto block "
-        onError={() =>
-          setImgSrc(`https://placehold.co/1920x600/FF9933/fff?text=Banner+${index + 1}`)
-        }
-        sizes="100vw"
-        unoptimized
-      />
-    </div>
+            <div className="relative w-full h-auto">
+              <Image
+                src={slide.image}
+                alt={slide.title || `Banner ${index + 1}`}
+                width={1920}
+                height={600}
+                className="w-full h-auto block"
+                onError={(e) => {
+                  e.currentTarget.src = `https://placehold.co/1920x600/FF9933/fff?text=Banner+${index + 1}`;
+                }}
+                sizes="100vw"
+                unoptimized
+              />
+            </div>
           </div>
         ))}
       </div>

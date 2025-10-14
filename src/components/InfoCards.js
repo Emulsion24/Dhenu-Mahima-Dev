@@ -1,7 +1,11 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import API from "@/lib/api";
+
+// API configuration
+
 
 // Thematic Art Component for the Heading
 const TempleArchIcon = ({ className }) => (
@@ -29,110 +33,88 @@ const TempleArchIcon = ({ className }) => (
 );
 
 export default function InfoCards() {
-  const cards = [
-    { 
-      title_hi: "हमारा गोपाल परिवार", 
-      title_en: "Gopal Pariwar",
-      image: "/images/1.png",
-      link: "/gopal-pariwar"
-    },
-    { 
-      title_hi: "हमारे सेवा प्रकल्प", 
-      title_en: "Our Foundations",
-      image: "/images/1.png",
-      link: "/#foundation"
-    },
-    { 
-      title_hi: "दाता भगवान के संस्थान", 
-      title_en: "Data's Sansthan",
-      image: "/images/1.png",
-      link: "/sansthan"
-    },
-    { 
-      title_hi: "प्रेरित गौशालाएं", 
-      title_en: "Inspired GauShallas",
-      image: "/images/1.png",
-      link: "/gowshala"
-    },
-    { 
-      title_hi: "गौ सेवार्थ दान", 
-      title_en: "Gau Seva Donations",
-      image: "/images/1.png",
-      link: "/donate"
-    },
-    { 
-      title_hi: "हमारे उद्देश्य", 
-      title_en: "Our Objectives",
-      image: "/images/1.png",
-      link: "/objective"
-    },
-    { 
-      title_hi: "कथा करवाने हेतु", 
-      title_en: "For Gau Katha",
-      image:"/images/1.png",
-      link: "/contact"
-    },
-    { 
-      title_hi: "आगामी कथा एवं आयोजन", 
-      title_en: "Upcoming Kathas & Programs",
-      image:"/images/1.png",
-      link: "/events"
-    },
-    { 
-      title_hi: "दैनिक समाचार", 
-      title_en: "Daily News",
-      image: "/images/1.png",
-      link: "/news"
-    },
-    { 
-      title_hi: "मासिक पत्रिका सदस्यता", 
-      title_en: "Monthly Magazine",
-      image: "/images/1.png",
-      link: "/magazine"
-    },
-  
-    { 
-      title_hi: "पीडीएफ पुस्तकें", 
-      title_en: "PDF-Books",
-      image: "/images/1.png",
-      link: "/pdf-books"
-    },
-    { 
-      title_hi: "हमारी पदयात्रा", 
-      title_en: "Pad Yatra's",
-      image: "/images/1.png",
-      link: "https://dhenudhamfoundation.com"
-    },
-    { 
-      title_hi: "जीवन सूत्र", 
-      title_en: "Jeevan Sutra",
-      image: "/images/1.png",
-      link: "/bhajan"
-    },
-     { 
-      title_hi: "गौ माता जी के भजन", 
-      title_en: "Gau Mata Ji Bhajan's",
-      image: "/images/1.png",
-      link: "/Gau-mata-bhajan"
-    },
-    { 
-      title_hi: "संपर्क करें", 
-      title_en: "Contact Us",
-      image: "/images/1.png",
-      link: "/message"
-    },
-   
-  ];
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [imgSrc, setImgSrc] = useState("/images/1.png");
+
+  // Fetch cards from backend
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  const fetchCards = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await  API.get("/card");
+      const cardsData = response.data || response.cards || response || [];
+      setCards(cardsData);
+    } catch (err) {
+      console.error("Error fetching cards:", err);
+      setError(err.message || "Failed to load cards");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCardClick = (link) => {
     console.log(`Navigating to: ${link}`);
     window.location.href = link;
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-16 md:py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <Loader2 className="w-12 h-12 text-orange-600 animate-spin mb-4" />
+            <p className="text-gray-600 font-semibold text-lg">Loading cards...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-16 md:py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg max-w-md text-center">
+              <p className="font-semibold mb-2">Unable to load cards</p>
+              <p className="text-sm mb-4">{error}</p>
+              <button 
+                onClick={fetchCards}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Empty state
+  if (cards.length === 0) {
+    return (
+      <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 py-16 md:py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <p className="text-gray-600 font-semibold text-lg">No cards available at the moment</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 relative overflow-hidden py-16 md:py-20 lg:py-24">
       {/* Subtle dot pattern background */}
-    
       <div 
         className="absolute inset-0 opacity-20" 
         style={{
@@ -159,15 +141,13 @@ export default function InfoCards() {
                 अधिक जानकारी हेतु
               </h2>
               
-   
-              
-                <p 
+              <p 
                 className="text-lg sm:text-xl md:text-2xl text-amber-200 font-bold"
                 style={{ 
                   fontFamily: 'Noto Serif Devanagari, serif',
                   textShadow: '1px 1px 3px rgba(0,0,0,0.4)'
                 }}
-                 >
+              >
                 नीचे दिये बॉक्स पर क्लिक करें
               </p>
             </div>
@@ -178,58 +158,71 @@ export default function InfoCards() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {cards.map((card, i) => (
             <div
-              key={i}
+              key={card.id || i}
               onClick={() => handleCardClick(card.link)}
               className="group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 animate-fade-in-up"
               style={{ animationDelay: `${i * 50}ms` }}
-              aria-label={`Learn more about ${card.title_en}`}
+              aria-label={`Learn more about ${card.titleEn || card.title}`}
             >
               {/* Card Container */}
               <div className="relative h-full rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300 border-2 border-orange-100" style={{ backgroundColor: "#ADEED9" }}>
                 {/* Image section */}
-               
-                {/* Content Section */}
-                    <div className="relative w-full h-64 overflow-hidden rounded-2xl">
-      {/* Background Image */}
-      <Image
-        src="/images/1.png"
-        alt="Background Logo"
-        fill
-        className="object-cover blur-xs brightness-95"
-        onError={() =>
-          setImgSrc("https://placehold.co/800x400/FF9933/fff?text=Logo")
-        }
-        priority
-      />
+                <div className="relative w-full h-64 overflow-hidden rounded-2xl">
+                  {/* Background Image */}
+                  <Image
+                    src={card.image || "/images/1.png"}
+                    alt={card.titleEn || card.title || "Card image"}
+                    fill
+                    className="object-cover blur-xs brightness-95"
+                    onError={(e) => {
+                      e.target.src = "https://placehold.co/800x400/FF9933/fff?text=Logo";
+                    }}
+                    priority={i < 4}
+                  />
 
-      {/* Foreground content (optional) */}
-      <div className="absolute inset-0 flex items-center justify-center">
-         <div className="p-6 sm:p-8 text-center">
-                 <h2
-  className="text-4xl sm:text-2xl text-orange-900 mb-2 leading-tight font-extrabold drop-shadow-[1px_1px_1px_rgba(0,0,0,0.3)]"
-  style={{
-    fontFamily: 'Noto Serif Devanagari, Georgia, serif',
-  }}
->
-                    {card.title_hi}
-                  </h2>
-                  
-                  <p className= "text-orange-900 text-base font-bold sm:text-lg  mb-6">
-                    {card.title_en}
-                  </p>
-                
+                  {/* Foreground content */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="p-6 sm:p-8 text-center">
+                      <h2
+                        className="text-4xl sm:text-2xl text-orange-900 mb-2 leading-tight font-extrabold drop-shadow-[1px_1px_1px_rgba(0,0,0,0.3)]"
+                        style={{
+                          fontFamily: 'Noto Serif Devanagari, Georgia, serif',
+                        }}
+                      >
+                        {card.title}
+                      </h2>
+                      
+                      {card.titleEn && (
+                        <p className="text-orange-900 text-base font-bold sm:text-lg mb-6">
+                          {card.titleEn}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-      </div>
-    </div>
-
-
-                {/* Bottom accent line - UNIFORM FOR ALL CARDS */}
-                
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fade-in-up {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </section>
   );
 }

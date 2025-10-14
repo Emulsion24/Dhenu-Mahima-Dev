@@ -5,7 +5,7 @@ const nextConfig = {
       "upload.wikimedia.org",
       "via.placeholder.com",
        "images.unsplash.com",
-       
+       "res.cloudinary.com",
      
     ],
   },
