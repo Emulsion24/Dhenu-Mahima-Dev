@@ -1,65 +1,138 @@
-'use client';
-
+"use client";
+import { useSearchParams } from "next/navigation";
+import API from "@/lib/api";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Award, BookOpen, Heart, Target, Sparkles, Users, Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import {
+  Award,
+  BookOpen,
+  Heart,
+  Target,
+  Sparkles,
+  Users,
+  Loader2,
+} from "lucide-react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-
-// API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function SwamiGobarGopalPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+
+  // ✅ Enhanced JSON parser that handles multiple encoding levels
+  const safeParseJSON = (value, fallback = {}) => {
+    if (!value) return fallback;
+    
+    try {
+      let result = value;
+      let maxAttempts = 5; // Prevent infinite loops
+      
+      while (maxAttempts > 0 && typeof result === "string") {
+        // Check if it looks like JSON
+        const trimmed = result.trim();
+        if (
+          (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+          (trimmed.startsWith('"') && trimmed.endsWith('"'))
+        ) {
+          result = JSON.parse(result);
+          maxAttempts--;
+        } else {
+          break;
+        }
+      }
+      
+      return typeof result === "object" && result !== null ? result : fallback;
+    } catch (err) {
+      console.warn("safeParseJSON failed:", err, value);
+      return fallback;
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) {
+        console.warn("No ID provided in useParams");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch from API - adjust endpoint as needed
-        // If you want to fetch all and use the first one:
-       // const response = await fetch(`${API_BASE_URL}/gopal-pariwar`);
-        
-        // Or fetch by specific ID:
-        // const response = await fetch(`${API_BASE_URL}/gopal-pariwar/1`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        // If fetching all, use the first item
-        const gopalData = Array.isArray(result) ? result[0] : result;
-        
-        if (!gopalData) {
-          throw new Error('No data available');
+        console.log("Fetching data for ID:", id);
+        const response = await API.get(`/admin/gopalpariwar/${id}`);
+        console.log("Raw response:", response);
+        console.log("Raw data:", response.data);
+
+        let gopalData = response.data;
+
+        // Handle array response
+        if (Array.isArray(gopalData)) {
+          gopalData = gopalData[0];
+          console.log("Using first element from array:", gopalData);
         }
 
-        // Transform API data to match component structure
+        if (!gopalData) throw new Error("No data available from API");
+
+        // Parse all JSON fields
+        const personalInfo = safeParseJSON(gopalData.personalInfo, {});
+        const spiritualEducation = safeParseJSON(gopalData.spiritualEducation, {});
+        const responsibilities = safeParseJSON(gopalData.responsibilities, []);
+        const pledges = safeParseJSON(gopalData.pledges, []);
+
+        console.log("Parsed personalInfo:", personalInfo);
+        console.log("Parsed spiritualEducation:", spiritualEducation);
+        console.log("Parsed responsibilities:", responsibilities);
+        console.log("Parsed pledges:", pledges);
+
+        // Transform data
         const transformedData = {
           hero: {
             image: gopalData.heroImage || "/images/swami-gobar-gopal.jpg",
-            title: gopalData.heroTitle,
-            subtitle: gopalData.heroSubtitle
+            title: gopalData.heroTitle || "—",
+            subtitle: gopalData.heroSubtitle || "",
           },
-          personalInfo: gopalData.personalInfo || [],
-          spiritualEducation: gopalData.spiritualEducation || "",
-          lifeJourney: gopalData.lifeJourney || [],
-          responsibilities: gopalData.responsibilities || [],
-          pledges: gopalData.pledges || []
+          personalInfo: [
+            { label: "नाम", value: personalInfo.name || "—" },
+            { label: "जन्म दिनांक", value: personalInfo.birthDate || "—" },
+            { label: "जन्मभूमि", value: personalInfo.birthPlace || "—" },
+            { label: "फ़ोन नंबर", value: personalInfo.phone || "—" },
+            { label: "ईमेल", value: personalInfo.email || "—" },
+          ],
+          spiritualEducation: typeof spiritualEducation === 'object' 
+            ? `${spiritualEducation.guruName || ''} के सानिध्य में ${spiritualEducation.education || ''} की शिक्षा। ${spiritualEducation.qualifications || ''}`
+            : spiritualEducation || "",
+          lifeJourney: Array.isArray(gopalData.lifeJourney)
+            ? gopalData.lifeJourney
+            : gopalData.lifeJourney
+            ? [gopalData.lifeJourney]
+            : [],
+          responsibilities: Array.isArray(responsibilities)
+            ? responsibilities.map((text, idx) => ({
+                icon: ["BookOpen", "Heart", "Target", "Sparkles"][idx % 4],
+                text: text
+              }))
+            : [],
+          pledges: Array.isArray(pledges) ? pledges : [],
+          contacts: {
+            phone: personalInfo.phone || "",
+            email: personalInfo.email || "",
+            location: personalInfo.location || "",
+          },
         };
 
+        console.log("Transformed data:", transformedData);
         setData(transformedData);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error("Error fetching or transforming data:", err);
         setError(err.message);
-        
-        // Fallback to sample data if API fails
         setData(getSampleData());
       } finally {
         setLoading(false);
@@ -67,35 +140,39 @@ export default function SwamiGobarGopalPage() {
     };
 
     fetchData();
-  }, []);
+  }, [id]);
 
-  // Fallback sample data
+  // ✅ Fallback sample data
   const getSampleData = () => ({
     hero: {
       image: "/images/swami-gobar-gopal.jpg",
       title: "स्वामी श्री गोबर गोपाल सरस्वती जी महाराज",
-      subtitle: "गुरु गोपालाचार्य स्वामी गोपालानन्द जी सरस्वती"
+      subtitle: "गुरु गोपालाचार्य स्वामी गोपालानन्द जी सरस्वती",
     },
     personalInfo: [
-      { label: "नाम", value: "स्वामी गोबर गोपाल सरस्वती गुरु गोपालाचार्य स्वामी गोपालानन्द जी सरस्वती" },
+      { label: "नाम", value: "स्वामी गोबर गोपाल सरस्वती" },
       { label: "जन्म दिनांक", value: "17 जून 1992" },
       { label: "पूर्व नाम", value: "पिंटू माली" },
       { label: "जन्मभूमि", value: "रायला, जिला भीलवाड़ा, राजस्थान - 311024" },
       { label: "लौकिक शिक्षा", value: "आठवीं तक" },
     ],
-    spiritualEducation: "दादा गुरुदेव परम पूज्य दाता भगवान और गुरुदेव भगवान परम पूज्य गोपालाचार्य स्वामी गोपालानन्द सरस्वती जी महाराज के सानिध्य मैं जगतजननी भगवती गौमाता के दिव्य एवं ईश्वरीय स्वरूप की महिमा का श्रवण, चिन्तन व मनन तथा रामचरित मानस, श्रीमद्भगवत गीता व वेदांत का अध्ययन।",
+    spiritualEducation:
+      "दादा गुरुदेव परम पूज्य दाता भगवान और गुरुदेव भगवान परम पूज्य गोपालाचार्य स्वामी गोपालानन्द सरस्वती जी महाराज के सानिध्य में भगवती गौमाता की महिमा का अध्ययन।",
     lifeJourney: [
-      "मेरे प्राप्त शरीर का जन्म राजस्थान के भीलवाड़ा जिले के रायला गाँव में एक माली (वैश्य) किसान परिवार में हुआ। कक्षा 8 तक शिक्षा प्राप्त करने के बाद पढ़ाई में मन नहीं लग पाया। परिवार का वातावरण आध्यात्मिक होने के कारण पूजा-पाठ, भगवद्दर्शन, सेवा और दया का भाव बाल्यकाल से ही था। अतः भगवान से मिलन की इच्छा प्रबल होती चली गई।"
+      "मेरे प्राप्त शरीर का जन्म राजस्थान के भीलवाड़ा जिले के रायला गाँव में एक माली किसान परिवार में हुआ। परिवार का वातावरण आध्यात्मिक होने के कारण पूजा-पाठ, सेवा और दया का भाव बाल्यकाल से ही था।",
     ],
     responsibilities: [
-      { icon: "BookOpen", text: "४३ नियमों का पालन करते हुए कथा प्रवचन करना तथा जन-जन को भगवती गौमाता की महिमा से अवगत करा गौमाता की महिमा को पूरे भारतवर्ष तक पहुंचाना।" }
+      { icon: "BookOpen", text: "कथा प्रवचन करना एवं गौमाता की महिमा का प्रचार।" },
     ],
-    pledges: [
-      "पैरों में जुते-चप्पल धारण नहीं करना।"
-    ]
+    pledges: ["पैरों में जुते-चप्पल धारण नहीं करना।"],
+    contacts: {
+      phone: "",
+      email: "",
+      location: "",
+    },
   });
 
-  // Icon mapping
+  // Icon mapper
   const getIcon = (iconName) => {
     const icons = {
       BookOpen: <BookOpen className="w-6 h-6" />,
@@ -103,17 +180,18 @@ export default function SwamiGobarGopalPage() {
       Sparkles: <Sparkles className="w-6 h-6" />,
       Target: <Target className="w-6 h-6" />,
       Users: <Users className="w-6 h-6" />,
-      Award: <Award className="w-6 h-6" />
+      Award: <Award className="w-6 h-6" />,
     };
     return icons[iconName] || <BookOpen className="w-6 h-6" />;
   };
 
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-amber-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-16 h-16 text-orange-600 animate-spin mx-auto mb-4" />
-          <p className="text-xl text-gray-600">Loading...</p>
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
+          <p>Loading data...</p>
         </div>
       </div>
     );
@@ -314,7 +392,7 @@ export default function SwamiGobarGopalPage() {
             <div className="grid md:grid-cols-3 gap-6">
               {/* Phone Card */}
               <a 
-                href="tel:+919414174880"
+                href={`tel:${data.contacts.phone}`}
                 className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transition-all hover:scale-105 group"
               >
                 <div className="flex flex-col items-center text-center">
@@ -324,13 +402,13 @@ export default function SwamiGobarGopalPage() {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-800 mb-2">फ़ोन नंबर</h3>
-                  <p className="text-2xl font-semibold text-orange-600">9414174880</p>
+                  <p className="text-2xl font-semibold text-orange-600">{data.contacts.phone}</p>
                 </div>
               </a>
 
               {/* Email Card */}
               <a 
-                href="mailto:shreegopalparivarsang@gmail.com"
+                href={`mailto:${data.contacts.email}`}
                 className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transition-all hover:scale-105 group"
               >
                 <div className="flex flex-col items-center text-center">
@@ -340,13 +418,13 @@ export default function SwamiGobarGopalPage() {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-800 mb-2">ईमेल</h3>
-                  <p className="text-md font-semibold text-orange-600 break-all">shreegopalparivarsang@gmail.com</p>
+                  <p className="text-md font-semibold text-orange-600 break-all">{data.contacts.email}</p>
                 </div>
               </a>
 
               {/* Address Card */}
               <a 
-                href="https://maps.google.com/?q=Sheetal+Ashram,+Ajmer+Road,+Pushkar,+Rajasthan+305022"
+                href={`https://maps.google.com/?q=${encodeURIComponent(data.contacts.location)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white rounded-2xl p-8 shadow-2xl hover:shadow-3xl transition-all hover:scale-105 group"
@@ -359,7 +437,7 @@ export default function SwamiGobarGopalPage() {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-800 mb-2">पता</h3>
-                  <p className="text-lg font-semibold text-orange-600">Sheetal Ashram, Ajmer Road, Pushkar, Rajasthan - 305022</p>
+                  <p className="text-lg font-semibold text-orange-600">{data.contacts.location}</p>
                 </div>
               </a>
             </div>

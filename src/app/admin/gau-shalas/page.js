@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Edit,
@@ -18,63 +18,45 @@ import {
   TentIcon,
   TentTreeIcon,
   LucideTent,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
+import API from "@/lib/api";
+
+// Toast Component
+const Toast = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div
+      className={`fixed top-4 right-4 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl backdrop-blur-sm animate-slide-in ${
+        type === "success"
+          ? "bg-green-500 text-white"
+          : "bg-red-500 text-white"
+      }`}
+    >
+      {type === "success" ? (
+        <CheckCircle size={24} />
+      ) : (
+        <AlertCircle size={24} />
+      )}
+      <span className="font-semibold">{message}</span>
+      <button onClick={onClose} className="ml-2 hover:opacity-80">
+        <X size={20} />
+      </button>
+    </div>
+  );
+};
 
 export default function GauShalaPage() {
-  const [gauShalas, setGauShalas] = useState([
-    {
-      id: 1,
-      name: "Shri Krishna Gau Seva Kendra",
-      photo: "",
-      address: "Village Gokul, Near Temple Road",
-      city: "Vrindavan",
-      state: "Uttar Pradesh",
-      pincode: "281121",
-      establishmentDate: "2010-05-15",
-      totalCows: 350,
-      capacity: 500,
-      contactPerson: "Ram Prasad Sharma",
-      phone: "+91 98765 43210",
-      email: "gokul@gaushala.org",
-      description: "Dedicated to serving and protecting indigenous cows with love and care.",
-    },
-    {
-      id: 2,
-      name: "Radha Vallabh Gau Ashram",
-      photo: "",
-      address: "Mathura-Vrindavan Highway, Km 12",
-      city: "Mathura",
-      state: "Uttar Pradesh",
-      pincode: "281001",
-      establishmentDate: "2005-08-20",
-      totalCows: 520,
-      capacity: 600,
-      contactPerson: "Gopal Das",
-      phone: "+91 98765 43211",
-      email: "radha@gaushala.org",
-      description: "One of the largest cow shelters in the region serving indigenous breeds.",
-    },
-    {
-      id: 3,
-      name: "Nand Baba Gau Seva Samiti",
-      photo: "",
-      address: "Barsana Road, Near Bus Stand",
-      city: "Barsana",
-      state: "Uttar Pradesh",
-      pincode: "281405",
-      establishmentDate: "2015-12-10",
-      totalCows: 200,
-      capacity: 300,
-      contactPerson: "Krishna Kumar",
-      phone: "+91 98765 43212",
-      email: "nand@gaushala.org",
-      description: "Modern facilities with focus on cow health and organic farming.",
-    },
-  ]);
-
+  const [gauShalas, setGauShalas] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingGauShala, setEditingGauShala] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     photo: "",
@@ -91,13 +73,47 @@ export default function GauShalaPage() {
     description: "",
   });
 
-  // Calculate Statistics
-  const totalGauShalas = gauShalas.length;
-  const totalCows = gauShalas.reduce((sum, gs) => sum + Number(gs.totalCows), 0);
-  const totalCapacity = gauShalas.reduce((sum, gs) => sum + Number(gs.capacity), 0);
-  const avgCowsPerShala = totalGauShalas > 0 ? Math.round(totalCows / totalGauShalas) : 0;
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+  };
 
-  // Handle Input Change
+  useEffect(() => {
+    const fetchGaushalas = async () => {
+      try {
+        const res = await API.get("/gaushalas/");
+        const data =
+          Array.isArray(res.data)
+            ? res.data
+            : Array.isArray(res.data.data)
+            ? res.data.data
+            : Array.isArray(res.data.gaushalas)
+            ? res.data.gaushalas
+            : [];
+
+        console.log("✅ Gaushala API Response:", res.data);
+        setGauShalas(data);
+      } catch (err) {
+        console.error("❌ Error fetching gaushalas:", err);
+        setGauShalas([]);
+        showToast("Failed to fetch Gau Shalas", "error");
+      }
+    };
+
+    fetchGaushalas();
+  }, []);
+
+  const totalGauShalas = gauShalas.length;
+  const totalCows = gauShalas.reduce(
+    (sum, gs) => sum + (Number(gs.totalCows) || 0),
+    0
+  );
+  const totalCapacity = gauShalas.reduce(
+    (sum, gs) => sum + (Number(gs.capacity) || 0),
+    0
+  );
+  const avgCowsPerShala =
+    totalGauShalas > 0 ? Math.round(totalCows / totalGauShalas) : 0;
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -106,23 +122,18 @@ export default function GauShalaPage() {
     }));
   };
 
-  // Handle Image Upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setFormData((prev) => ({
-          ...prev,
-          photo: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      setFormData((prev) => ({
+        ...prev,
+        photo: file,
+      }));
     }
   };
 
-  // Open Add Modal
   const openAddModal = () => {
     setEditingGauShala(null);
     setFormData({
@@ -144,63 +155,72 @@ export default function GauShalaPage() {
     setShowModal(true);
   };
 
-  // Open Edit Modal
   const openEditModal = (gauShala) => {
     setEditingGauShala(gauShala);
     setFormData(gauShala);
-    setImagePreview(gauShala.photo);
+    // Set image preview for existing photo
+    setImagePreview(gauShala.photo || "");
     setShowModal(true);
   };
 
-  // Close Modal
   const closeModal = () => {
     setShowModal(false);
     setEditingGauShala(null);
     setImagePreview("");
   };
 
-  // Handle Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingGauShala) {
-      // Update existing gau shala
-      setGauShalas(
-        gauShalas.map((gs) =>
-          gs.id === editingGauShala.id
-            ? { 
-                ...formData, 
-                id: gs.id,
-                totalCows: Number(formData.totalCows),
-                capacity: Number(formData.capacity)
-              }
-            : gs
-        )
-      );
-      alert("Gau Shala updated successfully!");
-    } else {
-      // Add new gau shala
-      const newGauShala = {
-        ...formData,
-        id: Date.now(),
-        totalCows: Number(formData.totalCows),
-        capacity: Number(formData.capacity),
-      };
-      setGauShalas([newGauShala, ...gauShalas]);
-      alert("Gau Shala added successfully!");
-    }
+    try {
+      const data = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+         if (key === "photo" && value instanceof File) {
+          data.append("photo", value);
+        } else if (key !== "photo") {
+          data.append(key, value);
+        }
+      });
 
-    closeModal();
+      if (editingGauShala) {
+        const res = await API.put(`/gaushalas/${editingGauShala.id}`, data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        setGauShalas(
+          gauShalas.map((gs) => (gs.id === editingGauShala.id ? res.data : gs))
+        );
+        showToast("Gau Shala updated successfully!", "success");
+      } else {
+        const res = await API.post("/gaushalas", data, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        setGauShalas([res.data, ...gauShalas]);
+        showToast("Gau Shala created successfully!", "success");
+      }
+
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to save Gau Shala", "error");
+    }
   };
 
-  // Handle Delete
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this Gau Shala?")) {
-      setGauShalas(gauShalas.filter((gs) => gs.id !== id));
+      try {
+        const res = await API.delete(`/gaushalas/${id}`);
+        if (res.data) {
+          setGauShalas(gauShalas.filter((gs) => gs.id !== id));
+          showToast("Gau Shala deleted successfully!", "success");
+        }
+      } catch (err) {
+        showToast("Failed to delete Gau Shala", "error");
+      }
     }
   };
 
-  // Calculate years since establishment
   const getYearsSinceEstablishment = (date) => {
     const years = new Date().getFullYear() - new Date(date).getFullYear();
     return years;
@@ -208,6 +228,14 @@ export default function GauShalaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4 sm:p-6 lg:p-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg border border-green-200 p-6 sm:p-8 mb-8">
@@ -239,7 +267,7 @@ export default function GauShalaPage() {
               </div>
             </div>
             <p className="text-green-100 text-sm font-bold uppercase tracking-wide mb-1">
-             Total Gau Shalas
+              Total Gau Shalas
             </p>
             <h3 className="text-4xl font-extrabold">{totalGauShalas}</h3>
           </div>
@@ -308,14 +336,14 @@ export default function GauShalaPage() {
                 {/* Photo Header */}
                 <div className="relative h-48 bg-gradient-to-br from-green-400 to-emerald-500">
                   {gauShala.photo ? (
-                    <Image
+                    <img
                       src={gauShala.photo}
                       alt={gauShala.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      🐄 
+                    <div className="w-full h-full flex items-center justify-center text-6xl">
+                      🐄
                     </div>
                   )}
                   {/* Action Buttons */}
@@ -347,7 +375,7 @@ export default function GauShalaPage() {
                   <h3 className="text-xl font-bold text-slate-800 mb-2">
                     {gauShala.name}
                   </h3>
-                  
+
                   <p className="text-sm text-slate-600 mb-4">
                     {gauShala.description}
                   </p>
@@ -380,7 +408,7 @@ export default function GauShalaPage() {
                         <MapPin size={16} />
                       </div>
                       <div className="flex-1">
-                                               <p className="text-xs font-semibold text-slate-500 mb-1">
+                        <p className="text-xs font-semibold text-slate-500 mb-1">
                           Address
                         </p>
                         <p className="text-sm font-medium text-slate-800">
@@ -482,10 +510,10 @@ export default function GauShalaPage() {
                   <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-green-500 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <Image
+                        <img
                           src={imagePreview}
                           alt="Preview"
-                          className="max-h-64 mx-auto rounded-lg"
+                          className="max-h-64 mx-auto rounded-lg object-contain"
                         />
                         <button
                           type="button"
@@ -544,7 +572,7 @@ export default function GauShalaPage() {
                   </label>
                   <textarea
                     name="description"
-                    value={formData.description}
+                    value={formData.description ? formData.description : ""}
                     onChange={handleInputChange}
                     required
                     rows="3"
@@ -732,6 +760,22 @@ export default function GauShalaPage() {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes slide-in {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        .animate-slide-in {
+          animation: slide-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

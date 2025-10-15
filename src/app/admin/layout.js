@@ -6,7 +6,8 @@ import {
   Users, Music, Newspaper, UsersRound, LayoutDashboard, 
   Heart, MessageCircle, FileText, Image, BookOpen, Home, LogOut,
   Menu, X, ChevronDown,
-  LocateIcon
+  LocateIcon,
+  Calendar
 } from "lucide-react";
 
 import Link from "next/link";
@@ -29,11 +30,12 @@ export default function AdminLayout({ children }) {
     { href: "/admin/music", label: "Jeevan Sutra", icon: <Music className="w-5 h-5" /> },
     { href: "/admin/bhajan-music", label: "Gaumata Ji Bhajan", icon: <Music className="w-5 h-5" /> },
     { href: "/admin/news", label: "Daily News", icon: <Newspaper className="w-5 h-5" /> },
+    { href: "/admin/events", label: "Upcomming Katha", icon: <Calendar className="w-5 h-5" /> },
     { href: "/admin/gopal-pariwar", label: "Gopal Pariwar", icon: <UsersRound className="w-5 h-5" /> },
     { href: "/admin/gau-shalas", label: "Gau Shallas", icon: <LocateIcon className="w-5 h-5" /> },
     { href: "/admin/foundations", label: "Foundations", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
     { href: "/admin/cards", label: "Cards", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
-    { href: "/admin/contact-us", label: "Data's Sansthan ", icon: <LayoutDashboard className="w-5 h-5" /> },
+    { href: "/admin/datas-sagsthan", label: "Data's Sansthan ", icon: <LayoutDashboard className="w-5 h-5" /> },
     { href: "/admin/donations", label: "Donations", icon: <Heart className="w-5 h-5" /> },
     { href: "/admin/director-message", label: "Director Message", icon: <MessageCircle className="w-5 h-5" /> },
     { href: "/admin/pdf-book", label: "PDF Book", icon: <BookOpen className="w-5 h-5" /> },

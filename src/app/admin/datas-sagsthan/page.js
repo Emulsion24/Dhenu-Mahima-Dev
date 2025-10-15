@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus,
   Edit,
@@ -14,58 +14,56 @@ import {
   Clock,
   Globe,
 } from "lucide-react";
+import API from "@/lib/api";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function ContactUsPage() {
-  const [sansthans, setSansthans] = useState([
-    {
-      id: 1,
-      name: "Dehenu Mahima Main Temple",
-      photo: "",
-      address: "123 Temple Road, Vrindavan",
-      city: "Vrindavan",
-      state: "Uttar Pradesh",
-      pincode: "281121",
-      phone: "+91 98765 43210",
-      alternatePhone: "+91 98765 43211",
-      email: "main@dehenumahima.org",
-      website: "https://dehenumahima.org",
-      timings: "5:00 AM - 9:00 PM",
-      description: "Our main temple dedicated to Gau Seva and spiritual teachings.",
-    },
-    {
-      id: 2,
-      name: "Dehenu Mahima Gaushala",
-      photo: "",
-      address: "456 Seva Road, Mathura",
-      city: "Mathura",
-      state: "Uttar Pradesh",
-      pincode: "281001",
-      phone: "+91 98765 43212",
-      alternatePhone: "",
-      email: "gaushala@dehenumahima.org",
-      website: "",
-      timings: "6:00 AM - 8:00 PM",
-      description: "Dedicated cow shelter serving over 500 cows with love and care.",
-    },
-  ]);
-
+  const [sansthans, setSansthans] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSansthan, setEditingSansthan] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    photo: "",
+    person: "",
     address: "",
     city: "",
     state: "",
     pincode: "",
     phone: "",
-    alternatePhone: "",
+    altPhone: "",
     email: "",
     website: "",
-    timings: "",
+    timing: "",
     description: "",
   });
+
+  // Fetch all sansthans
+  useEffect(() => {
+    fetchSansthans();
+  }, []);
+
+  const fetchSansthans = async () => {
+    try {
+      setLoading(true);
+      const response = await API.get('/sansthans');
+      const data = response.data
+      
+      if (data.success) {
+        setSansthans(data.data);
+      } else {
+        alert('Failed to fetch sansthans');
+      }
+    } catch (error) {
+      console.error('Error fetching sansthans:', error);
+      alert('Error fetching sansthans. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle Input Change
   const handleInputChange = (e) => {
@@ -80,13 +78,15 @@ export default function ContactUsPage() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size should not exceed 10MB');
+        return;
+      }
+      
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
-        setFormData((prev) => ({
-          ...prev,
-          photo: reader.result,
-        }));
       };
       reader.readAsDataURL(file);
     }
@@ -97,27 +97,48 @@ export default function ContactUsPage() {
     setEditingSansthan(null);
     setFormData({
       name: "",
-      photo: "",
+      person: "",
       address: "",
       city: "",
       state: "",
       pincode: "",
       phone: "",
-      alternatePhone: "",
+      altPhone: "",
       email: "",
       website: "",
-      timings: "",
+      timing: "",
       description: "",
     });
     setImagePreview("");
+    setImageFile(null);
     setShowModal(true);
   };
 
   // Open Edit Modal
   const openEditModal = (sansthan) => {
     setEditingSansthan(sansthan);
-    setFormData(sansthan);
-    setImagePreview(sansthan.photo);
+    
+    // Parse description to extract address if it exists
+    const descParts = sansthan.description?.split('\n\nAddress: ') || ['', ''];
+    const addressParts = descParts[1]?.split(', ') || [];
+    const statePin = addressParts[2]?.split(' - ') || [];
+    
+    setFormData({
+      name: sansthan.name || "",
+      person: sansthan.person || "",
+      address: addressParts[0] || "",
+      city: addressParts[1] || "",
+      state: statePin[0] || "",
+      pincode: statePin[1] || "",
+      phone: sansthan.phone || "",
+      altPhone: sansthan.altPhone || "",
+      email: sansthan.email || "",
+      website: sansthan.website || "",
+      timing: sansthan.timing || "",
+      description: descParts[0] || "",
+    });
+    setImagePreview(sansthan.image || "");
+    setImageFile(null);
     setShowModal(true);
   };
 
@@ -126,41 +147,88 @@ export default function ContactUsPage() {
     setShowModal(false);
     setEditingSansthan(null);
     setImagePreview("");
+    setImageFile(null);
   };
 
   // Handle Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
 
-    if (editingSansthan) {
-      // Update existing sansthan
-      setSansthans(
-        sansthans.map((sansthan) =>
-          sansthan.id === editingSansthan.id
-            ? { ...formData, id: sansthan.id }
-            : sansthan
-        )
-      );
-      alert("Sansthan updated successfully!");
-    } else {
-      // Add new sansthan
-      const newSansthan = {
-        ...formData,
-        id: Date.now(),
-      };
-      setSansthans([newSansthan, ...sansthans]);
-      alert("Sansthan added successfully!");
+    try {
+      const formDataToSend = new FormData();
+      
+      // Append all fields
+      Object.keys(formData).forEach(key => {
+        if (formData[key]) {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
+
+      // Append image if new file is selected
+      if (imageFile) {
+        formDataToSend.append('photo', imageFile);
+      }
+
+      const url = editingSansthan 
+        ? `/sansthans/${editingSansthan.id}`
+        : `/sansthans`;
+      
+      const  response =editingSansthan ? await API.put(url,formDataToSend):  await API.post(url,formDataToSend);
+
+     
+
+      const data = response.data
+
+      if (data.success) {
+        alert(data.message);
+        fetchSansthans();
+        closeModal();
+      } else {
+        alert(data.message || 'Operation failed');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Error submitting form. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
-
-    closeModal();
   };
 
   // Handle Delete
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this sansthan?")) {
-      setSansthans(sansthans.filter((sansthan) => sansthan.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this sansthan?")) {
+      return;
+    }
+
+    try {
+      const response = await API.delete(`/sansthans/${id}`);
+  
+
+      const data = response.data
+
+      if (data.success) {
+        alert(data.message);
+        fetchSansthans();
+      } else {
+        alert(data.message || 'Delete failed');
+      }
+    } catch (error) {
+      console.error('Error deleting sansthan:', error);
+      alert('Error deleting sansthan. Please try again.');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600 font-medium">Loading sansthans...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 sm:p-6 lg:p-8">
@@ -205,74 +273,80 @@ export default function ContactUsPage() {
               </button>
             </div>
           ) : (
-            sansthans.map((sansthan) => (
-              <div
-                key={sansthan.id}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-indigo-100 hover:border-indigo-300 overflow-hidden"
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-                  {/* Photo Section */}
-                  <div className="relative h-64 lg:h-auto bg-gradient-to-br from-indigo-400 to-purple-500">
-                    {sansthan.photo ? (
-                      <Image
-                        src={sansthan.photo}
-                        alt={sansthan.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Building2 size={80} className="text-white/50" />
-                      </div>
-                    )}
-                    {/* Action Buttons */}
-                    <div className="absolute top-3 right-3 flex gap-2">
-                      <button
-                        onClick={() => openEditModal(sansthan)}
-                        className="p-2 bg-white rounded-full shadow-lg hover:bg-blue-50 transition-colors"
-                      >
-                        <Edit size={18} className="text-blue-600" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(sansthan.id)}
-                        className="p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 size={18} className="text-red-600" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Details Section */}
-                  <div className="lg:col-span-2 p-6">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-4">
-                      {sansthan.name}
-                    </h2>
-
-                    <p className="text-slate-600 mb-6">
-                      {sansthan.description}
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Address */}
-                      <div className="space-y-3">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-red-100 text-red-600 rounded-lg mt-0.5">
-                            <MapPin size={18} />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs font-semibold text-slate-500 mb-1">
-                              Address
-                            </p>
-                            <p className="text-sm font-medium text-slate-800">
-                              {sansthan.address}
-                            </p>
-                            <p className="text-sm font-medium text-slate-800">
-                              {sansthan.city}, {sansthan.state} - {sansthan.pincode}
-                            </p>
-                          </div>
+            sansthans.map((sansthan) => {
+              // Parse description for display
+              const descParts = sansthan.description?.split('\n\nAddress: ') || [''];
+              const mainDesc = descParts[0];
+              const fullAddress = descParts[1] || '';
+              
+              return (
+                <div
+                  key={sansthan.id}
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-indigo-100 hover:border-indigo-300 overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                    {/* Photo Section */}
+                    <div className="relative h-64 lg:h-auto bg-gradient-to-br from-indigo-400 to-purple-500">
+                      {sansthan.image ? (
+                        <img
+                          src={sansthan.image}
+                          alt={sansthan.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Building2 size={80} className="text-white/50" />
                         </div>
+                      )}
+                      {/* Action Buttons */}
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <button
+                          onClick={() => openEditModal(sansthan)}
+                          className="p-2 bg-white rounded-full shadow-lg hover:bg-blue-50 transition-colors"
+                        >
+                          <Edit size={18} className="text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(sansthan.id)}
+                          className="p-2 bg-white rounded-full shadow-lg hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 size={18} className="text-red-600" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Details Section */}
+                    <div className="lg:col-span-2 p-6">
+                      <h2 className="text-2xl font-bold text-slate-800 mb-4">
+                        {sansthan.name}
+                      </h2>
+
+                      {mainDesc && (
+                        <p className="text-slate-600 mb-6">{mainDesc}</p>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Address */}
+                        {fullAddress && (
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div className="p-2 bg-red-100 text-red-600 rounded-lg mt-0.5">
+                                <MapPin size={18} />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-semibold text-slate-500 mb-1">
+                                  Address
+                                </p>
+                                <p className="text-sm font-medium text-slate-800">
+                                  {fullAddress}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Timings */}
-                        {sansthan.timings && (
+                        {sansthan.timing && (
                           <div className="flex items-start gap-3">
                             <div className="p-2 bg-purple-100 text-purple-600 rounded-lg mt-0.5">
                               <Clock size={18} />
@@ -282,15 +356,12 @@ export default function ContactUsPage() {
                                 Timings
                               </p>
                               <p className="text-sm font-medium text-slate-800">
-                                {sansthan.timings}
+                                {sansthan.timing}
                               </p>
                             </div>
                           </div>
                         )}
-                      </div>
 
-                      {/* Contact Information */}
-                      <div className="space-y-3">
                         {/* Phone */}
                         <div className="flex items-start gap-3">
                           <div className="p-2 bg-green-100 text-green-600 rounded-lg mt-0.5">
@@ -303,9 +374,9 @@ export default function ContactUsPage() {
                             <p className="text-sm font-medium text-slate-800">
                               {sansthan.phone}
                             </p>
-                            {sansthan.alternatePhone && (
+                            {sansthan.altPhone && (
                               <p className="text-sm font-medium text-slate-600">
-                                {sansthan.alternatePhone}
+                                {sansthan.altPhone}
                               </p>
                             )}
                           </div>
@@ -351,8 +422,8 @@ export default function ContactUsPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -386,7 +457,7 @@ export default function ContactUsPage() {
                   <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-indigo-500 transition-colors">
                     {imagePreview ? (
                       <div className="relative">
-                        <Image
+                        <img
                           src={imagePreview}
                           alt="Preview"
                           className="max-h-64 mx-auto rounded-lg"
@@ -395,7 +466,7 @@ export default function ContactUsPage() {
                           type="button"
                           onClick={() => {
                             setImagePreview("");
-                            setFormData((prev) => ({ ...prev, photo: "" }));
+                            setImageFile(null);
                           }}
                           className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
                         >
@@ -438,6 +509,21 @@ export default function ContactUsPage() {
                     required
                     className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-medium"
                     placeholder="Enter sansthan name"
+                  />
+                </div>
+
+                {/* Person Name */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Contact Person Name
+                  </label>
+                  <input
+                    type="text"
+                    name="person"
+                    value={formData.person}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-medium"
+                    placeholder="Enter contact person name"
                   />
                 </div>
 
@@ -542,8 +628,8 @@ export default function ContactUsPage() {
                     </label>
                     <input
                       type="tel"
-                      name="alternatePhone"
-                      value={formData.alternatePhone}
+                      name="altPhone"
+                      value={formData.altPhone}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-medium"
                       placeholder="+91 98765 43211"
@@ -584,13 +670,13 @@ export default function ContactUsPage() {
 
                 {/* Timings */}
                 <div>
-                                   <label className="block text-sm font-bold text-slate-800 mb-2">
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
                     Timings
                   </label>
                   <input
                     type="text"
-                    name="timings"
-                    value={formData.timings}
+                    name="timing"
+                    value={formData.timing}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-medium"
                     placeholder="e.g., 5:00 AM - 9:00 PM"
@@ -602,15 +688,17 @@ export default function ContactUsPage() {
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold"
+                    disabled={submitting}
+                    className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg font-semibold"
+                    disabled={submitting}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg font-semibold disabled:opacity-50"
                   >
-                    {editingSansthan ? "Update Sansthan" : "Add Sansthan"}
+                    {submitting ? 'Submitting...' : editingSansthan ? "Update Sansthan" : "Add Sansthan"}
                   </button>
                 </div>
               </form>
