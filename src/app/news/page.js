@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Calendar, Clock, ArrowRight, TrendingUp, Newspaper } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import API from '@/lib/api';
 
 export default function NewsSection() {
   const [newsData, setNewsData] = useState([]);
@@ -16,91 +17,9 @@ export default function NewsSection() {
   useEffect(() => {
     const fetchNews = async () => {
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Sample news data - Replace with actual API call
-      const sampleNews = [
-        {
-          id: 1,
-          title: "गौमाता संरक्षण अभियान में नया कदम",
-          titleEn: "New Initiative in Cow Protection Campaign",
-          slug: "gaumata-sanrakshan-abhiyan",
-          excerpt: "राजस्थान सरकार ने गौमाता के संरक्षण के लिए 500 करोड़ की योजना की घोषणा की...",
-          image: "/images/1.png",
-          category: "गौ संरक्षण",
-          date: "15 अक्टूबर 2024",
-          readTime: "5 मिनट",
-          views: "2,547",
-          featured: true
-        },
-        {
-          id: 2,
-          title: "गौशाला में आयोजित हुआ विशेष पूजन कार्यक्रम",
-          titleEn: "Special Worship Program Organized at Gaushala",
-          slug: "gaushala-special-pooja-program",
-          excerpt: "श्री गोपाल परिवार संघ द्वारा आयोजित विशेष पूजन कार्यक्रम में हजारों श्रद्धालुओं ने भाग लिया...",
-          image: "/images/1.png",
-          category: "धार्मिक कार्यक्रम",
-          date: "12 अक्टूबर 2024",
-          readTime: "4 मिनट",
-          views: "1,823",
-          featured: false
-        },
-        {
-          id: 3,
-          title: "जैविक खेती में गोबर की भूमिका पर सेमिनार",
-          titleEn: "Seminar on Role of Cow Dung in Organic Farming",
-          slug: "organic-farming-seminar",
-          excerpt: "कृषि विशेषज्ञों ने जैविक खेती में गोबर के महत्व पर प्रकाश डाला...",
-          image: "/images/1.png",
-          category: "कृषि",
-          date: "10 अक्टूबर 2024",
-          readTime: "6 मिनट",
-          views: "1,456",
-          featured: false
-        },
-        {
-          id: 4,
-          title: "गौ आधारित उत्पादों की बिक्री में वृद्धि",
-          titleEn: "Increase in Sales of Cow-Based Products",
-          slug: "cow-based-products-sales",
-          excerpt: "पिछले वर्ष की तुलना में गौ आधारित उत्पादों की बिक्री में 45% की वृद्धि...",
-          image: "/images/1.png",
-          category: "व्यवसाय",
-          date: "8 अक्टूबर 2024",
-          readTime: "3 मिनट",
-          views: "2,103",
-          featured: false
-        },
-        {
-          id: 5,
-          title: "युवाओं के लिए गौ सेवा प्रशिक्षण कार्यक्रम",
-          titleEn: "Cow Service Training Program for Youth",
-          slug: "youth-training-program",
-          excerpt: "500 युवाओं को गौ सेवा का प्रशिक्षण देने के लिए विशेष कार्यक्रम शुरू...",
-          image: "/images/1.png",
-          category: "शिक्षा",
-          date: "5 अक्टूबर 2024",
-          readTime: "4 मिनट",
-          views: "1,687",
-          featured: false
-        },
-        {
-          id: 6,
-          title: "पंचगव्य चिकित्सा केंद्र का उद्घाटन",
-          titleEn: "Inauguration of Panchgavya Treatment Center",
-          slug: "panchgavya-center-inauguration",
-          excerpt: "आयुर्वेदिक पंचगव्य चिकित्सा के लिए नया केंद्र खोला गया...",
-          image: "/images/1.png",
-          category: "स्वास्थ्य",
-          date: "3 अक्टूबर 2024",
-          readTime: "5 मिनट",
-          views: "1,945",
-          featured: false
-        }
-      ];
-      
-      setNewsData(sampleNews);
+     const res= await API.get("/news");
+        const newsArray = res.data.data;
+      setNewsData(newsArray);
       setLoading(false);
     };
 

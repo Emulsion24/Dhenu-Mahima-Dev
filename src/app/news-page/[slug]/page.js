@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Calendar, User, Tag, Share2, Facebook, Twitter, Linkedin, ArrowLeft, Clock, Eye, Loader2 } from 'lucide-react';
 import Headers from "@/components/Header";
 import Footer from "@/components/Footer";
+import API from '@/lib/api';
 
 // Make sure you add this in globals.css:
 // @keyframes blink-red {
@@ -26,62 +27,43 @@ export default function NewsDetailPage({ params }) {
   const [relatedNews, setRelatedNews] = useState([]);
 
   useEffect(() => {
-    const fetchNewsData = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // simulate API delay
+    const fetchNewsData = async (id) => {
+      const res=await API.get(`/news/${id}`)  // simulate API delay
 
       // Sample news data (replace with your actual API call)
-      const sampleNewsData = {
-        id: parseInt(id) || 1,
-        title: "गौमाता संरक्षण अभियान में नया कदम - राज्य सरकार की नई पहल",
-        titleEn: "New Initiative in Cow Protection Campaign - State Government's New Step",
-        slug: slug,
-        featuredImage: "/images/ancient.jpg",
-        author: {
-          name: "पंडित विजय शर्मा",
-          avatar: "/images/ancient.jpg",
-          role: "धार्मिक कार्य प्रमुख"
-        },
-        publishedDate: "15 अक्टूबर 2024",
-        readTime: "5 मिनट",
-        views: "2,547",
-        category: "गौ संरक्षण",
-        tags: ["गौमाता", "सरकारी योजना", "पशुपालन", "धार्मिक"],
-        content: [
-          {
-            type: "paragraph",
-            text: "राजस्थान सरकार ने गौमाता के संरक्षण और संवर्धन के लिए एक महत्वाकांक्षी योजना की घोषणा की है।"
-          },
-          {
-            type: "heading",
-            text: "योजना की मुख्य विशेषताएं"
-          },
-          {
-            type: "list",
-            items: [
-              "24×7 पशु चिकित्सा सेवाएं",
-              "स्वचालित दूध दोहन प्रणाली",
-              "गोबर से उत्पाद निर्माण इकाई"
-            ]
-          }
-        ],
-        socialShares: {
-          facebook: 245,
-          twitter: 189,
-          linkedin: 67
-        }
-      };
+
 
       const sampleRelatedNews = [
         { id: 2, title: "गौशाला में आयोजित पूजन", slug: "gaushala-pooja", image: "/images/ancient.jpg", date: "12 अक्टूबर 2024", category: "धार्मिक" },
         { id: 3, title: "जैविक खेती में गोबर की भूमिका", slug: "organic-farming-seminar", image: "/images/ancient.jpg", date: "10 अक्टूबर 2024", category: "कृषि" }
       ];
 
-      setNewsData(sampleNewsData);
+       const data = res.data.data;
+
+      setNewsData({
+        id: data.id,
+        title: data.title,
+        titleEn: data.titleEn,
+        slug: data.slug,
+        excerpt: data.excerpt,
+        featuredImage: data.image,
+        category: data.category,
+        publishedDate: data.date,
+        readTime: data.readTime || "5 मिनट",
+        views: data.views || 0,
+        author: {
+          name: data.author || "Admin",
+          avatar: "/images/default-avatar.png",
+          role: "लेखक"
+        },
+        content: data.content || [],
+        tags: data.tags || [],
+      });
       setRelatedNews(sampleRelatedNews);
       setLoading(false);
     };
 
-    if (id) fetchNewsData();
+    if (id) fetchNewsData(id);
   }, [id, slug]);
 
   const handleShare = (platform) => {

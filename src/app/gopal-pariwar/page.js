@@ -4,6 +4,7 @@ import Headers from "@/components/Header";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, ChevronRight, ArrowRight } from "lucide-react";
+import API from "@/lib/api";
 
 export default function AboutUsPage() {
   const [expandedMember, setExpandedMember] = useState(null);
@@ -15,8 +16,8 @@ export default function AboutUsPage() {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/admin/gopalpariwar"); // your backend API
-        const data = await res.json();
+        const res = await API.get("/admin/gopalpariwar"); // your backend API
+        const data = res.data;
        
 
         // ✅ Safely parse JSON fields

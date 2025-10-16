@@ -287,3 +287,8 @@ body {
     opacity: 0; /* Start hidden before animation */
   }
 }
+@keyframes blink-red {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.animate-blink-red { animation: blink-red 1s infinite; }

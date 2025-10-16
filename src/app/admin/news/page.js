@@ -1,426 +1,730 @@
-"use client";
-import { useState } from "react";
-import Image from "next/image";
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, Calendar, MoreVertical } from "lucide-react";
+'use client';
 
-export default function NewsPage() {
-  const [news, setNews] = useState([
-    {
-      id: 1,
-      title: "Breaking: New Technology Announced",
-      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800",
-      date: "2024-01-15",
-      author: "John Doe"
-    },
-    {
-      id: 2,
-      title: "Market Updates for Today",
-      content: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      image: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800",
-      date: "2024-01-14",
-      author: "Jane Smith"
-    }
-  ]);
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Eye, Search, Filter, X, Save, ImageIcon, Calendar, Clock, Tag } from 'lucide-react';
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+import API from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
+
+
+
+
+
+
+
+export default function AdminNewsPage() {
+ const {user} = useAuthStore();
+  const [newsList, setNewsList] = useState([]);
+  const [filteredNews, setFilteredNews] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [editingNews, setEditingNews] = useState(null);
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    image: "",
-    date: new Date().toISOString().split('T')[0],
-    author: ""
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [previewImage, setPreviewImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
   });
-  const [imagePreview, setImagePreview] = useState("");
-  const [activeDropdown, setActiveDropdown] = useState(null);
 
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+
+  const categories = [
+    'गौ संरक्षण',
+    'धार्मिक कार्यक्रम',
+    'कृषि',
+    'व्यवसाय',
+    'शिक्षा',
+    'स्वास्थ्य'
+  ];
+
+  const [formData, setFormData] = useState({
+    title: '',
+    titleEn: '',
+    excerpt: '',
+    category: categories[0],
+    image: '/images/1.png',
+    date: new Date().toLocaleDateString('hi-IN'),
+    readTime: '5 मिनट',
+    featured: false,
+    content: [
+      { type: 'paragraph', text: '' }
+    ],
+    tags: []
+  });
+
+  // Fetch all news from backend
+  const fetchNews = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+      };
+      
+      if (filterCategory !== 'all') {
+        params.category = filterCategory;
+      }
+      
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+
+      const response = await API.get('/news', { params });
+      
+      if (response.data.success) {
+        setNewsList(response.data.data);
+        setFilteredNews(response.data.data);
+        setPagination(response.data.pagination);
+   
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch news');
+      console.error('Error fetching news:', err);
+    } finally {
+      setLoading(false);
+    }
   };
-  const datevalue =(item)=>{
-    const d = new Date(item.date)
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  return `${day}/${month}/${year}`
-  }
 
-  // Handle image upload
-  const handleImageUpload = (e) => {
+  // Initial fetch
+  useEffect(() => {
+    fetchNews();
+  }, [pagination.page, filterCategory, searchTerm]);
+
+  const generateSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+  };
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setFormData(prev => ({
-          ...prev,
-          image: reader.result
-        }));
+        setPreviewImage(reader.result);
+        setFormData({ ...formData, imageFile: file, image: reader.result });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Open modal for adding news
   const openAddModal = () => {
     setEditingNews(null);
     setFormData({
-      title: "",
-      content: "",
-      image: "",
-      date: new Date().toISOString().split('T')[0],
-      author: ""
+      title: '',
+      titleEn: '',
+      excerpt: '',
+      category: categories[0],
+      image: '/images/1.png',
+      date: new Date().toLocaleDateString('hi-IN'),
+      readTime: '5 मिनट',
+      featured: false,
+      content: [{ type: 'paragraph', text: '' }],
+      tags: [],
+      
     });
-    setImagePreview("");
-    setIsModalOpen(true);
+    setPreviewImage(null);
+    setShowModal(true);
   };
 
-  // Open modal for editing news
-  const openEditModal = (newsItem) => {
-    setEditingNews(newsItem);
-    setFormData(newsItem);
-    setImagePreview(newsItem.image);
-    setIsModalOpen(true);
-    setActiveDropdown(null);
-  };
-
-  // Close modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingNews(null);
+  const openEditModal = (news) => {
+    setEditingNews(news);
     setFormData({
-      title: "",
-      content: "",
-      image: "",
-      date: new Date().toISOString().split('T')[0],
-      author: ""
+      title: news.title,
+      titleEn: news.titleEn,
+      excerpt: news.excerpt,
+      category: news.category,
+      image: news.image,
+      date: news.date,
+      readTime: news.readTime,
+      featured: news.featured,
+      content: news.content || [{ type: 'paragraph', text: '' }],
+      tags: news.tags || [],
+     
     });
-    setImagePreview("");
+    setPreviewImage(news.image);
+    setShowModal(true);
   };
 
-  // Add or update news
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSave = async () => {
+    if (!formData.title || !formData.titleEn || !formData.excerpt) {
+      alert('कृपया सभी आवश्यक फ़ील्ड भरें');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare form data for multipart/form-data if image file exists
+      const submitData = new FormData();
+      submitData.append('title', formData.title);
+      submitData.append('titleEn', formData.titleEn);
+      submitData.append('excerpt', formData.excerpt);
+      
+      submitData.append('category', formData.category);
+      submitData.append('date', formData.date);
+      submitData.append('readTime', formData.readTime);
+      submitData.append('featured', formData.featured);
+      submitData.append('content', JSON.stringify(formData.content));
+      submitData.append('tags', JSON.stringify(formData.tags));
+ 
+      
+      // Add image file if available
+      if (formData.imageFile) {
+        submitData.append('image', formData.imageFile);
+      }
+      console.log(user.name);
+      if(user.name){
+        
+        submitData.append('author',user.name);
+      }
+
+      let response;
+     
+      if (editingNews) {
+        // Update existing news
+        response = await API.put(`/news/${editingNews.id}`, submitData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        // Create new news
+        response = await API.post('/news/', submitData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+
+      if (response.data.success) {
+        alert(editingNews ? 'समाचार सफलतापूर्वक अपडेट हुआ' : 'समाचार सफलतापूर्वक जोड़ा गया');
+        setShowModal(false);
+        setEditingNews(null);
+        fetchNews(); // Refresh the list
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save news');
+      alert('त्रुटि: ' + (err.response?.data?.message || 'समाचार सहेजने में विफल'));
+      console.error('Error saving news:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('क्या आप वाकई इस समाचार को हटाना चाहते हैं?')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await API.delete(`/news/${id}`);
+      
+      if (response.data.success) {
+        alert('समाचार सफलतापूर्वक हटाया गया');
+        fetchNews(); // Refresh the list
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete news');
+      alert('त्रुटि: ' + (err.response?.data?.message || 'समाचार हटाने में विफल'));
+      console.error('Error deleting news:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addContentBlock = (type) => {
+    const newBlock = type === 'list' 
+      ? { type: 'list', items: [''] }
+      : { type, text: '' };
     
-    if (editingNews) {
-      // Update existing news
-      setNews(news.map(item => 
-        item.id === editingNews.id ? { ...formData, id: item.id } : item
-      ));
+    setFormData({
+      ...formData,
+      content: [...formData.content, newBlock]
+    });
+  };
+
+  const updateContentBlock = (index, field, value) => {
+    const updatedContent = [...formData.content];
+    if (field === 'items') {
+      updatedContent[index].items = value;
     } else {
-      // Add new news
-      const newNews = {
-        ...formData,
-        id: Date.now()
-      };
-      setNews([newNews, ...news]);
+      updatedContent[index][field] = value;
     }
-    
-    closeModal();
+    setFormData({ ...formData, content: updatedContent });
   };
 
-  // Delete news
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this news article?")) {
-      setNews(news.filter(item => item.id !== id));
-      setActiveDropdown(null);
+  const removeContentBlock = (index) => {
+    setFormData({
+      ...formData,
+      content: formData.content.filter((_, i) => i !== index)
+    });
+  };
+
+  const addTag = (tag) => {
+    if (tag && !formData.tags.includes(tag)) {
+      setFormData({ ...formData, tags: [...formData.tags, tag] });
     }
+  };
+
+  const removeTag = (tag) => {
+    setFormData({ ...formData, tags: formData.tags.filter(t => t !== tag) });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                Daily News Management
-              </h1>
-              <p className="text-gray-600">
-                Manage your daily news articles with ease
-              </p>
-            </div>
-            <button
-              onClick={openAddModal}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            >
-              <Plus size={20} />
-              Add News
-            </button>
-          </div>
-        </div>
-
-        {/* News Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {news.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group"
-            >
-              {/* Image */}
-              <div className="relative h-48 overflow-hidden bg-gray-200">
-                {item.image ? (
-                 <div className="relative w-full h-full overflow-hidden">
-  <Image
-    src={item.image}
-    alt={item.title}
-    fill
-    className="object-cover group-hover:scale-105 transition-transform duration-500"
-    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-  />
-</div>
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon size={48} className="text-gray-400" />
-                  </div>
-                )}
-                
-                {/* Dropdown Menu */}
-                <div className="absolute top-3 right-3">
-                  <button
-                    onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
-                    className="bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <MoreVertical size={20} className="text-gray-700" />
-                  </button>
-                  
-                  {activeDropdown === item.id && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-10 border border-gray-200">
-                      <button
-                        onClick={() => openEditModal(item)}
-                        className="w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors flex items-center gap-2 text-gray-700"
-                      >
-                        <Edit2 size={16} className="text-blue-600" />
-                        Edit News
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="w-full px-4 py-2 text-left hover:bg-red-50 transition-colors flex items-center gap-2 text-gray-700"
-                      >
-                        <Trash2 size={16} className="text-red-600" />
-                        Delete News
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                  <Calendar size={16} />
-                  <span>{datevalue(item)}</span>
-                  <span className="ml-auto text-blue-600 font-medium">{item.author}</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-3 line-clamp-2">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600 line-clamp-3 mb-4">
-                  {item.content}
-                </p>
-
-                {/* Action Buttons - Always Visible */}
-                <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => openEditModal(item)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors font-medium"
-                  >
-                    <Edit2 size={16} />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
-                  >
-                    <Trash2 size={16} />
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {news.length === 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-16 text-center">
-            <ImageIcon size={64} className="mx-auto text-gray-300 mb-4" />
-            <h3 className="text-2xl font-bold text-gray-700 mb-2">No News Yet</h3>
-            <p className="text-gray-500 mb-6">Start by adding your first news article</p>
-            <button
-              onClick={openAddModal}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
-            >
-              Add Your First News
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4">
+            <strong>Error:</strong> {error}
+            <button onClick={() => setError(null)} className="float-right">
+              <X size={20} />
             </button>
           </div>
         )}
 
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center rounded-t-2xl z-10">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {editingNews ? "Edit News Article" : "Add New News Article"}
-                </h2>
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">समाचार प्रबंधन</h1>
+              <p className="text-gray-600">News Management Dashboard</p>
+            </div>
+            <button
+              onClick={openAddModal}
+              disabled={loading}
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+            >
+              <Plus size={20} />
+              नया समाचार जोड़ें
+            </button>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="समाचार खोजें..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none appearance-none"
+              >
+                <option value="all">सभी श्रेणियाँ</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        )}
+
+        {/* News List */}
+        {!loading && (
+          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white">
+                  <tr>
+                    <th className="px-6 py-4 text-left">छवि</th>
+                    <th className="px-6 py-4 text-left">शीर्षक</th>
+                    <th className="px-6 py-4 text-left">श्रेणी</th>
+                    <th className="px-6 py-4 text-left">तिथि</th>
+                    <th className="px-6 py-4 text-left">दृश्य</th>
+                    <th className="px-6 py-4 text-left">विशेष</th>
+                    <th className="px-6 py-4 text-center">कार्रवाई</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredNews.map((news) => (
+                    <tr key={news.id} className="hover:bg-orange-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <img src={news.image} alt={news.title} className="w-16 h-16 object-cover rounded-lg" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-900">{news.title}</div>
+                        <div className="text-sm text-gray-600">{news.titleEn}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold">
+                          {news.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{news.date}</td>
+                      <td className="px-6 py-4 text-gray-600">{news.views || 0}</td>
+                      <td className="px-6 py-4">
+                        {news.featured && (
+                          <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+                            Featured
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => window.open(`/news/${news.slug}`, '_blank')}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="देखें"
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button
+                            onClick={() => openEditModal(news)}
+                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                            title="संपादित करें"
+                          >
+                            <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(news.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="हटाएं"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredNews.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-600 text-lg">कोई समाचार नहीं मिला</p>
+              </div>
+            )}
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 p-6 border-t">
                 <button
-                  onClick={closeModal}
-                  className="text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                  onClick={() => setPagination({...pagination, page: pagination.page - 1})}
+                  disabled={pagination.page === 1}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                  Previous
+                </button>
+                <span className="text-gray-600">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <button
+                  onClick={() => setPagination({...pagination, page: pagination.page + 1})}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-6 flex items-center justify-between rounded-t-2xl">
+                <h2 className="text-2xl font-bold">
+                  {editingNews ? 'समाचार संपादित करें' : 'नया समाचार जोड़ें'}
+                </h2>
+                <button onClick={() => setShowModal(false)} className="hover:bg-white/20 p-2 rounded-lg transition-colors">
                   <X size={24} />
                 </button>
               </div>
 
               {/* Modal Body */}
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="p-6 space-y-6">
                 {/* Image Upload */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    News Image
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors">
-                    {imagePreview ? (
-                      <div className="relative">
-                       <div className="relative max-h-64 mx-auto rounded-lg w-full h-64 overflow-hidden">
-  <Image
-    src={imagePreview}
-    alt="Preview"
-    fill
-    className="object-contain rounded-lg"
-    sizes="100vw"
-    unoptimized
-  />
-</div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setImagePreview("");
-                            setFormData(prev => ({ ...prev, image: "" }));
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-lg"
-                        >
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        <ImageIcon size={48} className="mx-auto text-gray-400 mb-2" />
-                        <label className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium">
-                          Click to upload image
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <p className="text-sm text-gray-500 mt-1">PNG, JPG, GIF up to 10MB</p>
-                      </div>
-                    )}
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">छवि अपलोड करें</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden hover:border-orange-500 transition-colors">
+                      {previewImage ? (
+                        <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <ImageIcon className="text-gray-400" size={32} />
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600 mb-2">या URL दर्ज करें:</p>
+                      <input
+                        type="text"
+                        value={formData.image}
+                        onChange={(e) => {
+                          setFormData({ ...formData, image: e.target.value });
+                          setPreviewImage(e.target.value);
+                        }}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                        placeholder="/images/1.png"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Title */}
+                {/* Title Hindi */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Title *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">शीर्षक (हिंदी) *</label>
                   <input
                     type="text"
-                    name="title"
                     value={formData.title}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="Enter news title"
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    placeholder="समाचार का शीर्षक हिंदी में..."
                   />
                 </div>
 
-                {/* Content */}
+                {/* Title English */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Content *
-                  </label>
-                  <textarea
-                    name="content"
-                    value={formData.content}
-                    onChange={handleInputChange}
-                    required
-                    rows="6"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Write your news content here..."
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Title (English) *</label>
+                  <input
+                    type="text"
+                    value={formData.titleEn}
+                    onChange={(e) => setFormData({ ...formData, titleEn: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    placeholder="News title in English..."
                   />
                 </div>
 
-                {/* Author and Date */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Excerpt */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">सारांश *</label>
+                  <textarea
+                    value={formData.excerpt}
+                    onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                    rows="3"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    placeholder="समाचार का संक्षिप्त सारांश..."
+                  />
+                </div>
+
+                {/* Category, Date, Read Time */}
+                <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Author *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">श्रेणी</label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    >
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">तिथि</label>
                     <input
                       type="text"
-                      name="author"
-                      value={formData.author}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Author name"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                      placeholder="15 अक्टूबर 2024"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Date *
-                    </label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">पढ़ने का समय</label>
                     <input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      type="text"
+                      value={formData.readTime}
+                      onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                      placeholder="5 मिनट"
                     />
                   </div>
                 </div>
 
-                {/* Submit Buttons */}
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-medium shadow-lg"
-                  >
-                    {editingNews ? "Update News" : "Add News"}
-                  </button>
+                {/* Featured */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="featured"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <label htmlFor="featured" className="text-sm font-semibold text-gray-700">
+                    इस समाचार को विशेष (Featured) के रूप में चिह्नित करें
+                  </label>
                 </div>
-              </form>
+
+                {/* Tags */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">टैग</label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.tags.map((tag, i) => (
+                      <span key={i} className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                        {tag}
+                        <button onClick={() => removeTag(tag)} className="hover:bg-orange-200 rounded-full p-0.5">
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    placeholder="टैग जोड़ने के लिए Enter दबाएं..."
+                  />
+                </div>
+
+                {/* Content Blocks */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-semibold text-gray-700">समाचार सामग्री</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => addContentBlock('paragraph')}
+                        className="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold hover:bg-blue-200"
+                      >
+                        + पैराग्राफ
+                      </button>
+                      <button
+                        onClick={() => addContentBlock('heading')}
+                        className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm font-semibold hover:bg-green-200"
+                      >
+                        + शीर्षक
+                      </button>
+                      <button
+                        onClick={() => addContentBlock('list')}
+                        className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200"
+                      >
+                        + सूची
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {formData.content.map((block, index) => (
+                      <div key={index} className="border-2 border-gray-200 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-gray-600">
+                            {block.type === 'paragraph' ? 'पैराग्राफ' : block.type === 'heading' ? 'शीर्षक' : 'सूची'}
+                          </span>
+                          <button
+                            onClick={() => removeContentBlock(index)}
+                            className="text-red-600 hover:bg-red-50 p-1 rounded"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                        {block.type === 'list' ? (
+                          <div className="space-y-2">
+                            {block.items.map((item, itemIndex) => (
+                              <div key={itemIndex} className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={item}
+                                  onChange={(e) => {
+                                    const newItems = [...block.items];
+                                    newItems[itemIndex] = e.target.value;
+                                    updateContentBlock(index, 'items', newItems);
+                                  }}
+                                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                                  placeholder="सूची आइटम..."
+                                />
+                                <button
+                                  onClick={() => {
+                                    const newItems = block.items.filter((_, i) => i !== itemIndex);
+                                    updateContentBlock(index, 'items', newItems);
+                                  }}
+                                  className="text-red-600 hover:bg-red-50 px-2 rounded"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              onClick={() => updateContentBlock(index, 'items', [...block.items, ''])}
+                              className="text-sm text-blue-600 hover:text-blue-700"
+                            >
+                              + आइटम जोड़ें
+                            </button>
+                          </div>
+                        ) : (
+                          <textarea
+                            value={block.text}
+                            onChange={(e) => updateContentBlock(index, 'text', e.target.value)}
+                            rows={block.type === 'heading' ? 1 : 3}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                            placeholder={block.type === 'heading' ? 'शीर्षक...' : 'पैराग्राफ टेक्स्ट...'}
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-gray-50 p-6 flex gap-3 rounded-b-2xl border-t">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-100 transition-colors"
+                >
+                  रद्द करें
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={loading}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Save size={20} />
+                  {loading ? 'सहेजा जा रहा है...' : 'सहेजें'}
+                </button>
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* Click outside to close dropdown */}
-      {activeDropdown && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setActiveDropdown(null)}
-        />
-      )}
     </div>
   );
 }

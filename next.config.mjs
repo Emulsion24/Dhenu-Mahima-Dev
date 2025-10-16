@@ -6,6 +6,7 @@ const nextConfig = {
       "via.placeholder.com",
        "images.unsplash.com",
        "res.cloudinary.com",
+       'localhost', '127.0.0.1',
      
     ],
   },

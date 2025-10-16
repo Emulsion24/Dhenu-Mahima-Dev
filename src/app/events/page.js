@@ -3,9 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, Youtube, Play, ChevronDown, Link } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
-import axios from 'axios';
+import API from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export default function AgamiKatha() {
   const [expandedCard, setExpandedCard] = useState(null);
@@ -21,7 +20,7 @@ export default function AgamiKatha() {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_URL}/events`);
+      const response = await API.get('/events');
       
       if (response.data.success) {
         setEvents(response.data.data);
