@@ -1,5 +1,5 @@
 'use client';
-
+import API from '@/lib/api';
 import { useState } from 'react';
 import { Heart, Shield, Award, Leaf, IndianRupee, ChevronRight, Phone } from 'lucide-react';
 import Footer from '@/components/Footer';
@@ -39,53 +39,42 @@ export default function DonatePage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const initiatePhonePePayment = async (e) => {
-    e.preventDefault();
-    
-    const donationAmount = customAmount || amount;
-    
-    if (!donationAmount || donationAmount < 1) {
-      alert('Please select or enter a valid amount');
-      return;
+const initiatePhonePePayment = async (e) => {
+  e.preventDefault();
+
+  const donationAmount = customAmount || amount;
+
+  if (!donationAmount || donationAmount < 1) {
+    alert('Please select or enter a valid amount');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // Step 1: Create order on your backend using Axios instance
+    const { data: orderData } = await API.post('/donations/create-order', {
+      amount: donationAmount,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      pan: formData.pan
+    });
+
+    // Step 2: Check if backend returned redirect URL
+    if (orderData?.redirectUrl) {
+      window.location.href = orderData.redirectUrl;
+    } else {
+      throw new Error('Payment redirect URL not received');
     }
 
-    setLoading(true);
-
-    try {
-      // Step 1: Create order on your backend
-      const orderResponse = await fetch('/api/phonepe/create-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: donationAmount,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          pan: formData.pan
-        }),
-      });
-
-      const orderData = await orderResponse.json();
-
-      if (!orderResponse.ok) {
-        throw new Error(orderData.message || 'Failed to create order');
-      }
-
-      // Step 2: Redirect to PhonePe payment page
-      if (orderData.redirectUrl) {
-        window.location.href = orderData.redirectUrl;
-      } else {
-        throw new Error('Payment redirect URL not received');
-      }
-      
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('Payment initiation failed. Please try again.');
-      setLoading(false);
-    }
-  };
+  } catch (error) {
+    console.error('Payment initiation failed:', error?.response?.data || error.message);
+    alert('Payment initiation failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>

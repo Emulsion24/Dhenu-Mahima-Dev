@@ -2,13 +2,14 @@
 import Footer from "@/components/Footer";
 import Headers from "@/components/Header";
 import { useState } from "react";
-import { Upload, Check, BookOpen, Gift, Star, Zap, Users } from "lucide-react";
+import { Check, BookOpen, Gift, Star, Zap, Users, Smartphone, Shield, ArrowRight } from "lucide-react";
 
 const membershipPlans = [
   {
     type: "annual",
     name: "वार्षिक सदस्यता",
-    price: "₹500",
+    price: 500,
+    priceDisplay: "₹500",
     duration: "12 महीने",
     icon: BookOpen,
     benefits: [
@@ -22,7 +23,8 @@ const membershipPlans = [
   {
     type: "halfyearly",
     name: "अर्धवार्षिक सदस्यता",
-    price: "₹300",
+    price: 300,
+    priceDisplay: "₹300",
     duration: "6 महीने",
     icon: Gift,
     benefits: [
@@ -35,7 +37,8 @@ const membershipPlans = [
   {
     type: "lifetime",
     name: "आजीवन सदस्यता",
-    price: "₹5000",
+    price: 5000,
+    priceDisplay: "₹5000",
     duration: "जीवन भर",
     icon: Star,
     benefits: [
@@ -58,51 +61,62 @@ export default function MagazineMembership() {
     city: "",
     state: "",
     pincode: "",
-    membershipType: "annual",
-    paymentProof: null
+    membershipType: "annual"
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, paymentProof: file }));
-    }
-  };
+  const selectedPlan = membershipPlans.find(plan => plan.type === formData.membershipType);
 
-  const handleSubmit = async (e) => {
+  const handlePhonePePayment = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // Add your form submission logic here
-    // Example: await fetch('/api/membership', { method: 'POST', body: formData })
-    
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setSubmitted(true);
-    
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        pincode: "",
-        membershipType: "annual",
-        paymentProof: null
+    // Validate form
+    if (!formData.name || !formData.email || !formData.phone || !formData.address) {
+      alert('कृपया सभी आवश्यक फ़ील्ड भरें।');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // Create order payload
+      const orderPayload = {
+        ...formData,
+        amount: selectedPlan.price,
+        planName: selectedPlan.name,
+        planType: selectedPlan.type,
+        paymentMethod: 'phonepe'
+      };
+
+      // Call your backend API to initiate PhonePe payment
+      const response = await fetch('/api/membership/initiate-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderPayload),
       });
-    }, 3000);
+
+      const data = await response.json();
+
+      if (data.success && data.paymentUrl) {
+        // Redirect to PhonePe payment page
+        window.location.href = data.paymentUrl;
+      } else {
+        alert('भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -172,9 +186,10 @@ export default function MagazineMembership() {
                 return (
                   <div
                     key={idx}
-                    className={`relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 ${
+                    className={`relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer ${
                       plan.popular ? 'ring-2 ring-orange-500 scale-105' : ''
-                    }`}
+                    } ${formData.membershipType === plan.type ? 'ring-2 ring-purple-500' : ''}`}
+                    onClick={() => setFormData(prev => ({ ...prev, membershipType: plan.type }))}
                   >
                     {plan.popular && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -189,7 +204,7 @@ export default function MagazineMembership() {
                         <IconComponent className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-800 mb-2">{plan.name}</h3>
-                      <div className="text-4xl font-bold text-orange-600 mb-1">{plan.price}</div>
+                      <div className="text-4xl font-bold text-orange-600 mb-1">{plan.priceDisplay}</div>
                       <p className="text-gray-600">{plan.duration}</p>
                     </div>
                     
@@ -197,33 +212,36 @@ export default function MagazineMembership() {
                       {plan.benefits.map((benefit, bidx) => (
                         <li key={bidx} className="flex items-start">
                           <Check className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                          <span className="text-gray-700">{benefit}</span>
+                          <span className="text-gray-700 text-sm">{benefit}</span>
                         </li>
                       ))}
                     </ul>
                     
-                    <button
-                      onClick={() => setFormData(prev => ({ ...prev, membershipType: plan.type }))}
-                      className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                        formData.membershipType === plan.type
-                          ? 'bg-orange-600 text-white'
-                          : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      }`}
-                    >
-                      {formData.membershipType === plan.type ? 'चयनित' : 'चुनें'}
-                    </button>
+                    <div className={`w-full py-3 rounded-lg font-semibold transition-colors text-center ${
+                      formData.membershipType === plan.type
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {formData.membershipType === plan.type ? '✓ चयनित' : 'चुनें'}
+                    </div>
                   </div>
                 );
               })}
             </div>
 
             {/* Form and Payment Section */}
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="max-w-2xl mx-auto">
               {/* Registration Form */}
-              <div className="bg-white rounded-2xl p-8 shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">सदस्यता फॉर्म</h2>
+              <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">सदस्यता फॉर्म</h2>
+                  <div className="flex items-center gap-2 text-purple-600">
+                    <Smartphone className="w-5 h-5" />
+                    <span className="text-sm font-semibold">PhonePe से भुगतान करें</span>
+                  </div>
+                </div>
                 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handlePhonePePayment} className="space-y-4">
                   <div>
                     <label className="block text-gray-700 font-semibold mb-2">पूरा नाम *</label>
                     <input
@@ -232,7 +250,7 @@ export default function MagazineMembership() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
                       placeholder="अपना नाम दर्ज करें"
                     />
                   </div>
@@ -245,7 +263,7 @@ export default function MagazineMembership() {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
                       placeholder="example@email.com"
                     />
                   </div>
@@ -258,7 +276,9 @@ export default function MagazineMembership() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      pattern="[0-9]{10}"
+                      maxLength="10"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
                       placeholder="10 अंकों का मोबाइल नंबर"
                     />
                   </div>
@@ -271,7 +291,7 @@ export default function MagazineMembership() {
                       onChange={handleInputChange}
                       required
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition resize-none"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition resize-none"
                       placeholder="अपना पूरा पता दर्ज करें"
                     />
                   </div>
@@ -285,7 +305,7 @@ export default function MagazineMembership() {
                         value={formData.city}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
                         placeholder="शहर"
                       />
                     </div>
@@ -298,7 +318,7 @@ export default function MagazineMembership() {
                         value={formData.state}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
                         placeholder="राज्य"
                       />
                     </div>
@@ -312,124 +332,113 @@ export default function MagazineMembership() {
                       value={formData.pincode}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+                      pattern="[0-9]{6}"
+                      maxLength="6"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition"
                       placeholder="6 अंकों का पिनकोड"
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-gray-700 font-semibold mb-2">भुगतान प्रमाण (स्क्रीनशॉट) *</label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-500 transition-colors">
-                      <input
-                        type="file"
-                        accept="images/*"
-                        onChange={handleFileChange}
-                        required
-                        className="hidden"
-                        id="paymentProof"
-                      />
-                      <label htmlFor="paymentProof" className="cursor-pointer">
-                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-600">
-                          {formData.paymentProof ? formData.paymentProof.name : 'फाइल अपलोड करने के लिए क्लिक करें'}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">PNG, JPG (अधिकतम 5MB)</p>
-                      </label>
+                  {/* Order Summary */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 mt-6">
+                    <h3 className="font-bold text-gray-800 mb-4">ऑर्डर सारांश</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-gray-700">
+                        <span>चयनित योजना:</span>
+                        <span className="font-semibold">{selectedPlan.name}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-700">
+                        <span>अवधि:</span>
+                        <span className="font-semibold">{selectedPlan.duration}</span>
+                      </div>
+                      <div className="border-t border-gray-300 my-2"></div>
+                      <div className="flex justify-between text-lg font-bold text-purple-600">
+                        <span>कुल राशि:</span>
+                        <span>{selectedPlan.priceDisplay}</span>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={isSubmitting || submitted}
-                    className={`w-full py-4 rounded-lg font-semibold text-white transition-all ${
-                      submitted
-                        ? 'bg-green-500'
-                        : isSubmitting
-                        ? 'bg-gray-400'
-                        : 'bg-gradient-to-r from-orange-600 to-yellow-500 hover:from-orange-700 hover:to-yellow-600'
+                    disabled={isSubmitting}
+                    className={`w-full py-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+                      isSubmitting
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 shadow-lg'
                     }`}
                   >
-                    {submitted ? (
-                      <span className="flex items-center justify-center">
-                        <Check className="w-5 h-5 mr-2" />
-                        सफलतापूर्वक भेजा गया!
-                      </span>
-                    ) : isSubmitting ? (
-                      'भेजा जा रहा है...'
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        भुगतान प्रोसेस हो रहा है...
+                      </>
                     ) : (
-                      'फॉर्म जमा करें'
+                      <>
+                        <Smartphone className="w-5 h-5" />
+                        PhonePe से {selectedPlan.priceDisplay} का भुगतान करें
+                        <ArrowRight className="w-5 h-5" />
+                      </>
                     )}
                   </button>
+
+                  {/* Security Badge */}
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mt-4">
+                    <Shield className="w-4 h-4 text-green-600" />
+                    <span>100% सुरक्षित और एन्क्रिप्टेड भुगतान</span>
+                  </div>
                 </form>
               </div>
 
-              {/* Payment Information */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-2xl p-8 shadow-lg">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">भुगतान जानकारी</h2>
-                  
-                  <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 mb-6">
-                    <div className="flex justify-center mb-4">
-                      <div className="bg-white p-4 rounded-lg shadow-md">
-                        <div className="w-48 h-48 bg-gray-100 flex items-center justify-center rounded">
-                        <img src="/images/upi-qr.png" alt="Qr" />
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-center text-gray-700 font-medium">
-                      इस QR कोड को स्कैन करके भुगतान करें
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="border-b pb-3">
-                      <p className="text-sm text-gray-600">बैंक का नाम</p>
-                      <p className="font-semibold text-gray-800">Punjab National Bank</p>
-                    </div>
-                    
-                    <div className="border-b pb-3">
-                      <p className="text-sm text-gray-600">शाखा</p>
-                      <p className="font-semibold text-gray-800">Pushkar, Ajmer, Rajasthan</p>
-                    </div>
-                    
-                    <div className="border-b pb-3">
-                      <p className="text-sm text-gray-600">खाता संख्या</p>
-                      <p className="font-semibold text-gray-800">7289000100040339</p>
-                    </div>
-                    
-                    <div className="border-b pb-3">
-                      <p className="text-sm text-gray-600">IFSC कोड</p>
-                      <p className="font-semibold text-gray-800">PUNB0082500</p>
-                    </div>
-                    
-                    <div className="pb-3">
-                      <p className="text-sm text-gray-600">खाता नाम</p>
-                      <p className="font-semibold text-gray-800">SWAMI RAM YOGA SADHNA SAMITI PUSHKAR</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
+              {/* Information Cards */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
                   <h3 className="font-bold text-blue-900 mb-3 flex items-center">
                     <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm mr-2">i</span>
-                    महत्वपूर्ण सूचना
+                    भुगतान प्रक्रिया
                   </h3>
                   <ul className="space-y-2 text-sm text-blue-800">
                     <li className="flex items-start">
+                      <span className="mr-2">1.</span>
+                      <span>फॉर्म भरें और Submit करें</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">2.</span>
+                      <span>PhonePe पेज पर redirect होंगे</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">3.</span>
+                      <span>PhonePe से सुरक्षित भुगतान करें</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">4.</span>
+                      <span>भुगतान पूर्ण होने पर confirmation मिलेगा</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                  <h3 className="font-bold text-green-900 mb-3 flex items-center">
+                    <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm mr-2">✓</span>
+                    सदस्यता लाभ
+                  </h3>
+                  <ul className="space-y-2 text-sm text-green-800">
+                    <li className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>भुगतान करने के बाद स्क्रीनशॉट अवश्य सहेजें</span>
+                      <span>तुरंत सदस्यता सक्रिय होगी</span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>भुगतान प्रमाण फॉर्म में अपलोड करना अनिवार्य है</span>
+                      <span>Email पर confirmation भेजा जाएगा</span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>सदस्यता सत्यापन में 2-3 कार्य दिवस लग सकते हैं</span>
+                      <span>पहली पत्रिका अगले माह से</span>
                     </li>
                     <li className="flex items-start">
                       <span className="mr-2">•</span>
-                      <span>पहली पत्रिका अगले माह की 1 तारीख से भेजी जाएगी</span>
+                      <span>डिजिटल सदस्यता कार्ड मिलेगा</span>
                     </li>
                   </ul>
                 </div>

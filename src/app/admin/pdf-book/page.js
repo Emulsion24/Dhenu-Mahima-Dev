@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import API from "@/lib/api";
 import {
   Upload,
   Search,
@@ -16,88 +17,37 @@ import {
   Tag,
   Percent,
   Plus,
-  Edit2
+  Edit2,
+  Loader2
 } from "lucide-react";
 
+// Configure axios base URL
+
+
+// Add auth token to requests if available
+
+
 export default function PDFBookPage() {
-  const [books, setBooks] = useState([
-    {
-      id: 1,
-      name: "Bhagavad Gita",
-      author: "Sage Vyasa",
-      file: "/books/bhagavad-gita.pdf",
-      uploadDate: "2024-01-15",
-      size: "2.5 MB",
-      price: 299,
-    },
-    {
-      id: 2,
-      name: "Ramayana",
-      author: "Valmiki",
-      file: "/books/ramayana.pdf",
-      uploadDate: "2024-01-10",
-      size: "3.8 MB",
-      price: 399,
-    },
-    {
-      id: 3,
-      name: "Vedic Mathematics",
-      author: "Bharati Krishna Tirthaji",
-      file: "/books/vedic-math.pdf",
-      uploadDate: "2024-01-05",
-      size: "1.2 MB",
-      price: 199,
-    },
-    {
-      id: 4,
-      name: "Mahabharata",
-      author: "Sage Vyasa",
-      file: "/books/mahabharata.pdf",
-      uploadDate: "2023-12-20",
-      size: "5.6 MB",
-      price: 499,
-    },
-  ]);
-
-  const [coupons, setCoupons] = useState([
-    {
-      id: 1,
-      code: "WELCOME10",
-      discount: 10,
-      type: "percentage",
-      description: "Welcome discount for new users",
-      active: true,
-    },
-    {
-      id: 2,
-      code: "SAVE50",
-      discount: 50,
-      type: "fixed",
-      description: "Flat ₹50 off on all books",
-      active: true,
-    },
-    {
-      id: 3,
-      code: "FESTIVE25",
-      discount: 25,
-      type: "percentage",
-      description: "Festival special discount",
-      active: true,
-    },
-  ]);
-
+  const [books, setBooks] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showCouponModal, setShowCouponModal] = useState(false);
   const [showCouponList, setShowCouponList] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [editingCoupon, setEditingCoupon] = useState(null);
   
   const [formData, setFormData] = useState({
     name: "",
     author: "",
-    file: null,
+    pdfFile: null,
     price: "",
+    description: "",
+    coverImage: null,
   });
 
   const [couponFormData, setCouponFormData] = useState({
@@ -105,31 +55,52 @@ export default function PDFBookPage() {
     discount: "",
     type: "percentage",
     description: "",
+    minPurchase: "",
+    maxDiscount: "",
+    expiryDate: "",
   });
 
-  // Filter and Sort Books
-  const filteredAndSortedBooks = books
-    .filter((book) => {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        book.name.toLowerCase().includes(searchLower) ||
-        book.author.toLowerCase().includes(searchLower)
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === "newest") {
-        return new Date(b.uploadDate) - new Date(a.uploadDate);
-      } else if (sortBy === "oldest") {
-        return new Date(a.uploadDate) - new Date(b.uploadDate);
-      } else if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
-      } else if (sortBy === "price-low") {
-        return a.price - b.price;
-      } else if (sortBy === "price-high") {
-        return b.price - a.price;
-      }
-      return 0;
-    });
+  // Fetch books from API
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await API.get("/books", {
+        params: {
+          search: searchTerm,
+          sortBy: sortBy,
+          page: currentPage,
+          limit: 20,
+        },
+      });
+      setBooks(response.data.data.books);
+      setTotalPages(response.data.data.pagination.totalPages);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+      alert("Failed to fetch books");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch coupons from API
+  const fetchCoupons = async () => {
+    try {
+      const response = await API.get("/coupons");
+      setCoupons(response.data.data.coupons);
+    } catch (error) {
+      console.error("Error fetching coupons:", error);
+      alert("Failed to fetch coupons");
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    fetchBooks();
+  }, [searchTerm, sortBy, currentPage]);
+
+  useEffect(() => {
+    fetchCoupons();
+  }, []);
 
   // Handle Form Input
   const handleInputChange = (e) => {
@@ -146,53 +117,98 @@ export default function PDFBookPage() {
     if (file && file.type === "application/pdf") {
       setFormData((prev) => ({
         ...prev,
-        file: file,
+        pdfFile: file,
       }));
     } else {
       alert("Please select a valid PDF file");
       e.target.value = "";
     }
   };
+    const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file.type.startsWith("image/")) {
+      setFormData((prev) => ({
+        ...prev,
+        coverImage: file,
+      }));
+    } else {
+      alert("Please select a valid Image file");
+      e.target.value = "";
+    }
+  };
 
   // Handle Upload Submit
-  const handleUpload = (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.author || !formData.file || !formData.price) {
-      alert("Please fill all fields and select a PDF file");
+    if (!formData.name || !formData.author || !formData.pdfFile || !formData.price || !formData.coverImage) {
+      alert("Please fill all required fields and select a PDF file");
       return;
     }
 
-    const newBook = {
-      id: Date.now(),
-      name: formData.name,
-      author: formData.author,
-      file: URL.createObjectURL(formData.file),
-      uploadDate: new Date().toISOString().split("T")[0],
-      size: (formData.file.size / (1024 * 1024)).toFixed(2) + " MB",
-      price: parseFloat(formData.price),
-    };
+    try {
+      setUploading(true);
+      const uploadFormData = new FormData();
+      uploadFormData.append("name", formData.name);
+      uploadFormData.append("author", formData.author);
+      uploadFormData.append("price", formData.price);
+      uploadFormData.append("description", formData.description);
+      uploadFormData.append("pdf", formData.pdfFile);
+      uploadFormData.append("image", formData.coverImage);
 
-    setBooks([newBook, ...books]);
-    setFormData({ name: "", author: "", file: null, price: "" });
-    setShowUploadModal(false);
-    alert("Book uploaded successfully!");
-  };
+      await API.post("/books", uploadFormData);
 
-  // Handle Delete Book
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this book?")) {
-      setBooks(books.filter((book) => book.id !== id));
+      alert("Book uploaded successfully!");
+      setFormData({ name: "", author: "", file: null, price: "", description: "" ,coverImage:null});
+      setShowUploadModal(false);
+      fetchBooks(); // Refresh the book list
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert(error.response?.data?.message || "Failed to upload book");
+    } finally {
+      setUploading(false);
     }
   };
 
-  // Handle Download
-  const handleDownload = (book) => {
-    const link = document.createElement("a");
-    link.href = book.file;
-    link.download = `${book.name}.pdf`;
-    link.click();
+  // Handle Delete Book
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this book?")) {
+      return;
+    }
+
+    try {
+      await API.delete(`/books/${id}`);
+      alert("Book deleted successfully!");
+      fetchBooks();
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(error.response?.data?.message || "Failed to delete book");
+    }
   };
+
+  // Handle Download/Stream PDF
+const handleDownload = async (book) => {
+
+  try {
+    const response = await API.get(`/books/pdf/download/${book.fileName}`, {
+      responseType: "blob", // required to handle binary data
+      withCredentials: true, // ✅ ensures cookie (JWT) is sent
+    });
+
+    // Convert blob to downloadable file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${book.name}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("Download error:", error);
+    alert(error.response?.data?.message || "You are not authorized to download this file");
+  }
+};
+
 
   // Coupon Functions
   const handleCouponInputChange = (e) => {
@@ -203,7 +219,7 @@ export default function PDFBookPage() {
     }));
   };
 
-  const handleCouponSubmit = (e) => {
+  const handleCouponSubmit = async (e) => {
     e.preventDefault();
 
     if (!couponFormData.code || !couponFormData.discount) {
@@ -211,42 +227,55 @@ export default function PDFBookPage() {
       return;
     }
 
-    if (editingCoupon) {
-      setCoupons(
-        coupons.map((c) =>
-          c.id === editingCoupon.id
-            ? {
-                ...c,
-                code: couponFormData.code.toUpperCase(),
-                discount: parseFloat(couponFormData.discount),
-                type: couponFormData.type,
-                description: couponFormData.description,
-              }
-            : c
-        )
-      );
-      alert("Coupon updated successfully!");
-    } else {
-      const newCoupon = {
-        id: Date.now(),
+    try {
+      const couponData = {
         code: couponFormData.code.toUpperCase(),
         discount: parseFloat(couponFormData.discount),
         type: couponFormData.type,
         description: couponFormData.description,
-        active: true,
+        minPurchase: couponFormData.minPurchase ? parseFloat(couponFormData.minPurchase) : null,
+        maxDiscount: couponFormData.maxDiscount ? parseFloat(couponFormData.maxDiscount) : null,
+        expiryDate: couponFormData.expiryDate || null,
       };
-      setCoupons([...coupons, newCoupon]);
-      alert("Coupon created successfully!");
-    }
 
-    setCouponFormData({ code: "", discount: "", type: "percentage", description: "" });
-    setEditingCoupon(null);
-    setShowCouponModal(false);
+      if (editingCoupon) {
+        await API.put(`/coupons/${editingCoupon.id}`, couponData);
+        alert("Coupon updated successfully!");
+      } else {
+        await API.post("/coupons", couponData);
+        alert("Coupon created successfully!");
+      }
+
+      setCouponFormData({
+        code: "",
+        discount: "",
+        type: "percentage",
+        description: "",
+        minPurchase: "",
+        maxDiscount: "",
+        expiryDate: "",
+      });
+      setEditingCoupon(null);
+      setShowCouponModal(false);
+      fetchCoupons();
+    } catch (error) {
+      console.error("Coupon error:", error);
+      alert(error.response?.data?.message || "Failed to save coupon");
+    }
   };
 
-  const handleDeleteCoupon = (id) => {
-    if (window.confirm("Are you sure you want to delete this coupon?")) {
-      setCoupons(coupons.filter((c) => c.id !== id));
+  const handleDeleteCoupon = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this coupon?")) {
+      return;
+    }
+
+    try {
+      await API.delete(`/coupons/${id}`);
+      alert("Coupon deleted successfully!");
+      fetchCoupons();
+    } catch (error) {
+      console.error("Delete coupon error:", error);
+      alert(error.response?.data?.message || "Failed to delete coupon");
     }
   };
 
@@ -256,7 +285,10 @@ export default function PDFBookPage() {
       code: coupon.code,
       discount: coupon.discount.toString(),
       type: coupon.type,
-      description: coupon.description,
+      description: coupon.description || "",
+      minPurchase: coupon.minPurchase?.toString() || "",
+      maxDiscount: coupon.maxDiscount?.toString() || "",
+      expiryDate: coupon.expiryDate ? coupon.expiryDate.split("T")[0] : "",
     });
     setShowCouponModal(true);
     setShowCouponList(false);
@@ -264,15 +296,30 @@ export default function PDFBookPage() {
 
   const openAddCoupon = () => {
     setEditingCoupon(null);
-    setCouponFormData({ code: "", discount: "", type: "percentage", description: "" });
+    setCouponFormData({
+      code: "",
+      discount: "",
+      type: "percentage",
+      description: "",
+      minPurchase: "",
+      maxDiscount: "",
+      expiryDate: "",
+    });
     setShowCouponModal(true);
     setShowCouponList(false);
   };
 
-  const toggleCouponActive = (id) => {
-    setCoupons(
-      coupons.map((c) => (c.id === id ? { ...c, active: !c.active } : c))
-    );
+  const toggleCouponActive = async (id) => {
+    try {
+      const coupon = coupons.find((c) => c.id === id);
+      await API.patch(`/coupons/toggle/${id}`, {
+        active: !coupon.active,
+      });
+      fetchCoupons();
+    } catch (error) {
+      console.error("Toggle coupon error:", error);
+      alert("Failed to toggle coupon status");
+    }
   };
 
   return (
@@ -300,7 +347,6 @@ export default function PDFBookPage() {
         {/* Search, Sort & Upload Section */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
             <div className="flex-1 relative">
               <Search
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
@@ -310,17 +356,22 @@ export default function PDFBookPage() {
                 type="text"
                 placeholder="Search by book name or author..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-12 pr-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 font-medium"
               />
             </div>
 
-            {/* Sort Dropdown */}
             <div className="flex items-center gap-2">
               <Filter size={20} className="text-slate-600" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => {
+                  setSortBy(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-800 font-semibold"
               >
                 <option value="newest">Newest First</option>
@@ -331,7 +382,6 @@ export default function PDFBookPage() {
               </select>
             </div>
 
-            {/* Upload Button */}
             <button
               onClick={() => setShowUploadModal(true)}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg font-semibold"
@@ -342,79 +392,114 @@ export default function PDFBookPage() {
           </div>
         </div>
 
-        {/* Books Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredAndSortedBooks.length === 0 ? (
-            <div className="col-span-full text-center py-16">
-              <BookOpen size={64} className="mx-auto text-slate-300 mb-4" />
-              <h3 className="text-xl font-bold text-slate-700 mb-2">
-                No books found
-              </h3>
-              <p className="text-slate-500">
-                Try adjusting your search or upload a new book
-              </p>
-            </div>
-          ) : (
-            filteredAndSortedBooks.map((book) => (
-              <div
-                key={book.id}
-                className="bg-white rounded-xl shadow-lg border-2 border-slate-200 hover:shadow-2xl hover:border-blue-300 transition-all duration-300 overflow-hidden group"
-              >
-                {/* Book Icon */}
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-8 flex items-center justify-center">
-                  <FileText size={64} className="text-white" />
-                </div>
-
-                {/* Book Details */}
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-slate-800 mb-1 line-clamp-2">
-                    {book.name}
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 size={48} className="text-blue-600 animate-spin" />
+          </div>
+        ) : (
+          <>
+            {/* Books Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {books.length === 0 ? (
+                <div className="col-span-full text-center py-16">
+                  <BookOpen size={64} className="mx-auto text-slate-300 mb-4" />
+                  <h3 className="text-xl font-bold text-slate-700 mb-2">
+                    No books found
                   </h3>
-                  <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
-                    <User size={14} />
-                    <span className="font-medium">{book.author}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                    <Calendar size={12} />
-                    <span>{book.uploadDate}</span>
-                    <span className="ml-auto font-semibold">{book.size}</span>
-                  </div>
-                  
-                  {/* Price */}
-                  <div className="flex items-center gap-2 mb-3 bg-green-50 px-3 py-2 rounded-lg">
-                    <DollarSign size={16} className="text-green-600" />
-                    <span className="text-lg font-bold text-green-700">
-                      ₹{book.price}
-                    </span>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleDownload(book)}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-semibold"
-                    >
-                      <Download size={14} />
-                      Download
-                    </button>
-                    <button
-                      onClick={() => handleDelete(book.id)}
-                      className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  <p className="text-slate-500">
+                    Try adjusting your search or upload a new book
+                  </p>
                 </div>
+              ) : (
+                books.map((book) => (
+                  <div
+                    key={book.id}
+                    className="bg-white rounded-xl shadow-lg border-2 border-slate-200 hover:shadow-2xl hover:border-blue-300 transition-all duration-300 overflow-hidden group"
+                  >
+                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-8 flex items-center justify-center">
+                      {book.coverImage ? (
+                        <img
+                          src={`${book.coverImage}`}
+                          alt={book.name}
+                          className="w-full h-32 object-cover"
+                        />
+                      ) : (
+                        <FileText size={64} className="text-white" />
+                      )}
+                    </div>
+
+                    <div className="p-4">
+                      <h3 className="text-lg font-bold text-slate-800 mb-1 line-clamp-2">
+                        {book.name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
+                        <User size={14} />
+                        <span className="font-medium">{book.author}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                        <Calendar size={12} />
+                        <span>{new Date(book.uploadDate).toLocaleDateString()}</span>
+                        <span className="ml-auto font-semibold">{book.fileSize}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-3 bg-green-50 px-3 py-2 rounded-lg">
+                        <DollarSign size={16} className="text-green-600" />
+                        <span className="text-lg font-bold text-green-700">
+                          ₹{book.price}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDownload(book)}
+                          className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-semibold"
+                        >
+                          <Download size={14} />
+                          Download
+                        </button>
+                        <button
+                          onClick={() => handleDelete(book.id)}
+                          className="flex items-center justify-center px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 bg-white border-2 border-slate-300 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50"
+                >
+                  Next
+                </button>
               </div>
-            ))
-          )}
-        </div>
+            )}
+          </>
+        )}
 
         {/* Upload Book Modal */}
         {showUploadModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 flex justify-between items-center rounded-t-2xl sticky top-0">
                 <div className="flex items-center gap-2">
                   <Upload size={24} />
@@ -423,15 +508,14 @@ export default function PDFBookPage() {
                 <button
                   onClick={() => setShowUploadModal(false)}
                   className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  disabled={uploading}
                 >
                   <X size={24} />
                 </button>
               </div>
 
-              {/* Modal Body */}
-              <div className="p-6">
+              <form onSubmit={handleUpload} className="p-6">
                 <div className="space-y-6">
-                  {/* Book Name */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Book Name *
@@ -441,12 +525,12 @@ export default function PDFBookPage() {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 font-medium"
                       placeholder="Enter book name"
                     />
                   </div>
 
-                  {/* Author Name */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Author Name *
@@ -456,12 +540,12 @@ export default function PDFBookPage() {
                       name="author"
                       value={formData.author}
                       onChange={handleInputChange}
+                      required
                       className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 font-medium"
                       placeholder="Enter author name"
                     />
                   </div>
 
-                  {/* Price */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Price (₹) *
@@ -478,13 +562,27 @@ export default function PDFBookPage() {
                         onChange={handleInputChange}
                         min="0"
                         step="0.01"
+                        required
                         className="w-full pl-12 pr-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 font-medium"
                         placeholder="Enter price"
                       />
                     </div>
                   </div>
 
-                  {/* PDF File Upload */}
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 font-medium"
+                      placeholder="Brief description of the book"
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       PDF File *
@@ -500,12 +598,13 @@ export default function PDFBookPage() {
                           type="file"
                           accept="application/pdf"
                           onChange={handleFileChange}
+                          required
                           className="hidden"
                         />
                       </label>
-                      {formData.file && (
+                      {formData.pdfFile && (
                         <p className="text-sm text-green-600 font-medium mt-2">
-                          ✓ {formData.file.name}
+                          ✓ {formData.pdfFile.name}
                         </p>
                       )}
                       <p className="text-xs text-slate-500 mt-2">
@@ -513,25 +612,73 @@ export default function PDFBookPage() {
                       </p>
                     </div>
                   </div>
+                    {/**/}
+                    <div>
+                        <label className="block text-sm font-bold text-slate-800 mb-2">
+                          PDF Cover Image*
+                        </label>
+                    <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors">
+                      <FileText
+                        size={48}
+                        className="mx-auto text-slate-400 mb-2"
+                      />
+                      <label className="cursor-pointer text-blue-600 hover:text-blue-700 font-semibold">
+                        Click to upload image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                      
+                          className="hidden"
+                        />
+                      </label>
+                       {formData.coverImage && (
+  <div className="mt-2">
+    <p className="text-sm text-green-600 font-medium">✓ {formData.coverImage.name}</p>
+    <img
+      src={URL.createObjectURL(formData.coverImage)}
+      alt="Cover Preview"
+      className="w-32 h-32 object-cover rounded-md border mt-1"
+    />
+  </div>
+)}
+   
+
+    <p className="text-xs text-slate-500 mt-2">
+      Image only (jpg, png, jpeg), max 5MB
+    </p>
+                    </div>
+
+                    {/*  */}
+                  </div>
+                   
                 </div>
 
-                {/* Submit Buttons */}
                 <div className="flex gap-4 mt-6">
                   <button
                     type="button"
                     onClick={() => setShowUploadModal(false)}
-                    className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold"
+                    disabled={uploading}
+                    className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={handleUpload}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg font-semibold"
+                    type="submit"
+                    disabled={uploading}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    Upload Book
+                    {uploading ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload Book"
+                    )}
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         )}
@@ -540,7 +687,6 @@ export default function PDFBookPage() {
         {showCouponList && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 flex justify-between items-center rounded-t-2xl sticky top-0">
                 <div className="flex items-center gap-2">
                   <Tag size={24} />
@@ -563,7 +709,6 @@ export default function PDFBookPage() {
                 </div>
               </div>
 
-              {/* Coupon List */}
               <div className="p-6">
                 {coupons.length === 0 ? (
                   <div className="text-center py-12">
@@ -608,9 +753,11 @@ export default function PDFBookPage() {
                                 {coupon.active ? "Active" : "Inactive"}
                               </span>
                             </div>
-                            <p className="text-slate-600 mb-2">
-                              {coupon.description}
-                            </p>
+                            {coupon.description && (
+                              <p className="text-slate-600 mb-2">
+                                {coupon.description}
+                              </p>
+                            )}
                             <div className="flex items-center gap-2 text-purple-700 font-bold">
                               <Percent size={18} />
                               <span>
@@ -657,9 +804,8 @@ export default function PDFBookPage() {
         {/* Add/Edit Coupon Modal */}
         {showCouponModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full">
-              {/* Modal Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 flex justify-between items-center rounded-t-2xl">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 flex justify-between items-center rounded-t-2xl sticky top-0">
                 <div className="flex items-center gap-2">
                   <Tag size={24} />
                   <h2 className="text-xl font-bold">
@@ -677,10 +823,8 @@ export default function PDFBookPage() {
                 </button>
               </div>
 
-              {/* Modal Body */}
-              <div className="p-6">
+              <form onSubmit={handleCouponSubmit} className="p-6">
                 <div className="space-y-6">
-                  {/* Coupon Code */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Coupon Code *
@@ -690,6 +834,7 @@ export default function PDFBookPage() {
                       name="code"
                       value={couponFormData.code}
                       onChange={handleCouponInputChange}
+                      required
                       className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800 font-bold uppercase"
                       placeholder="e.g., SAVE20"
                     />
@@ -698,7 +843,6 @@ export default function PDFBookPage() {
                     </p>
                   </div>
 
-                  {/* Discount Type */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Discount Type *
@@ -707,6 +851,7 @@ export default function PDFBookPage() {
                       name="type"
                       value={couponFormData.type}
                       onChange={handleCouponInputChange}
+                      required
                       className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800 font-semibold"
                     >
                       <option value="percentage">Percentage (%)</option>
@@ -714,7 +859,6 @@ export default function PDFBookPage() {
                     </select>
                   </div>
 
-                  {/* Discount Value */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Discount Value *
@@ -739,6 +883,7 @@ export default function PDFBookPage() {
                         min="0"
                         max={couponFormData.type === "percentage" ? "100" : undefined}
                         step="0.01"
+                        required
                         className="w-full pl-12 pr-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800 font-medium"
                         placeholder={
                           couponFormData.type === "percentage"
@@ -749,7 +894,6 @@ export default function PDFBookPage() {
                     </div>
                   </div>
 
-                  {/* Description */}
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Description
@@ -763,9 +907,65 @@ export default function PDFBookPage() {
                       placeholder="Brief description of the coupon"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-2">
+                      Minimum Purchase Amount (₹)
+                    </label>
+                    <div className="relative">
+                      <DollarSign
+                        size={20}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                      />
+                      <input
+                        type="number"
+                        name="minPurchase"
+                        value={couponFormData.minPurchase}
+                        onChange={handleCouponInputChange}
+                        min="0"
+                        step="0.01"
+                        className="w-full pl-12 pr-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800 font-medium"
+                        placeholder="Optional minimum purchase"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-2">
+                      Maximum Discount (₹)
+                    </label>
+                    <div className="relative">
+                      <DollarSign
+                        size={20}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                      />
+                      <input
+                        type="number"
+                        name="maxDiscount"
+                        value={couponFormData.maxDiscount}
+                        onChange={handleCouponInputChange}
+                        min="0"
+                        step="0.01"
+                        className="w-full pl-12 pr-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800 font-medium"
+                        placeholder="Optional max discount cap"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-2">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="date"
+                      name="expiryDate"
+                      value={couponFormData.expiryDate}
+                      onChange={handleCouponInputChange}
+                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800 font-medium"
+                    />
+                  </div>
                 </div>
 
-                {/* Submit Buttons */}
                 <div className="flex gap-4 mt-6">
                   <button
                     type="button"
@@ -778,13 +978,13 @@ export default function PDFBookPage() {
                     Cancel
                   </button>
                   <button
-                    onClick={handleCouponSubmit}
+                    type="submit"
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg font-semibold"
                   >
                     {editingCoupon ? "Update Coupon" : "Create Coupon"}
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         )}
