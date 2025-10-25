@@ -87,7 +87,7 @@ export default function GaumataBhajanPlayer() {
       audio.removeEventListener('ended', handleAudioEnded);
       audio.pause();
     };
-  }, []);
+  }, [handleTimeUpdate, handleLoadedMetadata, handleAudioEnded]);
 
   // Update audio source when song changes
   useEffect(() => {

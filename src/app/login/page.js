@@ -425,7 +425,7 @@ hasRedirected.current = true;
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Verify Your Email</h2>
                 <p className="text-gray-600 text-sm">
-                  We've sent a 6-digit OTP to<br />
+                  We&apos;ve sent a 6-digit OTP to<br />
                   <span className="font-semibold text-orange-600">{pendingEmail}</span>
                 </p>
               </div>
@@ -486,7 +486,7 @@ hasRedirected.current = true;
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Forgot Password?</h2>
                 <p className="text-gray-600 text-sm">
-                  Enter your email address and we'll send you a link to reset your password.
+                  Enter your email address and we&apos;ll send you a link to reset your password.
                 </p>
               </div>
 

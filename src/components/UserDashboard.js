@@ -185,7 +185,7 @@ router.push("/login");
                           <h4 className="font-bold text-lg">Recent Activity</h4>
                           <Award size={24} />
                         </div>
-                        <p className="text-white/90 text-sm mb-4">You've been very active this month!</p>
+                        <p className="text-white/90 text-sm mb-4">You&apos;ve been very active this month!</p>
                         <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
                           <p className="text-sm text-white/80">Last login</p>
                           <p className="font-semibold">Today at 10:30 AM</p>

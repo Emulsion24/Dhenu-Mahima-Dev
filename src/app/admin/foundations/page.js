@@ -458,7 +458,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
                 <Image size={64} className="mx-auto mb-4 text-gray-400" />
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">No Foundations Yet</h3>
-                <p className="text-gray-500">Click "Add New Foundation" to get started</p>
+                <p className="text-gray-500">Click &quot;Add New Foundation&quot; to get started</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -698,7 +698,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                   </div>
                   {selectedFoundation.keyActivities.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-xl">
-                      <p>No activities added yet. Click "Add Activity" to get started.</p>
+                      <p>No activities added yet. Click &quot;Add Activity&quot;to get started.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -747,7 +747,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                   </div>
                   {selectedFoundation.objectives.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-xl">
-                      <p>No objectives added yet. Click "Add Objective" to get started.</p>
+                      <p>No objectives added yet. Click &quot;Add Objective&quot;to get started.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -799,7 +799,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                   </div>
                   {selectedFoundation.supportiveObjectives.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-xl">
-                      <p>No supportive objectives added yet. Click "Add Supportive Objective" to get started.</p>
+                      <p>No supportive objectives added yet. Click &quot;Add Supportive Objective&quot; to get started.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">

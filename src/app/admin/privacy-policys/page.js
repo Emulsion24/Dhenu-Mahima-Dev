@@ -280,7 +280,7 @@ export default function PrivacyPolicyAdmin() {
           {policyData.sections.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <p className="text-lg mb-2">No sections added yet</p>
-              <p className="text-sm">Click "Add Section" to create your first section</p>
+              <p className="text-sm">Click &quot;Add Section&quot; to create your first section</p>
             </div>
           ) : (
             <div className="space-y-4">
