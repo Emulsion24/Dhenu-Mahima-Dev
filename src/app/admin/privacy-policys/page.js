@@ -1,77 +1,90 @@
 "use client";
-import React, { useState } from "react";
-import { Save, Plus, Trash2, Edit2, X, Eye, Calendar, Mail, Phone, MapPin } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Save, Plus, Trash2, Edit2, X, Eye, Mail, Phone, MapPin } from "lucide-react";
+import API from "@/lib/api";
 
 export default function PrivacyPolicyAdmin() {
   const [policyData, setPolicyData] = useState({
-    lastUpdated: "October 5, 2025",
-    title: "Privacy Policy",
-    subtitle: "Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.",
-    sections: [
-      {
-        id: 'introduction',
-        title: 'Introduction',
-        content: 'Welcome to Acow Sheva (we, our, or us). We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about this privacy notice, or our practices with regards to your personal information, please contact us.\n\nWhen you use our services, you trust us with your personal information. We take your privacy very seriously. In this privacy notice, we seek to explain to you in the clearest way possible what information we collect, how we use it, and what rights you have in relation to it. We hope you take some time to read through it carefully, as it is important.'
-      },
-      {
-        id: 'information-collection',
-        title: 'Information We Collect',
-        content: 'We collect personal information that you voluntarily provide to us when you register on the services, express an interest in obtaining information about us or our products and services, when you participate in activities on the services, or otherwise when you contact us.\n\n• Personal Information You Disclose to Us: Name, email address, phone number, and payment information.\n• Information Automatically Collected: IP address, browser type, device information, operating system, and usage data.'
-      },
-      {
-        id: 'information-use',
-        title: 'How We Use Your Information',
-        content: 'We use the information we collect or receive: to facilitate account creation and logon process, to post testimonials, to manage user accounts, to send administrative information to you, to protect our Services, to respond to user inquiries/offer support to users, and for other business purposes like data analysis and identifying usage trends.'
-      },
-      {
-        id: 'information-sharing',
-        title: 'Information Sharing',
-        content: 'We only share information with your consent, to comply with laws, to provide you with services, to protect your rights, or to fulfill business obligations. We may share your data with third-party vendors, service providers, contractors, or agents who perform services for us or on our behalf and require access to such information to do that work.'
-      },
-      {
-        id: 'data-security',
-        title: 'Data Security',
-        content: 'We have implemented appropriate technical and organizational security measures designed to protect the security of any personal information we process. However, despite our safeguards and efforts to secure your information, no electronic transmission over the Internet or information storage technology can be guaranteed to be 100% secure.'
-      },
-      {
-        id: 'cookies',
-        title: 'Cookies & Tracking',
-        content: 'We may use cookies and similar tracking technologies (like web beacons and pixels) to access or store information. Specific information about how we use such technologies and how you can refuse certain cookies is set out in our Cookie Notice.'
-      },
-      {
-        id: 'your-rights',
-        title: 'Your Rights',
-        content: 'In some regions (like the EEA, UK, and Canada), you have certain rights under applicable data protection laws. These may include the right (i) to request access and obtain a copy of your personal information, (ii) to request rectification or erasure; (iii) to restrict the processing of your personal information; and (iv) if applicable, to data portability. To make such a request, please use the contact details provided below.'
-      },
-      {
-        id: 'children-privacy',
-        title: "Children's Privacy",
-        content: 'We do not knowingly solicit data from or market to children under 18 years of age. By using the Services, you represent that you are at least 18 or that you are the parent or guardian of such a minor and consent to such minor dependents use of the Services. If we learn that personal information from users less than 18 years of age has been collected, we will deactivate the account and take reasonable measures to promptly delete such data from our records.'
-      },
-      {
-        id: 'changes',
-        title: 'Changes to Policy',
-        content: 'We may update this privacy notice from time to time. The updated version will be indicated by an updated Revised date and the updated version will be effective as soon as it is accessible. We encourage you to review this privacy notice frequently to be informed of how we are protecting your information.'
-      }
-    ],
+    title: '',
+    subtitle: '',
+    lastUpdated: '',
+    sections: [],
     contact: {
-      email: 'privacy@acowsheva.com',
-      phone: '+91 123 456 7890',
-      phoneHours: 'Mon-Fri, 9am - 5pm IST',
-      address: '123 Dairy Farm Road,\nSheva District, Maharashtra,\nIndia - 400001'
+      email: '',
+      phone: '',
+      phoneHours: '',
+      address: ''
     }
   });
-
+  
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalType, setModalType] = useState('');
   const [editingSection, setEditingSection] = useState(null);
   const [tempData, setTempData] = useState({});
   const [showPreview, setShowPreview] = useState(false);
 
+  // Fetch policy data on mount
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      try {
+        const response = await API.get("/privacy-policy");
+        const data = response.data;
+        
+        // Sort sections by order field
+        const sortedSections = (data.sections || []).sort((a, b) => a.order - b.order);
+        
+        // Convert backend ids to strings for frontend consistency
+        const sectionsWithStringIds = sortedSections.map(section => ({
+          ...section,
+          id: `section-${section.id}` // Convert number to string format
+        }));
+        
+        setPolicyData({
+          title: data.title || '',
+          subtitle: data.subtitle || '',
+          lastUpdated: data.lastUpdated || new Date().toISOString().split('T')[0],
+          sections: sectionsWithStringIds,
+          contact: {
+            email: data.contact?.email || '',
+            phone: data.contact?.phone || '',
+            phoneHours: data.contact?.phoneHours || '',
+            address: data.contact?.address || ''
+          }
+        });
+      } catch (err) {
+        console.error("Error fetching policy:", err);
+        // Don't alert, just log and continue with empty data
+        console.warn("Starting with empty policy data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPolicy();
+  }, []);
+
+  // Save all data
+  const handleSaveAll = async () => {
+    try {
+      // Remove id field from sections before sending (backend will auto-generate)
+      const dataToSend = {
+        ...policyData,
+        sections: policyData.sections.map(({ id, ...section }) => section)
+      };
+      
+      await API.post("/privacy-policy", dataToSend);
+      alert("Privacy Policy saved successfully!");
+    } catch (err) {
+      console.error("Save error:", err);
+      alert("Failed to save policy. Please try again.");
+    }
+  };
+
+  // Handle basic info changes
   const handleBasicInfoChange = (field, value) => {
     setPolicyData({ ...policyData, [field]: value });
   };
 
+  // Handle contact info changes
   const handleContactChange = (field, value) => {
     setPolicyData({
       ...policyData,
@@ -79,20 +92,21 @@ export default function PrivacyPolicyAdmin() {
     });
   };
 
+  // Open add section modal
   const openAddSection = () => {
     setEditingSection(null);
     setTempData({ title: '', content: '' });
-    setModalType('section');
     setShowModal(true);
   };
 
+  // Open edit section modal
   const openEditSection = (section) => {
     setEditingSection(section);
     setTempData({ title: section.title, content: section.content });
-    setModalType('section');
     setShowModal(true);
   };
 
+  // Submit section (add or edit)
   const handleSectionSubmit = () => {
     if (!tempData.title || !tempData.content) {
       alert('Please fill all fields');
@@ -100,20 +114,23 @@ export default function PrivacyPolicyAdmin() {
     }
 
     if (editingSection) {
+      // Update existing section
       setPolicyData({
         ...policyData,
         sections: policyData.sections.map(s =>
           s.id === editingSection.id
-            ? { ...s, title: tempData.title, content: tempData.content }
+            ? { ...s, title: tempData.title, content: tempData.content, order: s.order }
             : s
         )
       });
       alert('Section updated successfully!');
     } else {
+      // Add new section
       const newSection = {
         id: `section-${Date.now()}`,
         title: tempData.title,
-        content: tempData.content
+        content: tempData.content,
+        order: policyData.sections.length
       };
       setPolicyData({
         ...policyData,
@@ -127,29 +144,47 @@ export default function PrivacyPolicyAdmin() {
     setEditingSection(null);
   };
 
+  // Delete section
   const handleDeleteSection = (id) => {
     if (window.confirm('Are you sure you want to delete this section?')) {
+      const filteredSections = policyData.sections.filter(s => s.id !== id);
+      
+      // Reorder remaining sections
+      filteredSections.forEach((section, idx) => {
+        section.order = idx;
+      });
+      
       setPolicyData({
         ...policyData,
-        sections: policyData.sections.filter(s => s.id !== id)
+        sections: filteredSections
       });
     }
   };
 
+  // Move section up or down
   const moveSection = (index, direction) => {
     const newSections = [...policyData.sections];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     
     if (newIndex >= 0 && newIndex < newSections.length) {
       [newSections[index], newSections[newIndex]] = [newSections[newIndex], newSections[index]];
+      
+      // Update order values after swapping
+      newSections.forEach((section, idx) => {
+        section.order = idx;
+      });
+      
       setPolicyData({ ...policyData, sections: newSections });
     }
   };
 
-  const handleSaveAll = () => {
-    console.log('Saving policy data:', policyData);
-    alert('Privacy Policy saved successfully!');
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-2xl font-semibold text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -211,7 +246,7 @@ export default function PrivacyPolicyAdmin() {
                 onChange={(e) => handleBasicInfoChange('subtitle', e.target.value)}
                 rows="3"
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                placeholder="Brief description"
+                placeholder="Brief description about your privacy policy"
               />
             </div>
 
@@ -219,16 +254,12 @@ export default function PrivacyPolicyAdmin() {
               <label className="block text-gray-700 font-semibold mb-2">
                 Last Updated Date
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  value={policyData.lastUpdated}
-                  onChange={(e) => handleBasicInfoChange('lastUpdated', e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                  placeholder="October 5, 2025"
-                />
-              </div>
+              <input
+                type="date"
+                value={policyData.lastUpdated}
+                onChange={(e) => handleBasicInfoChange('lastUpdated', e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+              />
             </div>
           </div>
         </div>
@@ -246,60 +277,67 @@ export default function PrivacyPolicyAdmin() {
             </button>
           </div>
 
-          <div className="space-y-4">
-            {policyData.sections.map((section, index) => (
-              <div
-                key={section.id}
-                className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all"
-              >
-                <div className="flex justify-between items-start gap-4 mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
-                        {index + 1}
-                      </span>
-                      <h3 className="text-xl font-bold text-slate-800">
-                        {section.title}
-                      </h3>
+          {policyData.sections.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <p className="text-lg mb-2">No sections added yet</p>
+              <p className="text-sm">Click "Add Section" to create your first section</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {policyData.sections.map((section, index) => (
+                <div
+                  key={section.id}
+                  className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 transition-all"
+                >
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
+                          {index + 1}
+                        </span>
+                        <h3 className="text-xl font-bold text-slate-800">
+                          {section.title}
+                        </h3>
+                      </div>
+                      <p className="text-gray-600 line-clamp-2 ml-11">
+                        {section.content}
+                      </p>
                     </div>
-                    <p className="text-gray-600 line-clamp-2 ml-11">
-                      {section.content}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => moveSection(index, 'up')}
-                      disabled={index === 0}
-                      className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      title="Move Up"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      onClick={() => moveSection(index, 'down')}
-                      disabled={index === policyData.sections.length - 1}
-                      className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      title="Move Down"
-                    >
-                      ↓
-                    </button>
-                    <button
-                      onClick={() => openEditSection(section)}
-                      className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSection(section.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => moveSection(index, 'up')}
+                        disabled={index === 0}
+                        className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move Up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => moveSection(index, 'down')}
+                        disabled={index === policyData.sections.length - 1}
+                        className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move Down"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() => openEditSection(section)}
+                        className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSection(section.id)}
+                        className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Contact Information */}
@@ -413,10 +451,10 @@ export default function PrivacyPolicyAdmin() {
                     onChange={(e) => setTempData({ ...tempData, content: e.target.value })}
                     rows="12"
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm"
-                    placeholder="Enter the content for this section. Use \n\n for paragraphs and • for bullet points."
+                    placeholder="Enter the content for this section. Use line breaks to separate paragraphs."
                   />
                   <p className="text-sm text-gray-500 mt-2">
-                    Tips: Use double line breaks (\n\n) to separate paragraphs. Use • or - for bullet points.
+                    Tips: Use double line breaks to separate paragraphs. Use • or - for bullet points.
                   </p>
                 </div>
               </div>
@@ -445,7 +483,7 @@ export default function PrivacyPolicyAdmin() {
       {showPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-6 rounded-t-xl z-10">
+            <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-xl z-10">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">Privacy Policy Preview</h2>
                 <button
@@ -460,53 +498,98 @@ export default function PrivacyPolicyAdmin() {
             <div className="p-8">
               {/* Header */}
               <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">{policyData.title}</h1>
-                <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-4">{policyData.subtitle}</p>
-                <p className="text-sm text-gray-500">Last Updated: {policyData.lastUpdated}</p>
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  {policyData.title || 'Privacy Policy'}
+                </h1>
+                {policyData.subtitle && (
+                  <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-4">
+                    {policyData.subtitle}
+                  </p>
+                )}
+                {policyData.lastUpdated && (
+                  <p className="text-sm text-gray-500">
+                    Last Updated: {new Date(policyData.lastUpdated).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                )}
               </div>
 
               {/* Sections */}
-              <div className="space-y-12 mb-12">
-                {policyData.sections.map((section, index) => (
-                  <div key={section.id} className="border-l-4 border-blue-500 pl-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-white">
-                        {index + 1}
-                      </span>
-                      <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+              {policyData.sections.length > 0 ? (
+                <div className="space-y-12 mb-12">
+                  {policyData.sections.map((section, index) => (
+                    <div key={section.id} className="border-l-4 border-blue-500 pl-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-xl font-bold text-white">
+                          {index + 1}
+                        </span>
+                        <h2 className="text-2xl font-bold text-gray-900">{section.title}</h2>
+                      </div>
+                      <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                        {section.content}
+                      </div>
                     </div>
-                    <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-                      {section.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 mb-12 text-gray-500">
+                  <p>No sections added yet</p>
+                </div>
+              )}
 
               {/* Contact Section */}
               <div className="border-t-4 border-blue-500 pt-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Us</h2>
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
-                    <h4 className="font-semibold text-gray-800 mb-2">Email Us</h4>
-                    <p className="text-gray-500 text-sm mb-2">For any privacy concerns</p>
-                    <a href={`mailto:${policyData.contact.email}`} className="text-yellow-600 font-medium break-all">
-                      {policyData.contact.email}
-                    </a>
-                  </div>
-                  <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
-                    <h4 className="font-semibold text-gray-800 mb-2">Call Us</h4>
-                    <p className="text-gray-500 text-sm mb-2">{policyData.contact.phoneHours}</p>
-                    <a href={`tel:${policyData.contact.phone}`} className="text-yellow-600 font-medium">
-                      {policyData.contact.phone}
-                    </a>
-                  </div>
-                  <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow md:col-span-2">
-                    <h4 className="font-semibold text-gray-800 mb-2">Mailing Address</h4>
-                    <p className="text-gray-500 text-sm mb-2">Send us mail</p>
-                    <address className="not-italic text-gray-600 whitespace-pre-line">
-                      {policyData.contact.address}
-                    </address>
-                  </div>
+                  {policyData.contact.email && (
+                    <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Mail className="text-blue-600" size={24} />
+                        <h4 className="font-semibold text-gray-800">Email Us</h4>
+                      </div>
+                      <p className="text-gray-500 text-sm mb-2">For any privacy concerns</p>
+                      <a 
+                        href={`mailto:${policyData.contact.email}`} 
+                        className="text-blue-600 font-medium break-all hover:underline"
+                      >
+                        {policyData.contact.email}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {policyData.contact.phone && (
+                    <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Phone className="text-blue-600" size={24} />
+                        <h4 className="font-semibold text-gray-800">Call Us</h4>
+                      </div>
+                      {policyData.contact.phoneHours && (
+                        <p className="text-gray-500 text-sm mb-2">{policyData.contact.phoneHours}</p>
+                      )}
+                      <a 
+                        href={`tel:${policyData.contact.phone}`} 
+                        className="text-blue-600 font-medium hover:underline"
+                      >
+                        {policyData.contact.phone}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {policyData.contact.address && (
+                    <div className="border rounded-xl p-6 hover:shadow-lg transition-shadow md:col-span-2">
+                      <div className="flex items-center gap-3 mb-2">
+                        <MapPin className="text-blue-600" size={24} />
+                        <h4 className="font-semibold text-gray-800">Mailing Address</h4>
+                      </div>
+                      <p className="text-gray-500 text-sm mb-2">Send us mail</p>
+                      <address className="not-italic text-gray-600 whitespace-pre-line">
+                        {policyData.contact.address}
+                      </address>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

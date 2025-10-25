@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   Edit, 
   Trash2, 
@@ -17,83 +17,11 @@ import {
   Smartphone,
   Filter
 } from "lucide-react";
+import API from "@/lib/api";
 
 export default function DonationsPage() {
-  const [donations, setDonations] = useState([
-    { 
-      id: 1,
-      transactionId: "TXN001234567",
-      name: "John Doe", 
-      amount: 5000, 
-      email: "john@example.com",
-      date: "2024-01-15",
-      time: "10:30 AM",
-      paymentMethod: "Credit Card",
-      cardLast4: "4242",
-      status: "Success"
-    },
-    { 
-      id: 2,
-      transactionId: "TXN001234568",
-      name: "Jane Smith", 
-      amount: 10000,
-      email: "jane@example.com", 
-      date: "2024-01-14",
-      time: "02:45 PM",
-      paymentMethod: "Bank Transfer",
-      cardLast4: "8976",
-      status: "Success"
-    },
-    { 
-      id: 3,
-      transactionId: "TXN001234569",
-      name: "Mike Johnson", 
-      amount: 7500,
-      email: "mike@example.com", 
-      date: "2024-01-13",
-      time: "09:15 AM",
-      paymentMethod: "UPI",
-      cardLast4: "9876",
-      status: "Pending"
-    },
-    { 
-      id: 4,
-      transactionId: "TXN001234570",
-      name: "Sarah Williams", 
-      amount: 3000,
-      email: "sarah@example.com", 
-      date: "2023-12-25",
-      time: "04:20 PM",
-      paymentMethod: "Credit Card",
-      cardLast4: "1234",
-      status: "Success"
-    },
-    { 
-      id: 5,
-      transactionId: "TXN001234571",
-      name: "Robert Brown", 
-      amount: 15000,
-      email: "robert@example.com", 
-      date: "2023-11-10",
-      time: "11:30 AM",
-      paymentMethod: "Bank Transfer",
-      cardLast4: "5678",
-      status: "Success"
-    },
-    { 
-      id: 6,
-      transactionId: "TXN001234572",
-      name: "Emily Davis", 
-      amount: 8000,
-      email: "emily@example.com", 
-      date: "2024-01-10",
-      time: "03:15 PM",
-      paymentMethod: "UPI",
-      cardLast4: "9012",
-      status: "Success"
-    },
-  ]);
-
+  const [donations, setDonations] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -109,6 +37,28 @@ export default function DonationsPage() {
     cardLast4: "",
     status: "Success"
   });
+useEffect(() => {
+    fetchDonations();
+  }, []);
+
+  const fetchDonations = async () => {
+    try {
+      setLoading(true);
+      const response = await API.get('/donations');
+      const data = response.data
+      
+      if (data) {
+        setDonations(data);
+      } else {
+        alert('Failed to fetch Donations');
+      }
+    } catch (error) {
+      console.error('Error fetching Donations:', error);
+      alert('Error fetching Donations. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter by time period
   const filterByTimePeriod = (donation) => {
@@ -144,12 +94,10 @@ export default function DonationsPage() {
   // Calculate statistics for filtered data
   const totalDonations = filteredDonations.reduce((sum, d) => sum + Number(d.amount), 0);
   const totalDonors = filteredDonations.length;
-  const successfulDonations = filteredDonations.filter(d => d.status === "Success").length;
+  const successfulDonations = filteredDonations.filter(d => d.status === "success").length;
 
   // Generate transaction ID
-  const generateTransactionId = () => {
-    return "TXN" + Math.random().toString().slice(2, 11);
-  };
+ 
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -171,7 +119,7 @@ export default function DonationsPage() {
       time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       paymentMethod: "Credit Card",
       cardLast4: "",
-      status: "Success"
+      status: "success"
     });
     setIsModalOpen(true);
   };
@@ -350,9 +298,9 @@ export default function DonationsPage() {
               className="px-6 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-slate-800 font-bold"
             >
               <option value="All">All Status</option>
-              <option value="Success">Success</option>
-              <option value="Pending">Pending</option>
-              <option value="Failed">Failed</option>
+              <option value="success">Success</option>
+              <option value="pending">Pending</option>
+              <option value="failed">Failed</option>
             </select>
           </div>
         </div>
@@ -405,7 +353,7 @@ export default function DonationsPage() {
                         </div>
                         <div>
                           <div className="text-sm font-bold text-slate-900">{d.paymentMethod}</div>
-                          <div className="text-xs text-slate-600 font-semibold">****{d.cardLast4}</div>
+                          <div className="text-xs text-slate-600 font-semibold">PAN-{d.cardLast4}</div>
                         </div>
                       </div>
                     </td>

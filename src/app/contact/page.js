@@ -3,7 +3,8 @@
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
 import React from 'react';
-
+import API from '@/lib/api';
+import { useState } from 'react';
 /**
  * Instructions Section Component
  */
@@ -35,6 +36,7 @@ const InstructionsSection = () => {
     "वक्ता कथा के चार घंटे पूर्व मौन धारण करते हैं एवं कथा पूर्ण होने के 1 घंटे बाद दो घंटे का मौन रखते हैं।",
     "रसीद, दान पात्र, और झोली के पैसे, कथा जिस गांव में हो रही है वहाँ गोशाला में जमा कराएँ।"
   ];
+  
 
   return (
     <div className="space-y-12">
@@ -64,6 +66,45 @@ const InstructionsSection = () => {
  * Main Page Component
  */
 const GaukathaPage = () => {
+    const [formData, setFormData] = useState({
+    name: '',
+    contact: '',
+    state: '',
+    city: ''
+  });
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [message, setMessage] = useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    try {
+      const response = await API.post('/message-submit/message', formData);
+      
+      if (response.data.success) {
+        setStatus('success');
+        setMessage(`आपका आवेदन सफलतापूर्वक जमा हो गया है! बुकिंग आईडी`);
+        setFormData({ name: '', contact: '', state: '', city: '' });
+        setTimeout(() => {
+          setStatus('idle');
+          setMessage('');
+        }, 5000);
+      }
+    } catch (error) {
+      setStatus('error');
+      setMessage(error.response?.data?.error || 'आवेदन जमा करने में त्रुटि हुई। कृपया पुनः प्रयास करें।');
+      setTimeout(() => {
+        setStatus('idle');
+        setMessage('');
+      }, 5000);
+    }
+  };
   return (
     <>
     <Headers/>
@@ -102,45 +143,110 @@ const GaukathaPage = () => {
       {/* Main Content */}
       <div className="lg:grid lg:grid-cols-12 lg:gap-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {/* Form Section */}
-        <div className="lg:col-span-4 mb-12 lg:mb-0">
-          <div className="p-8 bg-white border border-orange-200 rounded-2xl shadow-xl lg:sticky lg:top-24">
-            <h3 className="text-2xl font-bold text-orange-700 mb-6 border-b pb-3">
-              कथा हेतु ऑनलाइन आवेदन
-            </h3>
-            <form className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">आपका नाम</label>
-                <input type="text" id="name" name="name" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" placeholder="पूरा नाम" required />
-              </div>
+          <div className="lg:col-span-4 mb-12 lg:mb-0">
+        <div className="p-8 bg-white border border-orange-200 rounded-2xl shadow-xl lg:sticky lg:top-24">
+          <h3 className="text-2xl font-bold text-orange-700 mb-6 border-b pb-3">
+            कथा हेतु ऑनलाइन आवेदन
+          </h3>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">आपका नाम *</label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                value={formData.name}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" 
+                placeholder="पूरा नाम" 
+                required 
+              />
+            </div>
 
-              <div>
-                <label htmlFor="contact" className="block text-sm font-medium text-gray-700">संपर्क नंबर</label>
-                <input type="tel" id="contact" name="contact" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" placeholder="9876543210" required />
-              </div>
+            <div>
+              <label htmlFor="contact" className="block text-sm font-medium text-gray-700">संपर्क नंबर *</label>
+              <input 
+                type="tel" 
+                id="contact" 
+                name="contact" 
+                value={formData.contact}
+                onChange={handleChange}
+                maxLength="10"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" 
+                placeholder="9876543210" 
+                required 
+              />
+            </div>
 
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700">राज्य का चयन करें</label>
-                <select id="state" name="state" className="mt-1 text-black block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 rounded-md" required>
-                  <option disabled>--Select--</option>
-                  <option>राजस्थान</option>
-                  <option>उत्तर प्रदेश</option>
-                  <option>मध्य प्रदेश</option>
-                  <option>अन्य राज्य</option>
-                </select>
-              </div>
+            <div>
+              <label htmlFor="state" className="block text-sm font-medium text-gray-700">राज्य का चयन करें *</label>
+              <select 
+                id="state" 
+                name="state" 
+                value={formData.state}
+                onChange={handleChange}
+                className="mt-1 text-black block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 rounded-md" 
+                required
+              >
+                <option value="">--चयन करें--</option>
+                <option value="राजस्थान">राजस्थान</option>
+                <option value="उत्तर प्रदेश">उत्तर प्रदेश</option>
+                <option value="मध्य प्रदेश">मध्य प्रदेश</option>
+                <option value="गुजरात">गुजरात</option>
+                <option value="महाराष्ट्र">महाराष्ट्र</option>
+                <option value="हरियाणा">हरियाणा</option>
+                <option value="पंजाब">पंजाब</option>
+                <option value="अन्य राज्य">अन्य राज्य</option>
+              </select>
+            </div>
 
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700">शहर / गाँव</label>
-                <input type="text" id="city" name="city" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" placeholder="नगर का नाम" required />
-              </div>
+            <div>
+              <label htmlFor="city" className="block text-sm font-medium text-gray-700">शहर / गाँव *</label>
+              <input 
+                type="text" 
+                id="city" 
+                name="city" 
+                value={formData.city}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" 
+                placeholder="नगर का नाम" 
+                required 
+              />
+            </div>
 
-              <button type="submit" className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-150 mt-6">
-                आवेदन जमा करें
-              </button>
-            </form>
-          </div>
+            <button 
+              type="submit" 
+              disabled={status === 'loading'}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition duration-150 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {status === 'loading' ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  जमा हो रहा है...
+                </span>
+              ) : (
+                'आवेदन जमा करें'
+              )}
+            </button>
+
+            {/* Status Messages */}
+            {status === 'success' && (
+              <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                <p className="text-green-700 font-semibold text-sm">{message}</p>
+              </div>
+            )}
+            
+            {status === 'error' && (
+              <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+                <p className="text-red-700 font-semibold text-sm">{message}</p>
+              </div>
+            )}
+          </form>
         </div>
-
+      </div>
         {/* Instructions Section */}
         <div className="lg:col-span-8">
           <InstructionsSection />

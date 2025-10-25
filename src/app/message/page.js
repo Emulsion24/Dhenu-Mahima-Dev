@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
+import API from '@/lib/api';
 export default function SendMessage() {
   const [formData, setFormData] = useState({ name: '', email: '', mobile: '', message: '' });
   const [errors, setErrors] = useState({});
@@ -45,28 +46,18 @@ export default function SendMessage() {
 
     setStatus('loading');
 
-    try {
-      const response = await fetch('/api/send-message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
+    const response = await API.post('/send-message', formData);
 
-      if (response.ok) {
-        setStatus('success');
-        setSubmitMessage('Thank you! Your message has been sent successfully.');
-        setFormData({ name: '', email: '', mobile: '', message: '' });
-        setTimeout(() => { setStatus('idle'); setSubmitMessage(''); }, 5000);
-      } else {
-        setStatus('error');
-        setSubmitMessage(data.error || 'Failed to send message. Please try again.');
-      }
-    } catch (error) {
-      setStatus('error');
-      setSubmitMessage('An error occurred. Please try again later.');
-      console.error('Error:', error);
-    }
+if (response.data.success) {
+  setStatus('success');
+  setSubmitMessage('Thank you! Your message has been sent successfully.');
+  setFormData({ name: '', email: '', mobile: '', message: '' });
+  setAttachedFile(null);
+  setTimeout(() => { setStatus('idle'); setSubmitMessage(''); }, 5000);
+} else {
+  setStatus('error');
+  setSubmitMessage(response.data.error || 'Failed to send message. Please try again.');
+}
   };
 
   return (

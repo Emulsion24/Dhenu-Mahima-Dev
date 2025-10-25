@@ -1,16 +1,13 @@
 'use client';
-
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
+import { useState, useEffect, useRef } from 'react';
+import API from "@/lib/api";
 import Footer from '@/components/Footer';
-import Headers from '@/components/Header';
-
-// Icon components for visual enhancement
-// Chakra Icon - symbolizing order, energy, and spiritual journey
-const ChakraIcon = () => (
-    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m-9-9h18M5.636 5.636l12.728 12.728M5.636 18.364l12.728-12.728" />
-    </svg>
+import Header from '@/components/Header';
+// Icon components
+const LockIcon = () => (
+  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
 );
 
 const ChevronDownIcon = () => (
@@ -19,103 +16,177 @@ const ChevronDownIcon = () => (
   </svg>
 );
 
-export default function TermsAndConditions() {
-  const [activeSection, setActiveSection] = useState('agreement');
+const MailIcon = () => (
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+
+const PhoneIcon = () => (
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+  </svg>
+);
+
+const MapPinIcon = () => (
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+export default function PrivacyPolicy() {
+  const [policyData, setPolicyData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState(0);
   const [isMobileNavOpen, setMobileNavOpen] = useState(false);
+  const sectionsRef = useRef({});
 
-  const sections = [
-    { id: 'agreement', title: 'Our Sacred Agreement' },
-    { id: 'accounts', title: 'Your Seva Account' },
-    { id: 'offerings', title: 'Offerings & Payments' },
-    { id: 'products', title: 'Prasadam & Products' },
-    { id: 'cancellations', title: 'Cancellations & Refunds' },
-    { id: 'user-conduct', title: 'Community Dharma' },
-    { id: 'ip-rights', title: 'Our Sacred Content' },
-    { id: 'liability', title: 'Limitation of Liability' },
-    { id: 'governing-law', title: 'Governing Law' },
-    { id: 'changes', title: 'Evolving With Grace' },
-    { id: 'contact', title: 'Connect With Us' },
-  ];
+  // Fetch privacy policy data
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      try {
+        const response = await API.get("/terms-conditions");
+        const data = response.data;
+        
+        // Sort sections by order
+        const sortedSections = (data.sections || []).sort((a, b) => a.order - b.order);
+        
+        setPolicyData({
+          ...data,
+          sections: sortedSections
+        });
+        
+        // Set first section as active
+        if (sortedSections.length > 0) {
+          setActiveSection(0);
+        }
+      } catch (err) {
+        console.error("Error fetching policy:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPolicy();
+  }, []);
 
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
+  // Smooth scroll functionality
+  const scrollToSection = (index) => {
+    const element = document.getElementById(`section-${index}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveSection(id);
+      setActiveSection(index);
       setMobileNavOpen(false);
     }
   };
 
+  // Scrollspy effect
   useEffect(() => {
+    if (!policyData?.sections) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
+            const index = parseInt(entry.target.getAttribute('data-index'));
+            setActiveSection(index);
           }
         });
       },
       { rootMargin: '-20% 0px -80% 0px', threshold: 0 }
     );
 
-    sections.forEach((section) => {
-      const el = document.getElementById(section.id);
+    policyData.sections.forEach((_, index) => {
+      const el = document.getElementById(`section-${index}`);
       if (el) observer.observe(el);
     });
 
     return () => {
-      sections.forEach((section) => {
-        const el = document.getElementById(section.id);
+      policyData.sections.forEach((_, index) => {
+        const el = document.getElementById(`section-${index}`);
         if (el) observer.unobserve(el);
       });
     };
-  }, []);
+  }, [policyData]);
 
-  const TableOfContents = () => (
-    <nav className="space-y-1">
-      {sections.map((section) => (
-        <button
-          key={section.id}
-          onClick={() => scrollToSection(section.id)}
-          className={`group flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors duration-200 ${
-            activeSection === section.id
-              ? 'bg-green-100 font-semibold text-orange-500'
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-          }`}
-        >
-          <span className={`mr-3 h-2 w-2 rounded-full ${activeSection === section.id ? 'bg-green-500' : 'bg-transparent group-hover:bg-gray-300'}`}></span>
-          {section.title}
-        </button>
-      ))}
-    </nav>
-  );
+  const TableOfContents = () => {
+    if (!policyData?.sections) return null;
+
+    return (
+      <nav className="space-y-1">
+        {policyData.sections.map((section, index) => (
+          <button
+            key={section.id}
+            onClick={() => scrollToSection(index)}
+            className={`group flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors duration-200 ${
+              activeSection === index
+                ? 'bg-green-100 font-semibold text-orange-500'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            <span className={`mr-3 h-2 w-2 rounded-full ${activeSection === index ? 'bg-green-500' : 'bg-transparent group-hover:bg-gray-300'}`}></span>
+            {section.title}
+          </button>
+        ))}
+      </nav>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-yellow-400 border-r-transparent"></div>
+          <p className="mt-4 text-gray-600">Loading Privacy Policy...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!policyData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Privacy Policy not found</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-    <Headers/>
-      <Head>
-        <title>Terms of Seva - Acow Sheva</title>
-        <meta name="description" content="Understand the terms of service and community guidelines for participating in the Acow Sheva mission." />
-        <meta name="robots" content="index, follow" />
-      </Head>
-
-      <div className="min-h-screen bg-gray-50 text-gray-900">
+    <Header/>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header Banner */}
         <header className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg">
           <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
             <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
-              <ChakraIcon />
+              <LockIcon />
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">Terms of Seva (Service)</h1>
-            <p className="mx-auto mt-4 max-w-3xl text-lg text-green-100">
-              A guide to our shared values and commitments as we serve Gaumata (Mother Cow) together.
-            </p>
-            <p className="mt-4 text-sm text-green-200">Last Updated: October 5, 2025</p>
+            <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+              {policyData.title || 'Privacy Policy'}
+            </h1>
+            {policyData.subtitle && (
+              <p className="mx-auto mt-4 max-w-3xl text-lg text-green-100">
+                {policyData.subtitle}
+              </p>
+            )}
+            {policyData.lastUpdated && (
+              <p className="mt-4 text-sm text-green-200">
+                Last Updated: {new Date(policyData.lastUpdated).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </p>
+            )}
           </div>
         </header>
 
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
             
+            {/* Desktop Table of Contents (Sticky) */}
             <aside className="hidden lg:col-span-3 lg:block">
               <div className="sticky top-24 rounded-xl border bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-bold text-gray-900">Table of Contents</h2>
@@ -123,7 +194,10 @@ export default function TermsAndConditions() {
               </div>
             </aside>
 
+            {/* Main Content */}
             <div className="lg:col-span-9">
+
+              {/* Mobile Table of Contents (Accordion) */}
               <div className="mb-8 lg:hidden">
                 <div className="rounded-xl border bg-white shadow-sm">
                   <button
@@ -132,7 +206,9 @@ export default function TermsAndConditions() {
                     aria-expanded={isMobileNavOpen}
                   >
                     <span>Table of Contents</span>
-                    <ChevronDownIcon className={`transform transition-transform duration-300 ${isMobileNavOpen ? 'rotate-180' : ''}`} />
+                    <div className={`transform transition-transform duration-300 ${isMobileNavOpen ? 'rotate-180' : ''}`}>
+                      <ChevronDownIcon />
+                    </div>
                   </button>
                   {isMobileNavOpen && (
                     <div className="border-t p-4">
@@ -142,9 +218,15 @@ export default function TermsAndConditions() {
                 </div>
               </div>
               
+              {/* Policy Sections */}
               <div className="space-y-12">
-                {sections.map((section, index) => (
-                  <section key={section.id} id={section.id} className="scroll-mt-20">
+                {policyData.sections.map((section, index) => (
+                  <section 
+                    key={section.id} 
+                    id={`section-${index}`}
+                    data-index={index}
+                    className="scroll-mt-20"
+                  >
                     <div className="flex items-center mb-4">
                       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-white">
                         {index + 1}
@@ -154,77 +236,81 @@ export default function TermsAndConditions() {
                       </h2>
                     </div>
                     <article className="prose prose-lg max-w-none text-gray-700 prose-a:text-green-600 hover:prose-a:text-green-700">
-                      {section.id === 'agreement' && (
-                        <p>Jai Gaumata! Welcome to Acow Sheva. By accessing our website, making offerings, or acquiring prasadam, you enter into this sacred covenant, our Terms of Seva. This agreement ensures that our shared journey, dedicated to the welfare of Mother Cow, is conducted with respect, harmony, and devotion. If any part of these terms resonates not with your heart, we humbly request you to understand their purpose before proceeding.</p>
-                      )}
-                      {section.id === 'accounts' && (
-                        <p>To fully partake in our community and its seva, you may establish a personal Seva Account. You are entrusted with the guardianship of your account details, and all actions originating from it shall be your responsibility. We pray that you keep your information accurate and sacred, and alert us immediately if you perceive any unauthorized entry. Your account is a bridge to our collective devotion; protect it with spiritual vigilance.</p>
-                      )}
-                      {section.id === 'offerings' && (
-                        <p>All offerings (donations) and payments for our sacred products are channeled through secure gateways, ensuring the sanctity of your transaction. We do not retain your financial details within our direct care. By making an offering, you affirm your intention and capacity to contribute, empowering us (or our trusted facilitators) to receive your benevolent gift.</p>
-                      )}
-                      {section.id === 'products' && (
-                        <p>The precious items available on our platform are offered as prasadam—blessed remnants from our service to Gaumata, imbued with spiritual essence. We endeavor to depict these offerings truthfully. However, as many are handcrafted or natural, subtle variations in their divine form, shade, or presence may occur, reflecting their unique origin. All prasadam is offered subject to its divine availability.</p>
-                      )}
-                      {section.id === 'cancellations' && (
-                        <>
-                          <p>We approach every interaction with deep reverence. Kindly note our considerations regarding cancellations and the return of offerings:</p>
-                          <ul>
-                            <li><strong>Donations/Offerings:</strong> As these are consecrated acts of devotion for the ongoing care of our Gaumata and the functioning of the Gaushala, they are generally considered final and non-refundable. Your generosity is a profound blessing.</li>
-                            <li><strong>Prasadam/Products:</strong> Should you wish to alter an order for prasadam, please communicate your intention within 24 hours of its placement. We will strive to accommodate your request if the offering has not yet embarked on its journey to you. Returns and refunds for prasadam will be contemplated with discernment, provided the item is returned in its original, untouched state, fit for re-offering.</li>
-                          </ul>
-                        </>
-                      )}
-                      {section.id === 'user-conduct' && (
-                        <>
-                          <p>Our digital temple is a sanctuary for all who honor Gaumata. We implore you, as a cherished member of our extended family, to uphold this Community Dharma:</p>
-                          <ul>
-                            <li>Conduct yourself with kindness, respect, and unwavering compassion towards all.</li>
-                            <li>Refrain from using this sacred space for any actions that are unlawful, divisive, or deceptive.</li>
-                            <li>Do not utter or propagate words that are hurtful, offensive, or contrary to the spirit of devotion.</li>
-                            <li>Seek not to disturb the sanctity or functionality of our digital abode.</li>
-                          </ul>
-                          <p>We reserve the right, with a heavy heart, to respectfully dissociate any account that deviates from this Community Dharma.</p>
-                        </>
-                      )}
-                      {section.id === 'ip-rights' && (
-                        <p>All divine expressions on this platform—be it sacred texts, evocative imagery, emblematic symbols, or digital creations—are the spiritual property of Acow Sheva or our revered contributors, safeguarded by universal laws of creation. These offerings are presented for your personal reflection and spiritual nourishment. Any replication or dissemination without our humble consent is considered an act against the sacred trust.</p>
-                      )}
-                      {section.id === 'liability' && (
-                        <p>We perform our seva with utmost sincerity and dedication. However, our digital platform and its offerings are presented as is, without explicit guarantees. In moments of unforeseen challenge, Acow Sheva shall not be held responsible for any direct or indirect hardship arising from your interaction with our services. Our commitment extends to the highest dharma, within the bounds of earthly laws.</p>
-                      )}
-                      {section.id === 'governing-law' && (
-                        <p>This sacred pact shall be guided by the timeless principles and statutes of the land of India. Any spiritual or temporal disagreements arising from these terms shall be humbly presented before the righteous courts situated in Maharashtra, India.</p>
-                      )}
-                      {section.id === 'changes' && (
-                        <p>As the cycles of nature bring forth new beginnings, so too may our Terms of Seva evolve. We reserve the divine prerogative to update or refine these terms at any moment. We shall announce such changes by updating the Last Updated date, and your continued participation signifies your acceptance of this evolving grace.</p>
-                      )}
-                      {section.id === 'contact' && (
-                        <div className="not-prose grid grid-cols-1 gap-6 sm:grid-cols-2">
-                          <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
-                            <h4 className="font-semibold text-gray-800">Email Us</h4>
-                            <p className="text-gray-500 text-sm mb-2">For any questions or concerns</p>
-                            <a href="mailto:seva@acowsheva.com" className="font-medium text-yellow-400 break-all group-hover:underline">seva@acowsheva.com</a>
-                          </div>
-                          <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
-                            <h4 className="font-semibold text-gray-800">Call Us</h4>
-                            <p className="text-gray-500 text-sm mb-2">Mon-Fri, 9am - 5pm IST</p>
-                            <a href="tel:+911234567890" className="font-medium text-yellow-400 group-hover:underline">+91 123 456 7890</a>
-                          </div>
-                          <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg sm:col-span-2">
-                            <h4 className="font-semibold text-gray-800">Mailing Address</h4>
-                            <p className="text-gray-500 text-sm mb-2">Send us mail</p>
-                            <address className="not-italic text-gray-600">
-                              123 Dairy Farm Road,<br />
-                              Sheva District, Maharashtra,<br />
-                              India - 400001
-                            </address>
-                          </div>
-                        </div>
-                      )}
+                      <div className="whitespace-pre-line">
+                        {section.content}
+                      </div>
                     </article>
                   </section>
                 ))}
+
+                {/* Contact Section */}
+                {policyData.contact && (
+                  <section className="scroll-mt-20 border-t-4 border-yellow-400 pt-8">
+                    <div className="flex items-center mb-6">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-xl font-bold text-white">
+                        <MailIcon />
+                      </span>
+                      <h2 className="ml-4 text-3xl font-bold text-gray-900">
+                        Contact Us
+                      </h2>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                      {policyData.contact.email && (
+                        <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="text-yellow-500">
+                              <MailIcon />
+                            </div>
+                            <h4 className="font-semibold text-gray-800">Email Us</h4>
+                          </div>
+                          <p className="text-gray-500 text-sm mb-2">For any privacy concerns</p>
+                          <a 
+                            href={`mailto:${policyData.contact.email}`} 
+                            className="font-medium text-yellow-500 break-all group-hover:underline"
+                          >
+                            {policyData.contact.email}
+                          </a>
+                        </div>
+                      )}
+
+                      {policyData.contact.phone && (
+                        <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="text-yellow-500">
+                              <PhoneIcon />
+                            </div>
+                            <h4 className="font-semibold text-gray-800">Call Us</h4>
+                          </div>
+                          {policyData.contact.phoneHours && (
+                            <p className="text-gray-500 text-sm mb-2">{policyData.contact.phoneHours}</p>
+                          )}
+                          <a 
+                            href={`tel:${policyData.contact.phone}`} 
+                            className="font-medium text-yellow-500 group-hover:underline"
+                          >
+                            {policyData.contact.phone}
+                          </a>
+                        </div>
+                      )}
+
+                      {policyData.contact.address && (
+                        <div className="group rounded-xl border bg-white p-6 transition-shadow hover:shadow-lg sm:col-span-2">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="text-yellow-500">
+                              <MapPinIcon />
+                            </div>
+                            <h4 className="font-semibold text-gray-800">Mailing Address</h4>
+                          </div>
+                          <p className="text-gray-500 text-sm mb-2">Send us mail</p>
+                          <address className="not-italic text-gray-600 whitespace-pre-line">
+                            {policyData.contact.address}
+                          </address>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+                )}
               </div>
             </div>
 

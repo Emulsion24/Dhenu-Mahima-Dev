@@ -19,29 +19,20 @@ import {
   Calendar,
   ArrowUpRight
 } from "lucide-react";
+import API from "@/lib/api";
 
 // Sample Data
-const recentDonations = [
-  { id: 1, name: "Rohit Sharma", amount: 5000, time: "10:15 AM", status: "completed" },
-  { id: 2, name: "Priya Das", amount: 3000, time: "11:30 AM", status: "completed" },
-  { id: 3, name: "Amit Roy", amount: 7000, time: "12:45 PM", status: "completed" },
-  { id: 4, name: "Sneha Gupta", amount: 2500, time: "02:00 PM", status: "pending" },
-  { id: 5, name: "Ankit Singh", amount: 4000, time: "03:30 PM", status: "completed" },
-];
+const res = await API.get("/donations");
+ const recentDonations=res.data;
 
-const recentActivities = [
-  { id: 1, action: "New user registered", user: "Rahul Kumar", time: "5 mins ago" },
-  { id: 2, action: "Bhajan uploaded", user: "Admin", time: "15 mins ago" },
-  { id: 3, action: "PDF book added", user: "Editor", time: "1 hour ago" },
-  { id: 4, action: "News article published", user: "Admin", time: "2 hours ago" },
-];
+
 
 // Quick Actions Config
 const quickActions = [
-  { name: "Add User", link: "/admin/users/add", icon: UserPlus, color: "from-blue-500 to-blue-600", hoverColor: "hover:from-blue-600 hover:to-blue-700" },
-  { name: "Add Bhajan", link: "/admin/music/add", icon: Music, color: "from-purple-500 to-purple-600", hoverColor: "hover:from-purple-600 hover:to-purple-700" },
-  { name: "Upload PDF", link: "/admin/pdf-books/upload", icon: FilePlus, color: "from-pink-500 to-pink-600", hoverColor: "hover:from-pink-600 hover:to-pink-700" },
-  { name: "Send Message", link: "/admin/messages/new", icon: MessageCircle, color: "from-green-500 to-green-600", hoverColor: "hover:from-green-600 hover:to-green-700" },
+  { name: "Add User", link: "/admin/users", icon: UserPlus, color: "from-blue-500 to-blue-600", hoverColor: "hover:from-blue-600 hover:to-blue-700" },
+  { name: "Add Bhajan", link: "/admin/music", icon: Music, color: "from-purple-500 to-purple-600", hoverColor: "hover:from-purple-600 hover:to-purple-700" },
+  { name: "Upload PDF", link: "/admin/pdf-book", icon: FilePlus, color: "from-pink-500 to-pink-600", hoverColor: "hover:from-pink-600 hover:to-pink-700" },
+  { name: "Send Message", link: "/admin/director-message", icon: MessageCircle, color: "from-green-500 to-green-600", hoverColor: "hover:from-green-600 hover:to-green-700" },
   { name: "Add News", link: "/admin/news", icon: Newspaper, color: "from-orange-500 to-orange-600", hoverColor: "hover:from-orange-600 hover:to-orange-700" },
   { name: "Record Bhajan", link: "/admin/music", icon: Mic, color: "from-red-500 to-red-600", hoverColor: "hover:from-red-600 hover:to-red-700" },
 ];
@@ -85,7 +76,7 @@ export default function AdminDashboard() {
             title: "PDF Books", 
             value: "320", 
             change: "+5%",
-            link: "/admin/pdf-books", 
+            link: "/admin/pdf-book", 
             icon: BookOpen,
             gradient: "from-orange-500 to-red-500",
             bgGradient: "from-orange-50 to-red-50"

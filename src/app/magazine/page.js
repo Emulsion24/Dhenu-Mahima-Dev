@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import Headers from "@/components/Header";
 import { useState } from "react";
 import { Check, BookOpen, Gift, Star, Zap, Users, Smartphone, Shield, ArrowRight } from "lucide-react";
-
+import API from "@/lib/api";
 const membershipPlans = [
   {
     type: "annual",
@@ -74,50 +74,42 @@ export default function MagazineMembership() {
   const selectedPlan = membershipPlans.find(plan => plan.type === formData.membershipType);
 
   const handlePhonePePayment = async (e) => {
-    e.preventDefault();
-    
-    // Validate form
-    if (!formData.name || !formData.email || !formData.phone || !formData.address) {
-      alert('कृपया सभी आवश्यक फ़ील्ड भरें।');
-      return;
-    }
+  e.preventDefault();
 
-    try {
-      setIsSubmitting(true);
+  // Validate form
+  if (!formData.name || !formData.email || !formData.phone || !formData.address) {
+    alert('कृपया सभी आवश्यक फ़ील्ड भरें।');
+    return;
+  }
 
-      // Create order payload
-      const orderPayload = {
-        ...formData,
-        amount: selectedPlan.price,
-        planName: selectedPlan.name,
-        planType: selectedPlan.type,
-        paymentMethod: 'phonepe'
-      };
+  try {
+    setIsSubmitting(true);
 
-      // Call your backend API to initiate PhonePe payment
-      const response = await fetch('/api/membership/initiate-payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderPayload),
-      });
+    // Create order payload
+    const orderPayload = {
+      ...formData,
+      amount: selectedPlan.price,
+      planName: selectedPlan.name,
+      planType: selectedPlan.type,
+      paymentMethod: 'phonepe'
+    };
 
-      const data = await response.json();
+    // Call backend API using Axios instance
+    const { data } = await API.post('/membership/create-order', orderPayload);
 
-      if (data.success && data.paymentUrl) {
-        // Redirect to PhonePe payment page
-        window.location.href = data.paymentUrl;
-      } else {
-        alert('भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
-        setIsSubmitting(false);
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
+    if (data.success && data.paymentUrl) {
+      // Redirect to PhonePe payment page
+      window.location.href = data.paymentUrl;
+    } else {
       alert('भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
       setIsSubmitting(false);
     }
-  };
+  } catch (error) {
+    console.error('Payment error:', error);
+    alert('भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <>
