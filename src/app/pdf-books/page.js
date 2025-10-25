@@ -1,92 +1,196 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
 import Image from 'next/image';
+
+import API from '@/lib/api';
+
+// Configure your API base URL
 
 export default function PDFBookViewer() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBook, setSelectedBook] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  
-  // Sample PDF books data
-  const books = [
-    {
-      id: 1,
-      title: "गो कपा चिकित्सा ज्योति",
-      author: "Dr. Rajesh Kumar",
-      pages: 245,
-      cover: "/books/1.JPG",
-      category: "Ayurveda",
-          price:"150 R.s"
-    },
-    {
-      id: 2,
-      title: "प्राचीन भारतीय चिकित्सा",
-      author: "Dr. Sarah Johnson",
-      pages: 312,
-      cover: "/books/2.JPG",
-      category: "Traditional Medicine",
-          price:"150 R.s"
-    },
-    {
-      id: 3,
-      title: "योग और आयुर्वेद",
-      author: "Swami Ramdev",
-      pages: 198,
-      cover: "/books/3.JPG",
-      category: "Yoga",
-          price:"150 R.s"
-    },
-    {
-      id: 4,
-      title: "हर्बल औषधि विज्ञान",
-      author: "Dr. Emily Davis",
-      pages: 428,
-      cover: "/books/4.JPG",
-      category: "Herbal Medicine",
-          price:"150 R.s"
-    },
-    {
-      id: 5,
-      title: "वैदिक चिकित्सा पद्धति",
-      author: "Pandit David Wilson",
-      pages: 356,
-      cover: "/books/5.JPG",
-      category: "Vedic Medicine",
-          price:"150 R.s"
-    },
-    {
-      id: 6,
-      title: "प्राकृतिक उपचार",
-      author: "Dr. Lisa Anderson",
-      pages: 289,
-      cover: "/books/6.JPG",
-      category: "Natural Healing",
-     
-       price:"150 R.s"
-    },
-    {
-      id: 7,
-      title: "आयुर्वेदिक पोषण",
-      author: "Chef Anika Sharma",
-      pages: 176,
-      cover: "/books/7.JPG",
-      category: "Nutrition",
-       price:"150 R.s"
-    },
-    {
-      id: 8,
-      title: "मन और शरीर का संतुलन",
-      author: "Dr. Michael Chen",
-      pages: 234,
-      cover: "/books/3.JPG",
-      category: "Wellness",
-      price:"150 R.s"
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [purchasedBooks, setPurchasedBooks] = useState([]);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  // Fetch books from backend
+  useEffect(() => {
+    fetchBooks();
+    fetchPurchasedBooks();
+  }, []);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await API.get(`/books`);
+      
+      // Extract books from nested response structure
+      const booksData = response.data?.data?.books || response.data?.books || [];
+      
+      // Transform backend data to match component structure
+      const transformedBooks = booksData.map(book => ({
+        id: book.id,
+        title: book.name,
+        author: book.author,
+        pages: calculatePages(book.fileSize),
+        cover: book.coverImage || '/placeholder-book.jpg',
+        category: extractCategory(book.description) || "General",
+        price: book.price,
+        priceDisplay: `${book.price} Rs`,
+        fileName: book.fileName,
+        filePath: book.filePath,
+        fileSize: book.fileSize,
+        description: book.description,
+        uploadDate: new Date(book.uploadDate).toLocaleDateString('en-IN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      }));
+      
+      setBooks(transformedBooks);
+    } catch (err) {
+      console.error('Error fetching books:', err);
+      setError('Failed to load books. Please try again later.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Fetch user's purchased books
+  const fetchPurchasedBooks = async () => {
+    try {
+      const userId = getUserId();
+      if (!userId) return;
+
+      const response = await API.get(`/books/purchased/${userId}`);
+      setPurchasedBooks(response.data.map(item => item.bookId));
+    } catch (err) {
+      console.error('Error fetching purchased books:', err);
+    }
+  };
+
+  // Check if book is purchased
+  const isBookPurchased = (bookId) => {
+    return purchasedBooks.includes(bookId);
+  };
+
+  // Helper function to estimate pages from file size
+  const calculatePages = (fileSize) => {
+    if (!fileSize) return 0;
+    const sizeInKB = parseFloat(fileSize);
+    return Math.round(sizeInKB / 100);
+  };
+
+  // Helper function to extract category from description
+  const extractCategory = (description) => {
+    if (!description) return null;
+    const categories = ['Ayurveda', 'Traditional Medicine', 'Yoga', 'Herbal Medicine', 'Vedic Medicine', 'Natural Healing', 'Nutrition', 'Wellness'];
+    const lowerDesc = description.toLowerCase();
+    return categories.find(cat => lowerDesc.includes(cat.toLowerCase()));
+  };
+
+  // Handle book purchase
+  const handlePurchase = async (bookId) => {
+    try {
+      setIsPurchasing(true);
+      const userId = getUserId();
+      
+      if (!userId) {
+        alert('Please login to purchase books');
+        return;
+      }
+
+      const book = books.find(b => b.id === bookId);
+      
+      const response = await API.post(`/books/purchase`, {
+        userId,
+        bookId,
+        amount: book.price
+      });
+      
+      if (response.data.success) {
+        alert('Purchase successful! You can now download the book.');
+        // Update purchased books list
+        setPurchasedBooks([...purchasedBooks, bookId]);
+        // Optionally trigger download immediately
+        handleDownload(book);
+      }
+    } catch (err) {
+      console.error('Purchase error:', err);
+      alert(err.response?.data?.message || 'Purchase failed. Please try again.');
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  // Handle PDF download (only for purchased books)
+  const handleDownload = async (book) => {
+    try {
+      if (!isBookPurchased(book.id)) {
+        alert('Please purchase this book first to download it.');
+        return;
+      }
+
+      const userId = getUserId();
+      const response = await API.get(`/books/download/${book.id}`, {
+        params: { userId },
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', book.fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      alert(err.response?.data?.message || 'Failed to download. Please try again.');
+    }
+  };
+
+  // View PDF online (only for purchased books)
+  const handleViewPDF = async (book) => {
+    try {
+      if (!isBookPurchased(book.id)) {
+        alert('Please purchase this book first to view it.');
+        return;
+      }
+
+      const userId = getUserId();
+      const response = await API.get(`/books/view/${book.id}`, {
+        params: { userId },
+        responseType: 'blob'
+      });
+      
+      // Open PDF in new tab
+      const file = new Blob([response.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, '_blank');
+    } catch (err) {
+      console.error('View error:', err);
+      alert(err.response?.data?.message || 'Failed to open PDF. Please try again.');
+    }
+  };
+
+  // Placeholder for getting user ID (implement based on your auth system)
+  const getUserId = () => {
+    // TODO: Get from your authentication context/store/localStorage
+    // Example: return localStorage.getItem('userId') || null;
+    return 1; // Replace with actual user ID from your auth system
+  };
 
   const itemsPerPage = 8;
   const filteredBooks = books.filter(book =>
@@ -111,359 +215,524 @@ export default function PDFBookViewer() {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
- if (selectedBook) {
-  return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 relative overflow-hidden">
-        {/* Animated background blobs */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+  // Loading state
+  if (loading) {
+    return (
+      <>
+        <Headers />
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-16 h-16 text-orange-600 animate-spin mx-auto mb-4" />
+            <p className="text-xl font-semibold text-gray-700">Loading books...</p>
+          </div>
         </div>
+        <Footer />
+      </>
+    );
+  }
 
-        <div className="relative max-w-6xl mx-auto px-4 py-8">
-          {/* Back Button */}
-          <button
-            onClick={() => setSelectedBook(null)}
-            className="mb-6 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
-          >
-            <ChevronLeft size={20} />
-            Back to Library
-          </button>
+  // Error state
+  if (error) {
+    return (
+      <>
+        <Headers />
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <p className="text-xl font-semibold text-gray-700 mb-4">{error}</p>
+            <button
+              onClick={fetchBooks}
+              className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
-          {/* Book Card */}
-          <div className="bg-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-            <div className="grid md:grid-cols-5 gap-8 items-center">
+  if (selectedBook) {
+    const isPurchased = isBookPurchased(selectedBook.id);
+    
+    return (
+      <>
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 relative overflow-hidden">
+          {/* Animated background blobs */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+          </div>
 
-              {/* Book Image */}
-              <div className="md:col-span-2 relative">
-                <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
-                <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-                  <Image
-                    src={selectedBook.cover}
-                    alt={selectedBook.title}
-                    fill
-                    className="object-cover transition-transform duration-500 hover:scale-105"
-                    sizes="100vw"
-                    unoptimized
-                  />
-                </div>
-              </div>
+          <div className="relative max-w-6xl mx-auto px-4 py-8">
+            {/* Back Button */}
+            <button
+              onClick={() => setSelectedBook(null)}
+              className="mb-6 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
+            >
+              <ChevronLeft size={20} />
+              Back to Library
+            </button>
 
-              {/* Book Details */}
-              <div className="md:col-span-3 flex flex-col justify-between">
-                {/* Category */}
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-4 border border-orange-200">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-semibold text-orange-700">{selectedBook.category}</span>
-                </div>
+            {/* Book Card */}
+            <div className="bg-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+              <div className="grid md:grid-cols-5 gap-8 items-center">
 
-                {/* Title & Author */}
-                <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
-                  {selectedBook.title}
-                </h1>
-                <p className="text-gray-600 text-xl mb-6">by {selectedBook.author}</p>
-
-                {/* Pages & Price */}
-                <div className="flex items-center gap-6 mb-8 text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-                    </svg>
-                    <span className="font-semibold">{selectedBook.pages} Pages</span>
+                {/* Book Image */}
+                <div className="md:col-span-2 relative">
+                  <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
+                  <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+                    <Image
+                      src={selectedBook.cover}
+                      alt={selectedBook.title}
+                      fill
+                      className="object-cover transition-transform duration-500 hover:scale-105"
+                      sizes="100vw"
+                      unoptimized
+                    />
+                    {/* Lock overlay for unpurchased books */}
+                    {!isPurchased && (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                        <div className="text-center">
+                          <Lock className="w-16 h-16 text-white mx-auto mb-4" />
+                          <p className="text-white font-bold text-lg">Purchase to Unlock</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">Price: {selectedBook.price}</span>
-                  </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-4">
-                  <button className="group relative w-full bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                    <span className="relative flex items-center justify-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                {/* Book Details */}
+                <div className="md:col-span-3 flex flex-col justify-between">
+                  {/* Purchased Badge */}
+                  {isPurchased && (
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-2 rounded-full mb-4 border border-green-300 w-fit">
+                      <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      Buy Now
-                    </span>
-                  </button>
+                      <span className="text-sm font-semibold text-green-700">PURCHASED</span>
+                    </div>
+                  )}
 
-                  <button className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl flex items-center justify-center gap-2 hover:from-orange-200 hover:to-yellow-200 transition-all duration-300">
-                    Price {selectedBook.price}
-                  </button>
+                  {/* Category */}
+                  <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-4 border border-orange-200 w-fit">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-semibold text-orange-700">{selectedBook.category}</span>
+                  </div>
+
+                  {/* Title & Author */}
+                  <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
+                    {selectedBook.title}
+                  </h1>
+                  <p className="text-gray-600 text-xl mb-6">by {selectedBook.author}</p>
+
+                  {/* Description */}
+                  {selectedBook.description && (
+                    <p className="text-gray-600 mb-6 line-clamp-3">
+                      {selectedBook.description}
+                    </p>
+                  )}
+
+                  {/* Pages, Size & Upload Date */}
+                  <div className="flex items-center gap-6 mb-8 text-gray-600 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                      </svg>
+                      <span className="font-semibold">{selectedBook.pages} Pages</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-semibold">{selectedBook.fileSize}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-semibold">{selectedBook.uploadDate}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-4">
+                    {isPurchased ? (
+                      // Already purchased - show view and download buttons
+                      <>
+                        <button 
+                          onClick={() => handleViewPDF(selectedBook)}
+                          className="group relative w-full bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                          <span className="relative flex items-center justify-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            View PDF Online
+                          </span>
+                        </button>
+
+                        <button 
+                          onClick={() => handleDownload(selectedBook)}
+                          className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl flex items-center justify-center gap-2 hover:from-orange-200 hover:to-yellow-200 transition-all duration-300"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Download PDF
+                        </button>
+                      </>
+                    ) : (
+                      // Not purchased - show buy button
+                      <>
+                        <button 
+                          onClick={() => handlePurchase(selectedBook.id)}
+                          disabled={isPurchasing}
+                          className="group relative w-full bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                          <span className="relative flex items-center justify-center gap-2">
+                            {isPurchasing ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Buy Now & Access PDF
+                              </>
+                            )}
+                          </span>
+                        </button>
+
+                        <div className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl flex items-center justify-center gap-2">
+                          <span className="text-2xl">₹{selectedBook.price}</span>
+                        </div>
+
+                        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                          <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div className="text-sm text-amber-800">
+                            <p className="font-semibold mb-1">PDF Access Locked</p>
+                            <p>Purchase this book to unlock full PDF access, download capability, and lifetime ownership.</p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </>
-  );
-}
+      </>
+    );
+  }
 
   return (
     <>
       <Headers/>
-    <section className="relative min-h-screen py-16 md:py-20 lg:py-24 overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-yellow-50">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-        </div>
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Ultra Modern Title Section */}
-        <div className="text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-6 border border-orange-200">
-            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-semibold text-orange-700 uppercase tracking-wider">Digital Library</span>
+      <section className="relative min-h-screen py-16 md:py-20 lg:py-24 overflow-hidden">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-yellow-50">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
           </div>
+        </div>
 
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight">
-            <span className="inline-block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
-              Our PDF
-            </span>
-            <br />
-            <span className="inline-block bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
-              E-Books
-            </span>
-          </h2>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <p className="text-gray-600 text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-            Discover ancient wisdom through our curated collection of digital books
-          </p>
-          
-          <div className="flex items-center justify-center gap-2 mt-6">
-            <div className="h-px w-16 bg-gradient-to-r from-transparent to-orange-400"></div>
-            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-            <div className="h-px w-16 bg-gradient-to-l from-transparent to-orange-400"></div>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-12 max-w-2xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500" size={20} />
-            <input
-              type="text"
-              placeholder="Search by title, author, or category..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-12 py-4 bg-white border-2 border-orange-200 rounded-2xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all shadow-lg"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 hover:text-orange-700"
-              >
-                <X size={20} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Results info */}
-        <div className="flex items-center justify-center gap-8 text-center mb-10">
-          <div>
-            <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-              {filteredBooks.length}
+          {/* Ultra Modern Title Section */}
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-6 border border-orange-200">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-semibold text-orange-700 uppercase tracking-wider">Digital Library</span>
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Books Found</div>
-          </div>
-          <div className="w-px h-12 bg-gray-200"></div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-              {currentPage}/{totalPages}
+
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight">
+              <span className="inline-block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
+                Our PDF
+              </span>
+              <br />
+              <span className="inline-block bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+                E-Books
+              </span>
+            </h2>
+            
+            <p className="text-gray-600 text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+              Discover ancient wisdom through our curated collection of digital books
+            </p>
+            
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-orange-400"></div>
+              <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-orange-400"></div>
             </div>
-            <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Current Page</div>
           </div>
-        </div>
 
-        {/* Books Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-12">
-          {currentBooks.map((book, i) => (
-            <div
-              key={book.id}
-              className="group cursor-pointer"
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => setSelectedBook(book)}
-              style={{
-                animation: `fadeInUp 0.6s ease-out ${i * 0.1}s both`
-              }}
-            >
-              <style>{`
-                @keyframes fadeInUp {
-                  from {
-                    opacity: 0;
-                    transform: translateY(30px);
-                  }
-                  to {
-                    opacity: 1;
-                    transform: translateY(0);
-                  }
-                }
-              `}</style>
+          {/* Search Bar */}
+          <div className="mb-12 max-w-2xl mx-auto">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500" size={20} />
+              <input
+                type="text"
+                placeholder="Search by title, author, or category..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-12 py-4 bg-white border-2 border-orange-200 rounded-2xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all shadow-lg"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-orange-500 hover:text-orange-700"
+                >
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+          </div>
 
-              <div className="relative h-full">
-                <div 
-                  className={`absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl transition-all duration-700 ${
-                    hoveredIndex === i ? 'opacity-60 scale-105' : 'opacity-0 scale-95'
-                  }`}
-                ></div>
-                
-                <div className={`relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 rounded-3xl shadow-xl overflow-hidden transition-all duration-700 ${
-                  hoveredIndex === i ? 'scale-105 shadow-2xl' : 'scale-100'
-                }`}>
-                  <div className="relative aspect-[3/4] overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-yellow-100 to-orange-100"></div>
-                    
+          {/* Results info */}
+          <div className="flex items-center justify-center gap-8 text-center mb-10">
+            <div>
+              <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                {filteredBooks.length}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Books Found</div>
+            </div>
+            <div className="w-px h-12 bg-gray-200"></div>
+            <div>
+              <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                {currentPage}/{totalPages || 1}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Current Page</div>
+            </div>
+          </div>
+
+          {/* Books Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-12">
+            {currentBooks.map((book, i) => {
+              const isPurchased = isBookPurchased(book.id);
               
+              return (
+                <div
+                  key={book.id}
+                  className="group cursor-pointer"
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  onClick={() => setSelectedBook(book)}
+                  style={{
+                    animation: `fadeInUp 0.6s ease-out ${i * 0.1}s both`
+                  }}
+                >
+                  <style>{`
+                    @keyframes fadeInUp {
+                      from {
+                        opacity: 0;
+                        transform: translateY(30px);
+                      }
+                      to {
+                        opacity: 1;
+                        transform: translateY(0);
+                      }
+                    }
+                  `}</style>
 
-<div className="relative w-full h-full overflow-hidden">
-  <Image
-    src={book.cover}
-    alt={book.title}
-    fill
-    className={`object-cover transition-all duration-700 ${
-      hoveredIndex === i ? "scale-110 brightness-90" : "scale-100"
-    }`}
-    priority={i < 4} // eager loading for first 4 images
-    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-    unoptimized // use if the image is dynamic or external
-  />
-</div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-40"></div>
-                    <div className={`absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 transition-opacity duration-700 ${
-                      hoveredIndex === i ? 'opacity-100' : 'opacity-0'
-                    }`}></div>
+                  <div className="relative h-full">
+                    <div 
+                      className={`absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl transition-all duration-700 ${
+                        hoveredIndex === i ? 'opacity-60 scale-105' : 'opacity-0 scale-95'
+                      }`}
+                    ></div>
                     
-                    <div className="absolute top-4 right-4">
-                      <div className="bg-gradient-to-br from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-1.5">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                        </svg>
-                        PDF
+                    <div className={`relative bg-gradient-to-br from-orange-100 via-yellow-50 to-red-100 rounded-3xl shadow-xl overflow-hidden transition-all duration-700 ${
+                      hoveredIndex === i ? 'scale-105 shadow-2xl' : 'scale-100'
+                    }`}>
+                      <div className="relative aspect-[3/4] overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-yellow-100 to-orange-100"></div>
+                        
+                        <div className="relative w-full h-full overflow-hidden">
+                          <Image
+                            src={book.cover}
+                            alt={book.title}
+                            fill
+                            className={`object-cover transition-all duration-700 ${
+                              hoveredIndex === i ? "scale-110 brightness-90" : "scale-100"
+                            }`}
+                            priority={i < 4}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-40"></div>
+                        <div className={`absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-500/20 transition-opacity duration-700 ${
+                          hoveredIndex === i ? 'opacity-100' : 'opacity-0'
+                        }`}></div>
+                        
+                        {/* Lock overlay for unpurchased books */}
+                        {!isPurchased && (
+                          <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="text-center">
+                              <Lock className="w-8 h-8 text-white mx-auto mb-2" />
+                              <p className="text-white font-bold text-sm">Purchase to Unlock</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Purchased badge */}
+                        {isPurchased && (
+                          <div className="absolute top-4 left-4">
+                            <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-1.5">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              Owned
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="absolute top-4 right-4">
+                          <div className="bg-gradient-to-br from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-1.5">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                            </svg>
+                            PDF
+                          </div>
+                        </div>
+
+                        <div className={`absolute inset-x-0 bottom-0 p-4 transition-all duration-500 ${
+                          hoveredIndex === i ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+                        }`}>
+                          <button className="w-full bg-white/95 backdrop-blur-md text-orange-600 font-bold py-3 rounded-xl shadow-lg hover:bg-white transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                            {isPurchased ? (
+                              <>
+                                <svg className="w-5 h-5 group-hover/btn:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <span className="text-sm">View PDF</span>
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="w-4 h-4" />
+                                <span className="text-sm">Buy to Access</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 sm:p-5 bg-gradient-to-br from-orange-600 to-red-700">
+                        <h3 className="text-sm sm:text-base md:text-lg font-bold text-center leading-snug text-white line-clamp-2">
+                          {book.title}
+                        </h3>
+                        
+                        <div className="flex items-center justify-center gap-3 mt-3 text-xs text-white">
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                            {book.author}
+                          </span>
+                          <span className="w-1 h-1 bg-white rounded-full"></span>
+                          <span className="flex items-center gap-1 font-bold">
+                            ₹{book.price}
+                          </span>
+                        </div>
                       </div>
                     </div>
-
-                    <div className={`absolute inset-x-0 bottom-0 p-4 transition-all duration-500 ${
-                      hoveredIndex === i ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-                    }`}>
-                      <button className="w-full bg-white/95 backdrop-blur-md text-orange-600 font-bold py-3 rounded-xl shadow-lg hover:bg-white transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                        <svg className="w-5 h-5 group-hover/btn:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span className="text-sm">View PDF</span>
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 sm:p-5 bg-gradient-to-br from-orange-600 to-red-700">
-                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-center leading-snug text-white">
-                      {book.title}
-                    </h3>
-                    
-                    <div className="flex items-center justify-center gap-3 mt-3 text-xs text-white">
-                     
-                      <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                        PDF
-                      </span>
-                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* No Results */}
-        {filteredBooks.length === 0 && (
-          <div className="text-center py-20">
-            <svg className="mx-auto mb-4 text-orange-400 w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-            </svg>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">No books found</h3>
-            <p className="text-gray-600">Try adjusting your search terms</p>
+              );
+            })}
           </div>
-        )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-xl text-orange-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-orange-200 hover:to-yellow-200 transition-all shadow-lg"
-              >
-                <ChevronLeft size={20} />
-                Previous
-              </button>
-              
-              <div className="flex gap-2">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`w-12 h-12 rounded-xl font-bold transition-all shadow-lg ${
-                      currentPage === i + 1
-                        ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-orange-500/50 scale-110'
-                        : 'bg-white border-2 border-orange-200 text-orange-600 hover:border-orange-400'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-xl text-orange-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-orange-200 hover:to-yellow-200 transition-all shadow-lg"
-              >
-                Next
-                <ChevronRight size={20} />
-              </button>
+          {/* No Results */}
+          {filteredBooks.length === 0 && (
+            <div className="text-center py-20">
+              <svg className="mx-auto mb-4 text-orange-400 w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+              </svg>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">No books found</h3>
+              <p className="text-gray-600">Try adjusting your search terms</p>
             </div>
+          )}
 
-            {/* Stats */}
-            <div className="flex items-center gap-8 text-center">
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  {books.length}+
-                </div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Books Available</div>
-              </div>
-              <div className="w-px h-12 bg-gray-200"></div>
-              <div>
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex flex-col items-center gap-6">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-xl text-orange-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-orange-200 hover:to-yellow-200 transition-all shadow-lg"
+                >
+                  <ChevronLeft size={20} />
+                  Previous
+                </button>
                 
-                <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Download</div>
-              </div>
-              <div className="w-px h-12 bg-gray-200"></div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                  24/7
+                <div className="flex gap-2">
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`w-12 h-12 rounded-xl font-bold transition-all shadow-lg ${
+                        currentPage === i + 1
+                          ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-orange-500/50 scale-110'
+                          : 'bg-white border-2 border-orange-200 text-orange-600 hover:border-orange-400'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
                 </div>
-                <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Access</div>
+
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-xl text-orange-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-orange-200 hover:to-yellow-200 transition-all shadow-lg"
+                >
+                  Next
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+
+              {/* Stats */}
+              <div className="flex items-center gap-8 text-center">
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    {books.length}+
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Books Available</div>
+                </div>
+                <div className="w-px h-12 bg-gray-200"></div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    {purchasedBooks.length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Your Books</div>
+                </div>
+                <div className="w-px h-12 bg-gray-200"></div>
+                <div>
+                  <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+                    24/7
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Access</div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    </section>
-          <Footer/>
-          </>
+          )}
+        </div>
+      </section>
+      <Footer/>
+    </>
   );
 }
