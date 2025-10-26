@@ -74,6 +74,9 @@ export default function NewsDetailPage({ params }) {
       case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
       case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
       case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+      case 'whatsapp':
+      shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${title} - ${url}`)}`;
+      break;
     }
     if (shareUrl) window.open(shareUrl, '_blank', 'width=600,height=400');
   };
@@ -186,6 +189,20 @@ export default function NewsDetailPage({ params }) {
                   <button onClick={()=>handleShare('facebook')} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"><Facebook size={20} /> Facebook पर साझा करें</button>
                   <button onClick={()=>handleShare('twitter')} className="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"><Twitter size={20} /> Twitter पर साझा करें</button>
                   <button onClick={()=>handleShare('linkedin')} className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"><Linkedin size={20} /> LinkedIn पर साझा करें</button>
+                  <button
+  onClick={() => handleShare('whatsapp')}
+  className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-5 h-5"
+    fill="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path d="M17.472 14.382c-.297-.149-1.758-.868-2.03-.967-.273-.099-.472-.149-.672.15s-.773.967-.947 1.166c-.173.199-.347.224-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.299-.018-.46.13-.608.134-.133.298-.347.447-.52.149-.174.199-.299.298-.498.099-.199.05-.373-.025-.522-.075-.149-.672-1.611-.921-2.206-.242-.579-.487-.5-.672-.51-.173-.008-.372-.01-.571-.01-.199 0-.522.075-.796.373-.273.299-1.045 1.02-1.045 2.487 0 1.467 1.07 2.883 1.219 3.082.149.199 2.105 3.215 5.098 4.508.713.308 1.268.492 1.702.63.715.228 1.365.196 1.88.119.573-.085 1.758-.718 2.006-1.413.248-.695.248-1.291.173-1.414-.074-.124-.272-.198-.57-.347zM12.004 2C6.479 2 2 6.478 2 12.002c0 2.116.555 4.104 1.616 5.895L2 22l4.202-1.1A9.963 9.963 0 0 0 12.004 22C17.528 22 22 17.523 22 12.002 22 6.478 17.528 2 12.004 2z" />
+  </svg>
+  WhatsApp पर साझा करें
+</button>
                 </div>
               </div>
 

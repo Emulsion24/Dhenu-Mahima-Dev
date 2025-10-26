@@ -5,10 +5,9 @@ import {
   Repeat, Shuffle, Heart, Search, Home, Library,
   TrendingUp, Flame, Menu, X
 } from 'lucide-react';
-import axios from 'axios';
+import API from '@/lib/api';
 
-// API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+
 
 export default function GaumataBhajanPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -36,7 +35,7 @@ export default function GaumataBhajanPlayer() {
   const fetchBhajans = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/gaumata-bhajans`);
+      const response = await API.get(`/gaumata-bhajans`);
       
       if (response.data && response.data.length > 0) {
         const formattedBhajans = response.data.map(bhajan => ({
@@ -73,22 +72,7 @@ export default function GaumataBhajanPlayer() {
   };
 
   // Initialize audio element
-  useEffect(() => {
-    const audio = new Audio();
-    audioRef.current = audio;
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleAudioEnded);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleAudioEnded);
-      audio.pause();
-    };
-  }, [handleTimeUpdate, handleLoadedMetadata, handleAudioEnded]);
-
+ 
   // Update audio source when song changes
   useEffect(() => {
     if (bhajans.length > 0 && audioRef.current) {
@@ -99,7 +83,7 @@ export default function GaumataBhajanPlayer() {
         const filename = urlParts[urlParts.length - 1];
         
         // Use streaming endpoint
-        const streamUrl = `${API_BASE_URL}/gaumata-bhajans/audio/stream/${filename}`;
+        const streamUrl = `/gaumata-bhajans/audio/stream/${filename}`;
         audioRef.current.src = streamUrl;
         
         if (isPlaying) {
@@ -218,6 +202,22 @@ export default function GaumataBhajanPlayer() {
   const handleLogoClick = () => {
     window.location.href = '/';
   };
+   useEffect(() => {
+    const audio = new Audio();
+    audioRef.current = audio;
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleAudioEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleAudioEnded);
+      audio.pause();
+    };
+  }, [handleTimeUpdate, handleLoadedMetadata, handleAudioEnded]);
+
 
   // Filter bhajans based on search
   const filteredBhajans = bhajans.filter(bhajan => 

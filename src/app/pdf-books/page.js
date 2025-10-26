@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock, Tag, CheckCircle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock, Tag, CheckCircle, ZoomIn, ZoomOut } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
 import Image from 'next/image';
@@ -19,6 +19,11 @@ export default function PDFBookViewer() {
   const [purchasedBooks, setPurchasedBooks] = useState([]);
   const [isPurchasing, setIsPurchasing] = useState(false);
 
+  // PDF Viewer states
+  const [isViewingPDF, setIsViewingPDF] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+
   // Coupon states
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -33,6 +38,35 @@ export default function PDFBookViewer() {
     }
   }, [user]);
  
+  useEffect(() => {
+    // Disable right-click and keyboard shortcuts when viewing PDF
+    if (isViewingPDF) {
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+        return false;
+      };
+
+      const handleKeyDown = (e) => {
+        // Prevent Ctrl+P (Print), Ctrl+S (Save), F12 (DevTools)
+        if (
+          (e.ctrlKey && (e.key === 'p' || e.key === 's')) ||
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      document.addEventListener('contextmenu', handleContextMenu);
+      document.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        document.removeEventListener('contextmenu', handleContextMenu);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isViewingPDF]);
 
   const fetchBooks = async () => {
     try {
@@ -99,7 +133,6 @@ export default function PDFBookViewer() {
     return categories.find(cat => lowerDesc.includes(cat.toLowerCase()));
   };
 
-  // Calculate final price
   const calculateFinalPrice = () => {
     if (calculatedPrice !== null) {
       return calculatedPrice;
@@ -107,51 +140,49 @@ export default function PDFBookViewer() {
     return selectedBook?.price || 0;
   };
 
-  // Apply Coupon
- const handleApplyCoupon = async () => {
-  if (!couponCode.trim()) {
-    setCouponError('Please enter a coupon code');
-    return;
-  }
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Please enter a coupon code');
+      return;
+    }
 
-  try {
-    setCouponLoading(true);
-    setCouponError('');
-
-    const response = await API.post('/coupons/validate', {
-      code: couponCode,
-      bookId: selectedBook.id
-    });
-
-    const data = response.data; // <-- Correct: access actual response body
-
-    if (data.success) {
-      setAppliedCoupon(data.data.coupon); // coupon code
-      setCalculatedPrice(data.data.finalAmount); // final amount after discount
+    try {
+      setCouponLoading(true);
       setCouponError('');
-    } else {
-      setCouponError(data.message || 'Invalid coupon code');
+
+      const response = await API.post('/coupons/validate', {
+        code: couponCode,
+        bookId: selectedBook.id
+      });
+
+      const data = response.data;
+
+      if (data.success) {
+        setAppliedCoupon(data.data.coupon);
+        setCalculatedPrice(data.data.finalAmount);
+        setCouponError('');
+      } else {
+        setCouponError(data.message || 'Invalid coupon code');
+        setAppliedCoupon(null);
+        setCalculatedPrice(null);
+      }
+    } catch (err) {
+      console.error('Coupon validation error:', err);
+      setCouponError(err.response?.data?.message || 'Invalid or expired coupon');
       setAppliedCoupon(null);
       setCalculatedPrice(null);
+    } finally {
+      setCouponLoading(false);
     }
-  } catch (err) {
-    console.error('Coupon validation error:', err);
-    setCouponError(err.response?.data?.message || 'Invalid or expired coupon');
+  };
+
+  const removeCoupon = () => {
     setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
     setCalculatedPrice(null);
-  } finally {
-    setCouponLoading(false);
-  }
-};
+  };
 
-const removeCoupon = () => {
-  setAppliedCoupon(null);
-  setCouponCode('');
-  setCouponError('');
-  setCalculatedPrice(null);
-};
-
-  // Initiate Payment
   const handlePurchase = async (bookId) => {
     try {
       setIsPurchasing(true);
@@ -217,27 +248,40 @@ const removeCoupon = () => {
     }
   }, [books, user]);
 
-  // Stream PDF
+  // Modified Stream PDF - Embedded Viewer with Protection
   const handleStreamPDF = async (book) => {
-  try {
-    if (!isBookPurchased(book.id)) {
-      alert('Please purchase this book first to view it.');
-      return;
+    try {
+      if (!isBookPurchased(book.id)) {
+        alert('Please purchase this book first to view it.');
+        return;
+      }
+
+      setPdfLoading(true);
+      const response = await API.get(`/books/${book.id}/stream`, {
+        responseType: 'blob'
+      });
+
+      const file = new Blob([response.data], { type: 'application/pdf' });
+      const fileURL = URL.createObjectURL(file);
+      
+      setPdfUrl(fileURL);
+      setIsViewingPDF(true);
+
+    } catch (err) {
+      console.error('Stream error:', err);
+      alert(err.response?.data?.message || 'Failed to stream PDF. Please try again.');
+    } finally {
+      setPdfLoading(false);
     }
+  };
 
-    const response = await API.get(`/books/${book.id}/stream`, {
-      responseType: 'blob'
-    });
-
-    const file = new Blob([response.data], { type: 'application/pdf' });
-    const fileURL = URL.createObjectURL(file);
-    window.open(fileURL, '_blank');
-
-  } catch (err) {
-    console.error('Stream error:', err);
-    alert(err.response?.data?.message || 'Failed to stream PDF. Please try again.');
-  }
-};
+  const closePDFViewer = () => {
+    setIsViewingPDF(false);
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl('');
+    }
+  };
 
   const itemsPerPage = 8;
   const filteredBooks = books.filter(book =>
@@ -261,6 +305,67 @@ const removeCoupon = () => {
   const handleNextPage = () => {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
+
+  // PDF Viewer Component
+  if (isViewingPDF) {
+    return (
+      <>
+        <Headers />
+        <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none' }}>
+          {/* Header Bar */}
+          <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={closePDFViewer}
+                className="flex items-center gap-2 text-white hover:text-orange-400 transition-colors"
+              >
+                <ChevronLeft size={20} />
+                <span className="font-semibold">Back to Book</span>
+              </button>
+              <div className="h-6 w-px bg-gray-600"></div>
+              <h2 className="text-white font-semibold">{selectedBook?.title}</h2>
+            </div>
+            
+            <div className="flex items-center gap-2 text-red-400 text-sm">
+              <Lock size={16} />
+              <span>Protected Content - No Download/Print</span>
+            </div>
+          </div>
+
+          {/* PDF Viewer */}
+          <div className="h-[calc(100vh-60px)] relative">
+            {pdfLoading ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
+                  <p className="text-white">Loading PDF...</p>
+                </div>
+              </div>
+            ) : (
+              <iframe
+                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                className="w-full h-full border-0"
+                title={selectedBook?.title}
+                onContextMenu={(e) => e.preventDefault()}
+              />
+            )}
+            
+            {/* Overlay to prevent right-click on iframe */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{ mixBlendMode: 'multiply', opacity: 0.01 }}
+            ></div>
+          </div>
+
+          {/* Warning overlay */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <Lock size={14} />
+            <span>This content is protected. Screenshot and screen recording are monitored.</span>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (loading) {
     return (
@@ -397,15 +502,25 @@ const removeCoupon = () => {
                       <>
                         <button 
                           onClick={() => handleStreamPDF(selectedBook)}
-                          className="group relative w-full bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500"
+                          disabled={pdfLoading}
+                          className="group relative w-full bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                           <span className="relative flex items-center justify-center gap-2">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            Stream PDF Online
+                            {pdfLoading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Loading PDF...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                Read Book Now
+                              </>
+                            )}
                           </span>
                         </button>
 
@@ -414,8 +529,8 @@ const removeCoupon = () => {
                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                           </svg>
                           <div className="text-sm text-blue-800">
-                            <p className="font-semibold mb-1">Streaming Only Access</p>
-                            <p>This book can be viewed online only. Downloads are not available to protect copyright.</p>
+                            <p className="font-semibold mb-1">Protected Streaming Access</p>
+                            <p>This book is view-only. Download and print functions are disabled to protect copyright.</p>
                           </div>
                         </div>
                       </>
@@ -532,8 +647,8 @@ const removeCoupon = () => {
                         <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 flex items-start gap-3">
                           <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                           <div className="text-sm text-amber-800">
-                            <p className="font-semibold mb-1">Secure Payment & Streaming Access</p>
-                            <p>After purchase, you'll get lifetime streaming access to this book. All transactions are secure and encrypted.</p>
+                            <p className="font-semibold mb-1">Secure Payment & Protected Access</p>
+                            <p>After purchase, you'll get lifetime streaming access. Download and print are disabled to protect copyright.</p>
                           </div>
                         </div>
                       </>
@@ -571,16 +686,16 @@ const removeCoupon = () => {
 
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight">
               <span className="inline-block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
-                Stream PDF
+                Protected PDF
               </span>
               <br />
               <span className="inline-block bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
-                E-Books
+                Streaming
               </span>
             </h2>
             
             <p className="text-gray-600 text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-              Discover ancient wisdom through our curated collection of streaming e-books
+              Secure reading experience with download and print protection
             </p>
             
             <div className="flex items-center justify-center gap-2 mt-6">
@@ -690,7 +805,7 @@ const removeCoupon = () => {
                           <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <div className="text-center">
                               <Lock className="w-8 h-8 text-white mx-auto mb-2" />
-                              <p className="text-white font-bold text-sm">Purchase to Stream</p>
+                              <p className="text-white font-bold text-sm">Purchase to Read</p>
                             </div>
                           </div>
                         )}
@@ -723,12 +838,12 @@ const removeCoupon = () => {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <span className="text-sm">Stream Now</span>
+                                <span className="text-sm">Read Now</span>
                               </>
                             ) : (
                               <>
                                 <Lock className="w-4 h-4" />
-                                <span className="text-sm">Buy to Stream</span>
+                                <span className="text-sm">Buy to Read</span>
                               </>
                             )}
                           </button>
@@ -825,9 +940,9 @@ const removeCoupon = () => {
                 <div className="w-px h-12 bg-gray-200"></div>
                 <div>
                   <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-                    24/7
+                    <Lock className="w-6 h-6 mx-auto" />
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Streaming</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Protected</div>
                 </div>
               </div>
             </div>

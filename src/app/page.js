@@ -15,6 +15,7 @@ import EbookSection from "../components/EbookSection";
 import DonateSection from "../components/DonateSection";
 import NewsSection from "../components/NewsSection";
 import { useAuthStore } from "@/store/authStore";
+import ScrollToTopButton from "@/components/ScroollTop";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -68,6 +69,7 @@ export default function LandingPage() {
       <DonateSection />
       <NewsSection />
       <Footer />
+            <ScrollToTopButton/>
     </main>
   );
 }

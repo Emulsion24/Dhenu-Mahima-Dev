@@ -14,6 +14,9 @@ import {
   ChevronRight,
   Download,
   Eye,
+  ChevronLeft,
+  Lock,
+  Loader2,
 } from "lucide-react";
 
 export default function UserDashboard() {
@@ -24,6 +27,12 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const [streamingBook, setStreamingBook] = useState(null);
 
+  // PDF Viewer states
+  const [isViewingPDF, setIsViewingPDF] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [currentBook, setCurrentBook] = useState(null);
+
   const handleLogout = () => {
     logout();
     router.push("/login");
@@ -33,6 +42,36 @@ export default function UserDashboard() {
     return userData?.purchasedBooks?.some((book) => book.id === bookId);
   };
 
+  useEffect(() => {
+    // Disable right-click and keyboard shortcuts when viewing PDF
+    if (isViewingPDF) {
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+        return false;
+      };
+
+      const handleKeyDown = (e) => {
+        // Prevent Ctrl+P (Print), Ctrl+S (Save), F12 (DevTools)
+        if (
+          (e.ctrlKey && (e.key === 'p' || e.key === 's')) ||
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      document.addEventListener('contextmenu', handleContextMenu);
+      document.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        document.removeEventListener('contextmenu', handleContextMenu);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isViewingPDF]);
+
   const handleStreamPDF = async (book) => {
     try {
       if (!isBookPurchased(book.id)) {
@@ -41,6 +80,8 @@ export default function UserDashboard() {
       }
 
       setStreamingBook(book.id);
+      setPdfLoading(true);
+      setCurrentBook(book);
 
       const response = await API.get(`/books/${book.id}/stream`, {
         responseType: "blob",
@@ -48,10 +89,10 @@ export default function UserDashboard() {
 
       const file = new Blob([response.data], { type: "application/pdf" });
       const fileURL = URL.createObjectURL(file);
-      window.open(fileURL, "_blank");
+      
+      setPdfUrl(fileURL);
+      setIsViewingPDF(true);
 
-      // Clean up the URL after a delay
-      setTimeout(() => URL.revokeObjectURL(fileURL), 100);
     } catch (err) {
       console.error("Stream error:", err);
       alert(
@@ -59,6 +100,16 @@ export default function UserDashboard() {
       );
     } finally {
       setStreamingBook(null);
+      setPdfLoading(false);
+    }
+  };
+
+  const closePDFViewer = () => {
+    setIsViewingPDF(false);
+    setCurrentBook(null);
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+      setPdfUrl('');
     }
   };
 
@@ -94,6 +145,67 @@ export default function UserDashboard() {
           <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
+    );
+  }
+
+  // PDF Viewer Component
+  if (isViewingPDF) {
+    return (
+      <>
+        <Header />
+        <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none' }}>
+          {/* Header Bar */}
+          <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={closePDFViewer}
+                className="flex items-center gap-2 text-white hover:text-orange-400 transition-colors"
+              >
+                <ChevronLeft size={20} />
+                <span className="font-semibold">Back to Dashboard</span>
+              </button>
+              <div className="h-6 w-px bg-gray-600"></div>
+              <h2 className="text-white font-semibold">{currentBook?.title}</h2>
+            </div>
+            
+            <div className="flex items-center gap-2 text-red-400 text-sm">
+              <Lock size={16} />
+              <span>Protected Content - No Download/Print</span>
+            </div>
+          </div>
+
+          {/* PDF Viewer */}
+          <div className="h-[calc(100vh-60px)] relative">
+            {pdfLoading ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
+                  <p className="text-white">Loading PDF...</p>
+                </div>
+              </div>
+            ) : (
+              <iframe
+                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
+                className="w-full h-full border-0"
+                title={currentBook?.title}
+                onContextMenu={(e) => e.preventDefault()}
+              />
+            )}
+            
+            {/* Overlay to prevent right-click on iframe */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{ mixBlendMode: 'multiply', opacity: 0.01 }}
+            ></div>
+          </div>
+
+          {/* Warning overlay */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <Lock size={14} />
+            <span>This content is protected. Screenshot and screen recording are monitored.</span>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -221,49 +333,60 @@ export default function UserDashboard() {
                   </div>
 
                   {userData?.purchasedBooks?.length > 0 ? (
-                    <div className="grid gap-4">
-                      {userData.purchasedBooks.map((book) => (
-                        <div
-                          key={book.id}
-                          className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 border border-orange-100 rounded-xl hover:bg-orange-50 hover:shadow-md transition-all gap-4"
-                        >
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-800 text-lg mb-1">
-                              {book.title}
-                            </h4>
-                            <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                              <span className="font-medium">₹{book.price}</span>
-                              <span>•</span>
-                              <span>
-                                Purchased on{" "}
-                                {new Date(book.purchasedAt).toLocaleDateString("en-IN", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                })}
-                              </span>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => handleStreamPDF(book)}
-                            disabled={streamingBook === book.id}
-                            className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    <>
+                      <div className="grid gap-4">
+                        {userData.purchasedBooks.map((book) => (
+                          <div
+                            key={book.id}
+                            className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 border border-orange-100 rounded-xl hover:bg-orange-50 hover:shadow-md transition-all gap-4"
                           >
-                            {streamingBook === book.id ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                Opening...
-                              </>
-                            ) : (
-                              <>
-                                <Eye size={16} />
-                                View PDF
-                              </>
-                            )}
-                          </button>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-800 text-lg mb-1">
+                                {book.title}
+                              </h4>
+                              <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                                <span className="font-medium">₹{book.price}</span>
+                                <span>•</span>
+                                <span>
+                                  Purchased on{" "}
+                                  {new Date(book.purchasedAt).toLocaleDateString("en-IN", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleStreamPDF(book)}
+                              disabled={streamingBook === book.id}
+                              className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {streamingBook === book.id ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  Opening...
+                                </>
+                              ) : (
+                                <>
+                                  <Eye size={16} />
+                                  Read Book
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Info Box */}
+                      <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg flex items-start gap-3">
+                        <Lock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-semibold mb-1">Protected Streaming Access</p>
+                          <p>All books are view-only. Download and print functions are disabled to protect copyright.</p>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    </>
                   ) : (
                     <div className="text-center py-12">
                       <BookOpen size={64} className="mx-auto text-gray-300 mb-4" />

@@ -260,19 +260,38 @@ export default function Objective() {
                       <p className="text-orange-50 leading-relaxed mb-8 flex-1 text-center text-base">
                         {foundation.description}
                       </p>
-                      <div className="text-center">
-                        <a
-                          href={foundation.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center bg-yellow-400 text-orange-900 font-semibold px-8 py-3 rounded-lg hover:bg-yellow-300 transition-all shadow-md group-hover:shadow-lg group-hover:scale-105"
-                        >
-                          <span>विजिट करें</span>
-                          <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                        </a>
-                      </div>
+               <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
+  {/* Display clean link */}
+  <span className="text-lg font-medium text-white hover:text-indigo-900 transition-colors">
+    {foundation.link
+      ?.replace(/^https?:\/\//, "") // remove http:// or https://
+      .replace(/^www\./, "www.")} {/* ensures 'www.' stays */}
+  </span>
+
+  {/* Visit button */}
+  <a
+    href={foundation.link}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center justify-center bg-gradient-to-r from-yellow-400 to-orange-400 text-orange-900 font-semibold px-6 py-2 rounded-full hover:from-yellow-300 hover:to-orange-300 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
+  >
+    <span className="text-base">विजिट करें</span>
+    <svg
+      className="w-5 h-5 ml-2 transition-transform duration-200 group-hover:translate-x-1"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 7l5 5m0 0l-5 5m5-5H6"
+      />
+    </svg>
+  </a>
+</div>
+
                     </div>
                   </div>
                 ))}

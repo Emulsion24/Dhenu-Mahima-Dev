@@ -197,7 +197,7 @@ export default function NewsSection() {
 
                 {/* Read More Button */}
                 <button className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 group-hover:shadow-lg transition-all">
-                  Read Full Story
+                  Read Full News
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>

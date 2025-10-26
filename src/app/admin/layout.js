@@ -41,6 +41,7 @@ export default function AdminLayout({ children }) {
     { href: "/admin/pdf-book", label: "PDF Book", icon: <BookOpen className="w-5 h-5" /> },
     { href: "/admin/banner", label: "Banner", icon: <Image className="w-5 h-5" alt="No Image Found" /> },
     { href: "/admin/privacy-policys", label: "Privacy Policy", icon: <FileText className="w-5 h-5" /> },
+     { href: "/admin/magazine", label: "Magazine Payment", icon: <FileText className="w-5 h-5" /> },
   
     { href: "/admin/terms-conditions", label: "Terms & Conditions", icon: <FileText className="w-5 h-5" /> },
   ];

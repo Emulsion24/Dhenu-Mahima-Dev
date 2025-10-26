@@ -70,7 +70,8 @@ const GaukathaPage = () => {
     name: '',
     contact: '',
     state: '',
-    city: ''
+    city: '',
+    email:''
   });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [message, setMessage] = useState('');
@@ -90,7 +91,7 @@ const GaukathaPage = () => {
       if (response.data.success) {
         setStatus('success');
         setMessage(`आपका आवेदन सफलतापूर्वक जमा हो गया है! बुकिंग आईडी`);
-        setFormData({ name: '', contact: '', state: '', city: '' });
+        setFormData({ name: '', contact: '', state: '', city: '',email:'' });
         setTimeout(() => {
           setStatus('idle');
           setMessage('');
@@ -174,6 +175,20 @@ const GaukathaPage = () => {
                 maxLength="10"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" 
                 placeholder="9876543210" 
+                required 
+              />
+            </div>
+             <div>
+              <label htmlFor="contact" className="block text-sm font-medium text-gray-700">Email</label>
+              <input 
+                type="mail" 
+                id="email" 
+                name="email" 
+                value={formData.email}
+                onChange={handleChange}
+                maxLength="10"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" 
+                placeholder="example@email.com" 
                 required 
               />
             </div>

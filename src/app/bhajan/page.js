@@ -342,12 +342,6 @@ export default function BhajanMusicPlayer() {
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             
-            <div 
-              className="h-10 sm:h-12 lg:h-14 cursor-pointer hover:opacity-80 transition text-2xl font-bold flex items-center gap-2"
-              onClick={handleLogoClick}
-            >
-              🎵 <span className="hidden sm:inline">भजन संगीत</span>
-            </div>
 
             <nav className="hidden md:flex items-center gap-4 lg:gap-6">
               {navItems.map(tab => {
