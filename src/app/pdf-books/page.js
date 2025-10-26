@@ -1,13 +1,11 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock, Tag, CheckCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
 import Image from 'next/image';
-
 import API from '@/lib/api';
-
-// Configure your API base URL
+import { useAuthStore } from '@/store/authStore';
 
 export default function PDFBookViewer() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,27 +13,34 @@ export default function PDFBookViewer() {
   const [selectedBook, setSelectedBook] = useState(null);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [books, setBooks] = useState([]);
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [purchasedBooks, setPurchasedBooks] = useState([]);
   const [isPurchasing, setIsPurchasing] = useState(false);
 
-  // Fetch books from backend
+  // Coupon states
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [calculatedPrice, setCalculatedPrice] = useState(null);
+
   useEffect(() => {
     fetchBooks();
-    fetchPurchasedBooks();
-  }, []);
+    if (user?.id) {
+      fetchPurchasedBooks();
+    }
+  }, [user]);
+ 
 
   const fetchBooks = async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await API.get(`/books`);
-      
-      // Extract books from nested response structure
       const booksData = response.data?.data?.books || response.data?.books || [];
       
-      // Transform backend data to match component structure
       const transformedBooks = booksData.map(book => ({
         id: book.id,
         title: book.name,
@@ -65,32 +70,28 @@ export default function PDFBookViewer() {
     }
   };
 
-  // Fetch user's purchased books
   const fetchPurchasedBooks = async () => {
     try {
-      const userId = getUserId();
+      const userId = user?.id;
       if (!userId) return;
 
-      const response = await API.get(`/books/purchased/${userId}`);
-      setPurchasedBooks(response.data.map(item => item.bookId));
+      const response = await API.get(`/pdf-payment/books/purchased/${userId}`);
+      setPurchasedBooks(response.data.purchases.map(item => item.bookId));
     } catch (err) {
       console.error('Error fetching purchased books:', err);
     }
   };
 
-  // Check if book is purchased
   const isBookPurchased = (bookId) => {
     return purchasedBooks.includes(bookId);
   };
 
-  // Helper function to estimate pages from file size
   const calculatePages = (fileSize) => {
     if (!fileSize) return 0;
     const sizeInKB = parseFloat(fileSize);
     return Math.round(sizeInKB / 100);
   };
 
-  // Helper function to extract category from description
   const extractCategory = (description) => {
     if (!description) return null;
     const categories = ['Ayurveda', 'Traditional Medicine', 'Yoga', 'Herbal Medicine', 'Vedic Medicine', 'Natural Healing', 'Nutrition', 'Wellness'];
@@ -98,99 +99,145 @@ export default function PDFBookViewer() {
     return categories.find(cat => lowerDesc.includes(cat.toLowerCase()));
   };
 
-  // Handle book purchase
+  // Calculate final price
+  const calculateFinalPrice = () => {
+    if (calculatedPrice !== null) {
+      return calculatedPrice;
+    }
+    return selectedBook?.price || 0;
+  };
+
+  // Apply Coupon
+ const handleApplyCoupon = async () => {
+  if (!couponCode.trim()) {
+    setCouponError('Please enter a coupon code');
+    return;
+  }
+
+  try {
+    setCouponLoading(true);
+    setCouponError('');
+
+    const response = await API.post('/coupons/validate', {
+      code: couponCode,
+      bookId: selectedBook.id
+    });
+
+    const data = response.data; // <-- Correct: access actual response body
+
+    if (data.success) {
+      setAppliedCoupon(data.data.coupon); // coupon code
+      setCalculatedPrice(data.data.finalAmount); // final amount after discount
+      setCouponError('');
+    } else {
+      setCouponError(data.message || 'Invalid coupon code');
+      setAppliedCoupon(null);
+      setCalculatedPrice(null);
+    }
+  } catch (err) {
+    console.error('Coupon validation error:', err);
+    setCouponError(err.response?.data?.message || 'Invalid or expired coupon');
+    setAppliedCoupon(null);
+    setCalculatedPrice(null);
+  } finally {
+    setCouponLoading(false);
+  }
+};
+
+const removeCoupon = () => {
+  setAppliedCoupon(null);
+  setCouponCode('');
+  setCouponError('');
+  setCalculatedPrice(null);
+};
+
+  // Initiate Payment
   const handlePurchase = async (bookId) => {
     try {
       setIsPurchasing(true);
-      const userId = getUserId();
       
-      if (!userId) {
+      if (!user?.id) {
         alert('Please login to purchase books');
+        window.location.href = '/login';
         return;
       }
 
-      const book = books.find(b => b.id === bookId);
-      
-      const response = await API.post(`/books/purchase`, {
-        userId,
+      const orderResponse = await API.post('/pdf-payment/create-order', {
         bookId,
-        amount: book.price
+        couponCode: appliedCoupon?.code || null
       });
-      
-      if (response.data.success) {
-        alert('Purchase successful! You can now download the book.');
-        // Update purchased books list
-        setPurchasedBooks([...purchasedBooks, bookId]);
-        // Optionally trigger download immediately
-        handleDownload(book);
-      }
+
+      const { paymentUrl, transactionId } = orderResponse.data;
+
+      localStorage.setItem('pending_transaction', transactionId);
+      localStorage.setItem('pending_book_id', bookId);
+
+      window.location.href = paymentUrl;
+
     } catch (err) {
       console.error('Purchase error:', err);
       alert(err.response?.data?.message || 'Purchase failed. Please try again.');
-    } finally {
       setIsPurchasing(false);
     }
   };
 
-  // Handle PDF download (only for purchased books)
-  const handleDownload = async (book) => {
-    try {
-      if (!isBookPurchased(book.id)) {
-        alert('Please purchase this book first to download it.');
-        return;
-      }
-
-      const userId = getUserId();
-      const response = await API.get(`/books/download/${book.id}`, {
-        params: { userId },
-        responseType: 'blob'
-      });
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      const pendingTransaction = localStorage.getItem('pending_transaction');
+      const pendingBookId = localStorage.getItem('pending_book_id');
       
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', book.fileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Download error:', err);
-      alert(err.response?.data?.message || 'Failed to download. Please try again.');
-    }
-  };
-
-  // View PDF online (only for purchased books)
-  const handleViewPDF = async (book) => {
-    try {
-      if (!isBookPurchased(book.id)) {
-        alert('Please purchase this book first to view it.');
-        return;
+      if (pendingTransaction && user?.id) {
+        try {
+          const response = await API.get(`/pdf-payment/status/${pendingTransaction}`);
+          
+          if (response.data.paymentStatus === 'PAYMENT_SUCCESS') {
+            localStorage.removeItem('pending_transaction');
+            localStorage.removeItem('pending_book_id');
+            
+            await fetchPurchasedBooks();
+            
+            const book = books.find(b => b.id === parseInt(pendingBookId));
+            if (book) {
+              setSelectedBook(book);
+              alert('Payment successful! You can now stream the book.');
+            }
+          } else if (response.data.paymentStatus === 'PAYMENT_FAILED') {
+            localStorage.removeItem('pending_transaction');
+            localStorage.removeItem('pending_book_id');
+            alert('Payment failed. Please try again.');
+          }
+        } catch (err) {
+          console.error('Error checking payment status:', err);
+        }
       }
+    };
 
-      const userId = getUserId();
-      const response = await API.get(`/books/view/${book.id}`, {
-        params: { userId },
-        responseType: 'blob'
-      });
-      
-      // Open PDF in new tab
-      const file = new Blob([response.data], { type: 'application/pdf' });
-      const fileURL = URL.createObjectURL(file);
-      window.open(fileURL, '_blank');
-    } catch (err) {
-      console.error('View error:', err);
-      alert(err.response?.data?.message || 'Failed to open PDF. Please try again.');
+    if (books.length > 0) {
+      checkPaymentStatus();
     }
-  };
+  }, [books, user]);
 
-  // Placeholder for getting user ID (implement based on your auth system)
-  const getUserId = () => {
-    // TODO: Get from your authentication context/store/localStorage
-    // Example: return localStorage.getItem('userId') || null;
-    return 1; // Replace with actual user ID from your auth system
-  };
+  // Stream PDF
+  const handleStreamPDF = async (book) => {
+  try {
+    if (!isBookPurchased(book.id)) {
+      alert('Please purchase this book first to view it.');
+      return;
+    }
+
+    const response = await API.get(`/books/${book.id}/stream`, {
+      responseType: 'blob'
+    });
+
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+    window.open(fileURL, '_blank');
+
+  } catch (err) {
+    console.error('Stream error:', err);
+    alert(err.response?.data?.message || 'Failed to stream PDF. Please try again.');
+  }
+};
 
   const itemsPerPage = 8;
   const filteredBooks = books.filter(book =>
@@ -215,7 +262,6 @@ export default function PDFBookViewer() {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
-  // Loading state
   if (loading) {
     return (
       <>
@@ -231,7 +277,6 @@ export default function PDFBookViewer() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <>
@@ -255,11 +300,13 @@ export default function PDFBookViewer() {
 
   if (selectedBook) {
     const isPurchased = isBookPurchased(selectedBook.id);
+    const finalPrice = calculateFinalPrice();
+    const discount = selectedBook.price - finalPrice;
     
     return (
       <>
+        <Headers />
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 relative overflow-hidden">
-          {/* Animated background blobs */}
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
             <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -267,20 +314,23 @@ export default function PDFBookViewer() {
           </div>
 
           <div className="relative max-w-6xl mx-auto px-4 py-8">
-            {/* Back Button */}
             <button
-              onClick={() => setSelectedBook(null)}
+              onClick={() => {
+                setSelectedBook(null);
+                setAppliedCoupon(null);
+                setCouponCode('');
+                setCouponError('');
+                setCalculatedPrice(null);
+              }}
               className="mb-6 flex items-center gap-2 text-orange-600 hover:text-orange-700 font-semibold transition-colors"
             >
               <ChevronLeft size={20} />
               Back to Library
             </button>
 
-            {/* Book Card */}
             <div className="bg-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
               <div className="grid md:grid-cols-5 gap-8 items-center">
 
-                {/* Book Image */}
                 <div className="md:col-span-2 relative">
                   <div className="absolute -inset-2 bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 rounded-3xl blur-xl opacity-40 animate-pulse"></div>
                   <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl">
@@ -292,7 +342,6 @@ export default function PDFBookViewer() {
                       sizes="100vw"
                       unoptimized
                     />
-                    {/* Lock overlay for unpurchased books */}
                     {!isPurchased && (
                       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
                         <div className="text-center">
@@ -304,38 +353,30 @@ export default function PDFBookViewer() {
                   </div>
                 </div>
 
-                {/* Book Details */}
                 <div className="md:col-span-3 flex flex-col justify-between">
-                  {/* Purchased Badge */}
                   {isPurchased && (
                     <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-2 rounded-full mb-4 border border-green-300 w-fit">
-                      <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                      <CheckCircle className="w-4 h-4 text-green-600" />
                       <span className="text-sm font-semibold text-green-700">PURCHASED</span>
                     </div>
                   )}
 
-                  {/* Category */}
                   <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-4 border border-orange-200 w-fit">
                     <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-semibold text-orange-700">{selectedBook.category}</span>
                   </div>
 
-                  {/* Title & Author */}
                   <h1 className="text-4xl md:text-5xl font-black mb-3 bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent">
                     {selectedBook.title}
                   </h1>
                   <p className="text-gray-600 text-xl mb-6">by {selectedBook.author}</p>
 
-                  {/* Description */}
                   {selectedBook.description && (
                     <p className="text-gray-600 mb-6 line-clamp-3">
                       {selectedBook.description}
                     </p>
                   )}
 
-                  {/* Pages, Size & Upload Date */}
                   <div className="flex items-center gap-6 mb-8 text-gray-600 flex-wrap">
                     <div className="flex items-center gap-2">
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -349,21 +390,13 @@ export default function PDFBookViewer() {
                       </svg>
                       <span className="font-semibold">{selectedBook.fileSize}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                      </svg>
-                      <span className="font-semibold">{selectedBook.uploadDate}</span>
-                    </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="space-y-4">
                     {isPurchased ? (
-                      // Already purchased - show view and download buttons
                       <>
                         <button 
-                          onClick={() => handleViewPDF(selectedBook)}
+                          onClick={() => handleStreamPDF(selectedBook)}
                           className="group relative w-full bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-500"
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -372,23 +405,107 @@ export default function PDFBookViewer() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            View PDF Online
+                            Stream PDF Online
                           </span>
                         </button>
 
-                        <button 
-                          onClick={() => handleDownload(selectedBook)}
-                          className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl flex items-center justify-center gap-2 hover:from-orange-200 hover:to-yellow-200 transition-all duration-300"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 flex items-start gap-3">
+                          <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                           </svg>
-                          Download PDF
-                        </button>
+                          <div className="text-sm text-blue-800">
+                            <p className="font-semibold mb-1">Streaming Only Access</p>
+                            <p>This book can be viewed online only. Downloads are not available to protect copyright.</p>
+                          </div>
+                        </div>
                       </>
                     ) : (
-                      // Not purchased - show buy button
                       <>
+                        {!appliedCoupon ? (
+                          <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Tag className="w-5 h-5 text-orange-600" />
+                              <span className="font-semibold text-orange-700">Have a coupon code?</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={couponCode}
+                                onChange={(e) => {
+                                  setCouponCode(e.target.value.toUpperCase());
+                                  setCouponError('');
+                                }}
+                                placeholder="Enter code"
+                                className="flex-1 px-4 py-2 border-2 border-orange-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 uppercase"
+                              />
+                              <button
+                                onClick={handleApplyCoupon}
+                                disabled={couponLoading || !couponCode.trim()}
+                                className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              >
+                                {couponLoading ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Checking...
+                                  </>
+                                ) : (
+                                  'Apply'
+                                )}
+                              </button>
+                            </div>
+                            {couponError && (
+                              <p className="text-red-600 text-sm mt-2 flex items-center gap-1">
+                                <X className="w-4 h-4" />
+                                {couponError}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="w-5 h-5 text-green-600" />
+                                <div>
+                                  <p className="font-semibold text-green-700">Coupon Applied: {appliedCoupon.code}</p>
+                                  <p className="text-sm text-green-600">
+                                    {appliedCoupon.type === 'PERCENTAGE' 
+                                      ? `${appliedCoupon.discount}% OFF` 
+                                      : `₹${appliedCoupon.discount} OFF`}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={removeCoupon}
+                                className="text-red-600 hover:text-red-700 transition-colors"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-2xl p-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-700 font-semibold">Original Price:</span>
+                            <span className={`font-bold ${appliedCoupon ? 'line-through text-gray-500' : 'text-2xl text-orange-700'}`}>
+                              ₹{selectedBook.price}
+                            </span>
+                          </div>
+                          {appliedCoupon && (
+                            <>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-green-700 font-semibold">Discount:</span>
+                                <span className="text-green-700 font-bold">-₹{discount}</span>
+                              </div>
+                              <div className="border-t-2 border-orange-200 my-3"></div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-orange-700 font-bold text-lg">Final Price:</span>
+                                <span className="text-orange-700 font-bold text-3xl">₹{finalPrice}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+
                         <button 
                           onClick={() => handlePurchase(selectedBook.id)}
                           disabled={isPurchasing}
@@ -399,28 +516,24 @@ export default function PDFBookViewer() {
                             {isPurchasing ? (
                               <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                Processing...
+                                Processing Payment...
                               </>
                             ) : (
                               <>
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
-                                Buy Now & Access PDF
+                                Buy Now - ₹{finalPrice}
                               </>
                             )}
                           </span>
                         </button>
 
-                        <div className="w-full bg-gradient-to-br from-orange-100 to-yellow-100 border-2 border-orange-300 text-orange-700 font-bold px-8 py-4 rounded-2xl flex items-center justify-center gap-2">
-                          <span className="text-2xl">₹{selectedBook.price}</span>
-                        </div>
-
                         <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 flex items-start gap-3">
                           <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                           <div className="text-sm text-amber-800">
-                            <p className="font-semibold mb-1">PDF Access Locked</p>
-                            <p>Purchase this book to unlock full PDF access, download capability, and lifetime ownership.</p>
+                            <p className="font-semibold mb-1">Secure Payment & Streaming Access</p>
+                            <p>After purchase, you'll get lifetime streaming access to this book. All transactions are secure and encrypted.</p>
                           </div>
                         </div>
                       </>
@@ -431,6 +544,7 @@ export default function PDFBookViewer() {
             </div>
           </div>
         </div>
+        <Footer />
       </>
     );
   }
@@ -439,7 +553,6 @@ export default function PDFBookViewer() {
     <>
       <Headers/>
       <section className="relative min-h-screen py-16 md:py-20 lg:py-24 overflow-hidden">
-        {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-yellow-50">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-0 left-0 w-96 h-96 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
@@ -450,7 +563,6 @@ export default function PDFBookViewer() {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Ultra Modern Title Section */}
           <div className="text-center mb-12 md:mb-16">
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full mb-6 border border-orange-200">
               <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
@@ -459,7 +571,7 @@ export default function PDFBookViewer() {
 
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 leading-tight">
               <span className="inline-block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
-                Our PDF
+                Stream PDF
               </span>
               <br />
               <span className="inline-block bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
@@ -468,7 +580,7 @@ export default function PDFBookViewer() {
             </h2>
             
             <p className="text-gray-600 text-base sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-              Discover ancient wisdom through our curated collection of digital books
+              Discover ancient wisdom through our curated collection of streaming e-books
             </p>
             
             <div className="flex items-center justify-center gap-2 mt-6">
@@ -478,7 +590,6 @@ export default function PDFBookViewer() {
             </div>
           </div>
 
-          {/* Search Bar */}
           <div className="mb-12 max-w-2xl mx-auto">
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-orange-500" size={20} />
@@ -500,7 +611,6 @@ export default function PDFBookViewer() {
             </div>
           </div>
 
-          {/* Results info */}
           <div className="flex items-center justify-center gap-8 text-center mb-10">
             <div>
               <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
@@ -517,7 +627,6 @@ export default function PDFBookViewer() {
             </div>
           </div>
 
-          {/* Books Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-12">
             {currentBooks.map((book, i) => {
               const isPurchased = isBookPurchased(book.id);
@@ -577,23 +686,19 @@ export default function PDFBookViewer() {
                           hoveredIndex === i ? 'opacity-100' : 'opacity-0'
                         }`}></div>
                         
-                        {/* Lock overlay for unpurchased books */}
                         {!isPurchased && (
                           <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <div className="text-center">
                               <Lock className="w-8 h-8 text-white mx-auto mb-2" />
-                              <p className="text-white font-bold text-sm">Purchase to Unlock</p>
+                              <p className="text-white font-bold text-sm">Purchase to Stream</p>
                             </div>
                           </div>
                         )}
 
-                        {/* Purchased badge */}
                         {isPurchased && (
                           <div className="absolute top-4 left-4">
                             <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm border border-white/20 flex items-center gap-1.5">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
+                              <CheckCircle className="w-3 h-3" />
                               Owned
                             </div>
                           </div>
@@ -618,12 +723,12 @@ export default function PDFBookViewer() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
-                                <span className="text-sm">View PDF</span>
+                                <span className="text-sm">Stream Now</span>
                               </>
                             ) : (
                               <>
                                 <Lock className="w-4 h-4" />
-                                <span className="text-sm">Buy to Access</span>
+                                <span className="text-sm">Buy to Stream</span>
                               </>
                             )}
                           </button>
@@ -655,7 +760,6 @@ export default function PDFBookViewer() {
             })}
           </div>
 
-          {/* No Results */}
           {filteredBooks.length === 0 && (
             <div className="text-center py-20">
               <svg className="mx-auto mb-4 text-orange-400 w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
@@ -666,7 +770,6 @@ export default function PDFBookViewer() {
             </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex flex-col items-center gap-6">
               <div className="flex items-center gap-4">
@@ -705,7 +808,6 @@ export default function PDFBookViewer() {
                 </button>
               </div>
 
-              {/* Stats */}
               <div className="flex items-center gap-8 text-center">
                 <div>
                   <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
@@ -725,7 +827,7 @@ export default function PDFBookViewer() {
                   <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
                     24/7
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Access</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium mt-1">Streaming</div>
                 </div>
               </div>
             </div>

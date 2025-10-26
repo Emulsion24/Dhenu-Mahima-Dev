@@ -198,7 +198,7 @@ hasRedirected.current = true;
               <div className="relative">
                 <div className="w-20 h-20 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-lg">
                   <Image
-                    src="/logo/Dhenu Mahima PNG 1.png"
+                    src="/logo-dhenumahima.png"
                     alt="Dhenu Mahima Logo"
                     width={150}
                     height={60}

@@ -323,6 +323,7 @@ export default function Sansthan() {
   );
 }
 
+
 // --- Sub-components for cleaner JSX ---
 
 const InfoRow = ({ icon, text, link, external = false, className = "" }) => (

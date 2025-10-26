@@ -1,221 +1,374 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { useAuthStore } from "@/store/authStore";
 import Footer from "@/components/Footer";
-import { LogOut, User, BookOpen, Heart, Bell, ChevronRight, Mail, Phone, MapPin, Award } from "lucide-react";
-
-// Mock auth store hook - replace with your actual store
+import { useAuthStore } from "@/store/authStore";
+import API from "@/lib/api";
+import {
+  LogOut,
+  User,
+  BookOpen,
+  Heart,
+  ChevronRight,
+  Download,
+  Eye,
+} from "lucide-react";
 
 export default function UserDashboard() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [activeMenu, setActiveMenu] = useState("account");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
- 
-const handellogout=()=>{
-logout();
-router.push("/login");
-}
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [streamingBook, setStreamingBook] = useState(null);
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const isBookPurchased = (bookId) => {
+    return userData?.purchasedBooks?.some((book) => book.id === bookId);
+  };
+
+  const handleStreamPDF = async (book) => {
+    try {
+      if (!isBookPurchased(book.id)) {
+        alert("Please purchase this book first to view it.");
+        return;
+      }
+
+      setStreamingBook(book.id);
+
+      const response = await API.get(`/books/${book.id}/stream`, {
+        responseType: "blob",
+      });
+
+      const file = new Blob([response.data], { type: "application/pdf" });
+      const fileURL = URL.createObjectURL(file);
+      window.open(fileURL, "_blank");
+
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(fileURL), 100);
+    } catch (err) {
+      console.error("Stream error:", err);
+      alert(
+        err.response?.data?.message || "Failed to stream PDF. Please try again."
+      );
+    } finally {
+      setStreamingBook(null);
+    }
+  };
+
+  // Fetch user donations + purchased books
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchUserData = async () => {
+      try {
+        const res = await API.get(`/users/${user.id}/data`);
+        setUserData(res.data.data);
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        alert("Failed to load user data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [user, router]);
 
   if (!user) return null;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   const menuItems = [
     { id: "account", label: "My Account", icon: User },
-    { id: "pdf", label: "PDF Library", icon: BookOpen },
+    { id: "books", label: "Purchased Books", icon: BookOpen },
     { id: "donations", label: "My Donations", icon: Heart },
   ];
 
   return (
     <>
       <Header />
-      
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        {/* Top Section Bar */}
-        <div className="bg-white border-b border-orange-100 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="md:hidden p-2 rounded-lg hover:bg-orange-50 transition"
-                >
-                  <div className="w-6 h-0.5 bg-gray-600 mb-1.5"></div>
-                  <div className="w-6 h-0.5 bg-gray-600 mb-1.5"></div>
-                  <div className="w-6 h-0.5 bg-gray-600"></div>
-                </button>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">
-                  धेनु महिमा Dashboard
-                </h1>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <button className="p-2 rounded-lg hover:bg-orange-50 transition relative">
-                  <Bell size={20} className="text-gray-600" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
-                <div className="flex items-center space-x-3 pl-3 border-l border-gray-200">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-white font-bold">
-                    {user.name.charAt(0)}
-                  </div>
-                  <div className="hidden sm:block">
-                    <p className="text-sm font-semibold text-gray-800">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.role}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-800">
+              Welcome back, {userData?.name}!
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Manage your account, books, and donations
+            </p>
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar */}
-            <aside className={`
-              ${isSidebarOpen ? 'block' : 'hidden'} md:block
-              w-full lg:w-64 space-y-3 flex-shrink-0
-            `}>
-              <div className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
-                <div className="p-6 bg-gradient-to-br from-orange-500 to-yellow-500">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-4 border-white/30 mb-4">
-                    <span className="text-3xl font-bold text-white">{user.name.charAt(0)}</span>
-                  </div>
-                  <h3 className="text-white text-center font-bold text-lg">{user.name}</h3>
-                  <p className="text-white/80 text-center text-sm mt-1">Member since {user.joinedDate}</p>
+            <aside className="w-full lg:w-1/4">
+              <div className="bg-white rounded-2xl shadow-sm border border-orange-100 p-6 space-y-4 sticky top-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Dashboard
+                  </h2>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"
+                    aria-label="Logout"
+                  >
+                    <LogOut size={16} /> Logout
+                  </button>
                 </div>
-
-                <nav className="p-3 space-y-1">
+                <nav className="space-y-2">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     return (
                       <button
                         key={item.id}
                         onClick={() => setActiveMenu(item.id)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200
-                          ${activeMenu === item.id 
-                            ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-lg shadow-orange-200" 
-                            : "text-gray-600 hover:bg-orange-50"
-                          }`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                          activeMenu === item.id
+                            ? "bg-orange-100 text-orange-700 font-semibold shadow-sm"
+                            : "text-gray-700 hover:bg-orange-50"
+                        }`}
+                        aria-current={activeMenu === item.id ? "page" : undefined}
                       >
                         <Icon size={20} />
                         <span className="flex-1 text-left">{item.label}</span>
-                        {activeMenu === item.id && <ChevronRight size={18} />}
+                        <ChevronRight
+                          size={16}
+                          className={`transition-transform ${
+                            activeMenu === item.id ? "translate-x-1" : ""
+                          }`}
+                        />
                       </button>
                     );
                   })}
                 </nav>
-
-                <div className="p-4 border-t border-gray-100">
-                  <button
-                    onClick={handellogout}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all duration-200"
-                  >
-                    <LogOut size={20} />
-                    <span>Logout</span>
-                  </button>
-                </div>
               </div>
             </aside>
 
             {/* Main Content */}
             <main className="flex-1 space-y-6">
+              {/* ACCOUNT SECTION */}
               {activeMenu === "account" && (
-                <>
-                  {/* Welcome Banner */}
-                  <div className="bg-gradient-to-br from-orange-500 via-yellow-500 to-amber-500 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
-                    <div className="relative">
-                      <h2 className="text-3xl font-bold mb-2">Welcome back, {user.name.split(' ')[0]}! 🙏</h2>
-                      <p className="text-white/90">Your spiritual journey continues. May you be blessed.</p>
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-orange-100">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-full flex items-center justify-center">
+                      <User size={32} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-800">
+                        {userData?.name}
+                      </h3>
+                      <p className="text-gray-500">Account Information</p>
                     </div>
                   </div>
 
-                  {/* Profile Information */}
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden">
-                      <div className="bg-gradient-to-r from-orange-500 to-yellow-500 px-6 py-4">
-                        <h3 className="text-white font-bold text-lg flex items-center">
-                          <User size={20} className="mr-2" />
-                          Personal Information
-                        </h3>
-                      </div>
-                      <div className="p-6 space-y-4">
-                        <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-orange-50 transition">
-                          <User size={20} className="text-orange-500 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">Full Name</p>
-                            <p className="text-gray-800 font-semibold">{user.name}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-orange-50 transition">
-                          <Mail size={20} className="text-orange-500 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">Email Address</p>
-                            <p className="text-gray-800 font-semibold">{user.email}</p>
-                          </div>
-                        </div>
-                        {user.phone && (
-                          <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-orange-50 transition">
-                            <Phone size={20} className="text-orange-500 mt-0.5" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Phone Number</p>
-                              <p className="text-gray-800 font-semibold">{user.phone}</p>
-                            </div>
-                          </div>
-                        )}
-                        {user.address && (
-                          <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-orange-50 transition">
-                            <MapPin size={20} className="text-orange-500 mt-0.5" />
-                            <div>
-                              <p className="text-xs text-gray-500 font-medium">Address</p>
-                              <p className="text-gray-800 font-semibold">{user.address}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-orange-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Email Address</p>
+                      <p className="text-gray-800 font-medium">{userData?.email}</p>
                     </div>
-
-                    <div className="space-y-6">
-                      {/* Activity Card */}
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-bold text-lg">Recent Activity</h4>
-                          <Award size={24} />
-                        </div>
-                        <p className="text-white/90 text-sm mb-4">You&apos;ve been very active this month!</p>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                          <p className="text-sm text-white/80">Last login</p>
-                          <p className="font-semibold">Today at 10:30 AM</p>
-                        </div>
+                    {userData?.phone && (
+                      <div className="p-4 bg-orange-50 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-1">Phone Number</p>
+                        <p className="text-gray-800 font-medium">{userData.phone}</p>
                       </div>
+                    )}
+                    <div className="p-4 bg-orange-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Total Books Purchased</p>
+                      <p className="text-gray-800 font-medium text-2xl">
+                        {userData?.purchasedBooks?.length || 0}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-orange-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Total Donations</p>
+                      <p className="text-gray-800 font-medium text-2xl">
+                        {userData?.donations?.length || 0}
+                      </p>
                     </div>
                   </div>
-                </>
-              )}
-
-              {activeMenu === "pdf" && (
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-orange-100 text-center">
-                  <BookOpen size={64} className="mx-auto text-orange-500 mb-4" />
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">PDF Library</h3>
-                  <p className="text-gray-600">Access sacred texts and religious books</p>
                 </div>
               )}
 
+              {/* PURCHASED BOOKS SECTION */}
+              {activeMenu === "books" && (
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-orange-100">
+                  <div className="text-center mb-8">
+                    <BookOpen size={48} className="mx-auto text-yellow-500 mb-4" />
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                      My Purchased Books
+                    </h3>
+                    <p className="text-gray-600">
+                      {userData?.purchasedBooks?.length || 0} book(s) in your library
+                    </p>
+                  </div>
+
+                  {userData?.purchasedBooks?.length > 0 ? (
+                    <div className="grid gap-4">
+                      {userData.purchasedBooks.map((book) => (
+                        <div
+                          key={book.id}
+                          className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-5 border border-orange-100 rounded-xl hover:bg-orange-50 hover:shadow-md transition-all gap-4"
+                        >
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-800 text-lg mb-1">
+                              {book.title}
+                            </h4>
+                            <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                              <span className="font-medium">₹{book.price}</span>
+                              <span>•</span>
+                              <span>
+                                Purchased on{" "}
+                                {new Date(book.purchasedAt).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleStreamPDF(book)}
+                            disabled={streamingBook === book.id}
+                            className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {streamingBook === book.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                Opening...
+                              </>
+                            ) : (
+                              <>
+                                <Eye size={16} />
+                                View PDF
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <BookOpen size={64} className="mx-auto text-gray-300 mb-4" />
+                      <p className="text-gray-600 mb-4">
+                        You haven't purchased any books yet.
+                      </p>
+                      <button
+                        onClick={() => router.push("/books")}
+                        className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        Browse Books
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DONATIONS SECTION */}
               {activeMenu === "donations" && (
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-orange-100 text-center">
-                  <Heart size={64} className="mx-auto text-pink-500 mb-4" />
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">My Donations</h3>
-                  <p className="text-gray-600">View your contribution history</p>
+                <div className="bg-white rounded-2xl p-8 shadow-sm border border-orange-100">
+                  <div className="text-center mb-8">
+                    <Heart size={48} className="mx-auto text-pink-500 mb-4" />
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                      My Donations
+                    </h3>
+                    <p className="text-gray-600">
+                      Thank you for your generous support!
+                    </p>
+                  </div>
+
+                  {userData?.donations?.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gradient-to-r from-orange-400 to-yellow-400 text-white text-left">
+                            <th className="p-4 rounded-tl-lg">#</th>
+                            <th className="p-4">Amount</th>
+                            <th className="p-4">Status</th>
+                            <th className="p-4 rounded-tr-lg">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {userData.donations.map((don, i) => (
+                            <tr
+                              key={don.id}
+                              className="border-b border-orange-100 hover:bg-orange-50 transition"
+                            >
+                              <td className="p-4 text-gray-600">{i + 1}</td>
+                              <td className="p-4 font-semibold text-gray-800">
+                                ₹{don.amount.toLocaleString()}
+                              </td>
+                              <td className="p-4">
+                                <span
+                                  className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                    don.status === "Success" ||
+                                    don.status === "completed"
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                                  }`}
+                                >
+                                  {don.status || "Success"}
+                                </span>
+                              </td>
+                              <td className="p-4 text-gray-600">
+                                {new Date(don.createdAt).toLocaleString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="mt-6 p-4 bg-pink-50 rounded-lg">
+                        <p className="text-sm text-gray-700">
+                          <strong>Total Donated:</strong> ₹
+                          {userData.donations
+                            .reduce((sum, don) => sum + don.amount, 0)
+                            .toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Heart size={64} className="mx-auto text-gray-300 mb-4" />
+                      <p className="text-gray-600 mb-4">
+                        You haven't made any donations yet.
+                      </p>
+                      <button
+                        onClick={() => router.push("/donate")}
+                        className="px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                      >
+                        Make a Donation
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </main>
           </div>
         </div>
       </div>
-
       <Footer />
     </>
   );
