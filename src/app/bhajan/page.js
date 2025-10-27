@@ -108,6 +108,9 @@ export default function BhajanMusicPlayer() {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'metadata';
+      // Important for mobile: set these properties
+      audioRef.current.setAttribute('playsinline', 'true');
+      audioRef.current.setAttribute('webkit-playsinline', 'true');
     }
 
     const audio = audioRef.current;
@@ -184,8 +187,8 @@ export default function BhajanMusicPlayer() {
       setError(null);
       
       // Set new source - construct the API URL
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://saccharic-noncollusively-loni.ngrok-free.dev';
-      audio.src = `${apiBaseUrl}/api/jevansutra/audio/stream/${filename}`;
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      audio.src = `${apiBaseUrl}/jevansutra/audio/stream/${filename}`;
       audio.volume = volume / 100;
       
       // Reset time
@@ -210,12 +213,28 @@ export default function BhajanMusicPlayer() {
     if (audioRef.current && filteredBhajans.length > 0) {
       const audio = audioRef.current;
       if (isPlaying) {
+        // For mobile browsers, ensure we handle play promise properly
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.error('Playback error:', err);
-            setIsPlaying(false);
-          });
+          playPromise
+            .then(() => {
+              // Playback started successfully
+              setIsBuffering(false);
+            })
+            .catch(err => {
+              console.error('Playback error:', err);
+              // Try to reload and play again for mobile
+              if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                audio.load();
+                setTimeout(() => {
+                  audio.play().catch(() => {
+                    setIsPlaying(false);
+                  });
+                }, 100);
+              } else {
+                setIsPlaying(false);
+              }
+            });
         }
       } else {
         audio.pause();
@@ -273,6 +292,16 @@ export default function BhajanMusicPlayer() {
   };
 
   const handleSongSelect = (index) => {
+    // For mobile: ensure audio context is resumed on user interaction
+    if (audioRef.current && audioRef.current.paused) {
+      // Try to resume audio context on mobile
+      audioRef.current.play().then(() => {
+        audioRef.current.pause();
+      }).catch(() => {
+        // Silently handle error - this is just to unlock audio on mobile
+      });
+    }
+    
     setCurrentSong(index);
     setIsPlaying(true);
   };
