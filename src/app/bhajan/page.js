@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Repeat, Shuffle, Heart, Search, Home, Library,
@@ -47,7 +47,7 @@ export default function BhajanMusicPlayer() {
         throw new Error('Failed to fetch bhajans');
       }
       
-      const data = response.data;
+      const data = response.data
       setBhajans(data);
       setFilteredBhajans(data);
       setLoading(false);
@@ -74,43 +74,25 @@ export default function BhajanMusicPlayer() {
         throw new Error('Search failed');
       }
       
-      const data = response.data;
+      const data =response.data;
       setFilteredBhajans(data);
     } catch (error) {
       console.error('Error searching bhajans:', error);
       // Fallback to client-side search
       const filtered = bhajans.filter(bhajan => 
-        (bhajan.name && bhajan.name.toLowerCase().includes(query.toLowerCase())) ||
-        (bhajan.artist && bhajan.artist.toLowerCase().includes(query.toLowerCase())) ||
+        bhajan.name.toLowerCase().includes(query.toLowerCase()) ||
+        bhajan.artist.toLowerCase().includes(query.toLowerCase()) ||
         (bhajan.album && bhajan.album.toLowerCase().includes(query.toLowerCase()))
       );
       setFilteredBhajans(filtered);
     }
   };
 
-  // Define handleNext with useCallback to prevent dependency issues
-  const handleNext = useCallback(() => {
-    if (filteredBhajans.length === 0) return;
-    
-    if (isShuffle) {
-      let randomIndex;
-      do {
-        randomIndex = Math.floor(Math.random() * filteredBhajans.length);
-      } while (randomIndex === currentSong && filteredBhajans.length > 1);
-      setCurrentSong(randomIndex);
-    } else {
-      setCurrentSong((currentSong + 1) % filteredBhajans.length);
-    }
-  }, [filteredBhajans.length, isShuffle, currentSong]);
-
   // Initialize audio element
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'metadata';
-      // Important for mobile: set these properties
-      audioRef.current.setAttribute('playsinline', 'true');
-      audioRef.current.setAttribute('webkit-playsinline', 'true');
     }
 
     const audio = audioRef.current;
@@ -123,10 +105,7 @@ export default function BhajanMusicPlayer() {
     const handleEnded = () => {
       if (isRepeat) {
         audio.currentTime = 0;
-        audio.play().catch(err => {
-          console.error('Playback error:', err);
-          setIsPlaying(false);
-        });
+        audio.play();
       } else {
         handleNext();
       }
@@ -143,10 +122,7 @@ export default function BhajanMusicPlayer() {
     const handleError = (e) => {
       console.error('Audio error:', e);
       setIsBuffering(false);
-      // Only show error if audio source was actually set
-      if (audio.src && audio.src !== window.location.href) {
-        setError('Failed to load audio. Please try again.');
-      }
+      setError('Failed to load audio. Please try again.');
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -166,7 +142,7 @@ export default function BhajanMusicPlayer() {
       audio.pause();
       audio.src = '';
     };
-  }, [isRepeat, handleNext]);
+  }, [isRepeat]);
 
   // Load current song
   useEffect(() => {
@@ -174,7 +150,7 @@ export default function BhajanMusicPlayer() {
       const audio = audioRef.current;
       const currentBhajan = filteredBhajans[currentSong];
       
-      if (!currentBhajan || !currentBhajan.audioUrl) return;
+      if (!currentBhajan) return;
       
       // Extract filename from audioUrl
       const audioUrl = currentBhajan.audioUrl;
@@ -183,12 +159,8 @@ export default function BhajanMusicPlayer() {
       // Pause current playback
       audio.pause();
       
-      // Clear any previous errors
-      setError(null);
-      
-      // Set new source - construct the API URL
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-      audio.src = `${apiBaseUrl}/jevansutra/audio/stream/${filename}`;
+      // Set new source
+      audio.src = `https://saccharic-noncollusively-loni.ngrok-free.dev/api/jevansutra/audio/stream/${filename}`;
       audio.volume = volume / 100;
       
       // Reset time
@@ -196,51 +168,27 @@ export default function BhajanMusicPlayer() {
       setDuration(0);
       
       if (isPlaying) {
-        // Wait for audio to be ready before playing
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(err => {
-            console.error('Playback error:', err);
-            setIsPlaying(false);
-          });
-        }
+        audio.play().catch(err => {
+          console.error('Playback error:', err);
+          setIsPlaying(false);
+        });
       }
     }
-  }, [currentSong, filteredBhajans, volume]);
+  }, [currentSong, filteredBhajans]);
 
   // Handle play/pause
   useEffect(() => {
     if (audioRef.current && filteredBhajans.length > 0) {
-      const audio = audioRef.current;
       if (isPlaying) {
-        // For mobile browsers, ensure we handle play promise properly
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              // Playback started successfully
-              setIsBuffering(false);
-            })
-            .catch(err => {
-              console.error('Playback error:', err);
-              // Try to reload and play again for mobile
-              if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                audio.load();
-                setTimeout(() => {
-                  audio.play().catch(() => {
-                    setIsPlaying(false);
-                  });
-                }, 100);
-              } else {
-                setIsPlaying(false);
-              }
-            });
-        }
+        audioRef.current.play().catch(err => {
+          console.error('Playback error:', err);
+          setIsPlaying(false);
+        });
       } else {
-        audio.pause();
+        audioRef.current.pause();
       }
     }
-  }, [isPlaying, filteredBhajans.length]);
+  }, [isPlaying]);
 
   // Handle volume changes
   useEffect(() => {
@@ -254,6 +202,20 @@ export default function BhajanMusicPlayer() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleNext = () => {
+    if (filteredBhajans.length === 0) return;
+    
+    if (isShuffle) {
+      let randomIndex;
+      do {
+        randomIndex = Math.floor(Math.random() * filteredBhajans.length);
+      } while (randomIndex === currentSong && filteredBhajans.length > 1);
+      setCurrentSong(randomIndex);
+    } else {
+      setCurrentSong((currentSong + 1) % filteredBhajans.length);
+    }
   };
 
   const handlePrevious = () => {
@@ -292,16 +254,6 @@ export default function BhajanMusicPlayer() {
   };
 
   const handleSongSelect = (index) => {
-    // For mobile: ensure audio context is resumed on user interaction
-    if (audioRef.current && audioRef.current.paused) {
-      // Try to resume audio context on mobile
-      audioRef.current.play().then(() => {
-        audioRef.current.pause();
-      }).catch(() => {
-        // Silently handle error - this is just to unlock audio on mobile
-      });
-    }
-    
     setCurrentSong(index);
     setIsPlaying(true);
   };
@@ -321,6 +273,10 @@ export default function BhajanMusicPlayer() {
     }
   };
 
+  const handleLogoClick = () => {
+    window.location.href = '/';
+  };
+
   if (loading) {
     return (
       <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 flex items-center justify-center">
@@ -332,7 +288,7 @@ export default function BhajanMusicPlayer() {
     );
   }
 
-  if (error && bhajans.length === 0) {
+  if (error) {
     return (
       <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 flex items-center justify-center">
         <div className="text-center text-white px-4">

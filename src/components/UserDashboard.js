@@ -32,6 +32,7 @@ export default function UserDashboard() {
   const [pdfUrl, setPdfUrl] = useState('');
   const [pdfLoading, setPdfLoading] = useState(false);
   const [currentBook, setCurrentBook] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -41,6 +42,16 @@ export default function UserDashboard() {
   const isBookPurchased = (bookId) => {
     return userData?.purchasedBooks?.some((book) => book.id === bookId);
   };
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     // Disable right-click and keyboard shortcuts when viewing PDF
@@ -62,12 +73,18 @@ export default function UserDashboard() {
         }
       };
 
+      // Prevent text selection
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
+
       document.addEventListener('contextmenu', handleContextMenu);
       document.addEventListener('keydown', handleKeyDown);
 
       return () => {
         document.removeEventListener('contextmenu', handleContextMenu);
         document.removeEventListener('keydown', handleKeyDown);
+        document.body.style.userSelect = '';
+        document.body.style.webkitUserSelect = '';
       };
     }
   }, [isViewingPDF]);
@@ -153,29 +170,32 @@ export default function UserDashboard() {
     return (
       <>
         <Header />
-        <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none' }}>
+        <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
           {/* Header Bar */}
-          <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="bg-gray-800 border-b border-gray-700 px-2 sm:px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={closePDFViewer}
-                className="flex items-center gap-2 text-white hover:text-orange-400 transition-colors"
+                className="flex items-center gap-1 sm:gap-2 text-white hover:text-orange-400 transition-colors"
               >
                 <ChevronLeft size={20} />
-                <span className="font-semibold">Back to Dashboard</span>
+                <span className="font-semibold text-sm sm:text-base">Back</span>
               </button>
-              <div className="h-6 w-px bg-gray-600"></div>
-              <h2 className="text-white font-semibold">{currentBook?.title}</h2>
+              <div className="h-6 w-px bg-gray-600 hidden sm:block"></div>
+              <h2 className="text-white font-semibold text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">
+                {currentBook?.title}
+              </h2>
             </div>
             
-            <div className="flex items-center gap-2 text-red-400 text-sm">
-              <Lock size={16} />
-              <span>Protected Content - No Download/Print</span>
+            <div className="flex items-center gap-2 text-red-400 text-xs sm:text-sm">
+              <Lock size={14} className="hidden sm:block" />
+              <span className="hidden sm:inline">Protected Content</span>
+              <Lock size={14} className="sm:hidden" />
             </div>
           </div>
 
           {/* PDF Viewer */}
-          <div className="h-[calc(100vh-60px)] relative">
+          <div className="h-[calc(100vh-60px)] relative bg-gray-900">
             {pdfLoading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                 <div className="text-center">
@@ -184,25 +204,66 @@ export default function UserDashboard() {
                 </div>
               </div>
             ) : (
-              <iframe
-                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
-                className="w-full h-full border-0"
-                title={currentBook?.title}
-                onContextMenu={(e) => e.preventDefault()}
-              />
+              <>
+                {isMobile ? (
+                  // Mobile: Use object tag which works better on mobile browsers
+                  <object
+                    data={pdfUrl}
+                    type="application/pdf"
+                    className="w-full h-full"
+                    style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                  >
+                    {/* Fallback for browsers that don't support object tag */}
+                    <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                      <Lock size={48} className="text-orange-500 mb-4" />
+                      <p className="text-white mb-4">
+                        Your browser doesn't support inline PDF viewing.
+                      </p>
+                      <a
+                        href={pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                      >
+                        Open PDF in New Tab
+                      </a>
+                      <p className="text-gray-400 text-sm mt-4">
+                        Note: Download and print are disabled
+                      </p>
+                    </div>
+                  </object>
+                ) : (
+                  // Desktop: Use iframe with toolbar disabled
+                  <iframe
+                    src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+                    className="w-full h-full border-0"
+                    title={currentBook?.title}
+                    style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                )}
+                
+                {/* Transparent overlay to prevent right-click */}
+                <div 
+                  className="absolute inset-0 pointer-events-none"
+                  style={{ 
+                    mixBlendMode: 'multiply', 
+                    opacity: 0.01,
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none'
+                  }}
+                  onContextMenu={(e) => e.preventDefault()}
+                ></div>
+              </>
             )}
-            
-            {/* Overlay to prevent right-click on iframe */}
-            <div 
-              className="absolute inset-0 pointer-events-none"
-              style={{ mixBlendMode: 'multiply', opacity: 0.01 }}
-            ></div>
           </div>
 
           {/* Warning overlay */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-            <Lock size={14} />
-            <span>This content is protected. Screenshot and screen recording are monitored.</span>
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm flex items-center gap-2 max-w-[90%] sm:max-w-none">
+            <Lock size={14} className="flex-shrink-0" />
+            <span className="text-center sm:text-left">
+              Protected content - Screenshot monitoring active
+            </span>
           </div>
         </div>
       </>

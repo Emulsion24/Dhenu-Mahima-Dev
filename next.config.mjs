@@ -1,13 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-    domains: [
-      "upload.wikimedia.org",
-      "via.placeholder.com",
-       "images.unsplash.com",
-       "res.cloudinary.com",
-       'localhost', '127.0.0.1',
-     
+   images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**" }, // allow all HTTPS hosts
+      { protocol: "http", hostname: "**" },  // allow all HTTP hosts (if needed)
     ],
   },
 };
