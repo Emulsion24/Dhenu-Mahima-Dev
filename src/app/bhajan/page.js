@@ -160,7 +160,7 @@ export default function BhajanMusicPlayer() {
       audio.pause();
       
       // Set new source
-      audio.src = `https://saccharic-noncollusively-loni.ngrok-free.dev/api/jevansutra/audio/stream/${filename}`;
+      audio.src = `http://g4s408kkw4cg48ccskcwc8kg.72.60.221.4.sslip.io/api/jevansutra/audio/stream/${filename}`;
       audio.volume = volume / 100;
       
       // Reset time
