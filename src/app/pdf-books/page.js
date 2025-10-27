@@ -648,7 +648,7 @@ export default function PDFBookViewer() {
                           <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                           <div className="text-sm text-amber-800">
                             <p className="font-semibold mb-1">Secure Payment & Protected Access</p>
-                            <p>After purchase, you'll get lifetime streaming access. Download and print are disabled to protect copyright.</p>
+                            <p>After purchase, you&apos;ll get lifetime streaming access. Download and print are disabled to protect copyright.</p>
                           </div>
                         </div>
                       </>

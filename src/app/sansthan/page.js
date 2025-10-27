@@ -4,6 +4,7 @@ import Headers from '@/components/Header';
 import React, { useState, useEffect } from 'react';
 
 import API from '@/lib/api';
+import Link from 'next/link';
 
 
 
@@ -64,19 +65,6 @@ export default function Sansthan() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Data:", formData);
-    // In a real app, you would send this data to a server.
-    // For this demo, we'll just show a success message.
-    setFormStatus('success');
-    setFormData({ name: "", phone: "", subject: "", message: "" });
-
-    // Hide the success message after 3 seconds
-    setTimeout(() => {
-      setFormStatus(null);
-    }, 3000);
-  };
 
   // Helper function to parse description and extract address
   const parseDescription = (description) => {
@@ -249,73 +237,28 @@ export default function Sansthan() {
           )}
 
           {/* Contact Us Card */}
-          <div className="bg-white shadow-2xl rounded-2xl p-8 md:p-12 max-w-4xl mx-auto border-t-4 border-amber-500 mt-20">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
-              Contact Us
-            </h2>
-            <p className="text-center text-gray-500 mb-8">
-              Have a question or want to get in touch? Fill out the form below.
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField 
-                  id="name" 
-                  name="name" 
-                  type="text" 
-                  label="Name" 
-                  value={formData.name} 
-                  onChange={handleChange} 
-                  required 
-                />
-                <InputField 
-                  id="phone" 
-                  name="phone" 
-                  type="tel" 
-                  label="Phone" 
-                  value={formData.phone} 
-                  onChange={handleChange} 
-                  required 
-                />
+          <div className="text-center mt-16 bg-gradient-to-r from-orange-600 to-yellow-500 rounded-2xl p-12 text-white">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                हमारे साथ जुड़ें
+              </h2>
+              <p className="text-lg mb-8 max-w-2xl mx-auto">
+                आइए मिलकर गोमाता की सेवा करें और एक बेहतर समाज का निर्माण करें। श्री गोपाल परिवार संघ का हिस्सा बनें।
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Link
+                  href="/message"
+                  className="inline-block bg-white text-orange-600 font-semibold px-8 py-4 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
+                >
+                  संपर्क करें
+                </Link>
+                <Link
+                  href="/donate"
+                  className="inline-block bg-orange-700 text-white font-semibold px-8 py-4 rounded-full hover:bg-orange-800 transition-colors shadow-lg"
+                >
+                  गौ सेवार्थ दान करें
+                </Link>
               </div>
-              <InputField 
-                id="subject" 
-                name="subject" 
-                type="text" 
-                label="Subject" 
-                value={formData.subject} 
-                onChange={handleChange} 
-                required 
-              />
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows="4"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  className="w-full border border-gray-300 bg-white text-gray-900 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300"
-              >
-                Submit
-              </button>
-
-              {formStatus === 'success' && (
-                <div className="mt-4 text-center p-3 bg-green-100 text-green-800 rounded-lg">
-                  Thank you for reaching out! We&apos;ll get back to you soon.
-                </div>
-              )}
-            </form>
-          </div>
+            </div>
         </div>
       </section>
       <Footer />

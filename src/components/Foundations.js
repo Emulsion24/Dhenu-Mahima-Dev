@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import API from "@/lib/api";
 import FoundationLogo from "./foundationlofo"; // Keep your FoundationLogo component separate
 
 export default function Foundations() {
@@ -15,7 +16,7 @@ export default function Foundations() {
   useEffect(() => {
     async function fetchFoundations() {
       try {
-        const response = await axios.get("http://localhost:5000/api/foundations");
+        const response = await API.get("/foundations");
         setFoundations(response.data.foundations);
         setLoading(false);
       } catch (error) {

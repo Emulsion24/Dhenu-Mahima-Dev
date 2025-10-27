@@ -391,7 +391,7 @@ export default function UserDashboard() {
                     <div className="text-center py-12">
                       <BookOpen size={64} className="mx-auto text-gray-300 mb-4" />
                       <p className="text-gray-600 mb-4">
-                        You haven't purchased any books yet.
+                        You haven&apos;t purchased any books yet.
                       </p>
                       <button
                         onClick={() => router.push("/books")}
@@ -476,7 +476,7 @@ export default function UserDashboard() {
                     <div className="text-center py-12">
                       <Heart size={64} className="mx-auto text-gray-300 mb-4" />
                       <p className="text-gray-600 mb-4">
-                        You haven't made any donations yet.
+                        You haven&apos;t made any donations yet.
                       </p>
                       <button
                         onClick={() => router.push("/donate")}

@@ -5,8 +5,8 @@ import {
   Repeat, Shuffle, Heart, Search, Home, Library,
   TrendingUp, Flame, Menu, X, Loader2, RefreshCw
 } from 'lucide-react';
+import API from '@/lib/api';
 
-const API_BASE_URL = 'http://localhost:5000/api';
 
 export default function BhajanMusicPlayer() {
   const [bhajans, setBhajans] = useState([]);
@@ -41,13 +41,13 @@ export default function BhajanMusicPlayer() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${API_BASE_URL}/jevansutra`);
+      const response = await API.get(`/jevansutra`);
       
-      if (!response.ok) {
+      if (!response.data) {
         throw new Error('Failed to fetch bhajans');
       }
       
-      const data = await response.json();
+      const data = response.data
       setBhajans(data);
       setFilteredBhajans(data);
       setLoading(false);
@@ -68,13 +68,13 @@ export default function BhajanMusicPlayer() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/jevansutra/search?query=${encodeURIComponent(query)}`);
+      const response = await API.get(`/jevansutra/search?query=${encodeURIComponent(query)}`);
       
-      if (!response.ok) {
+      if (!response.data) {
         throw new Error('Search failed');
       }
       
-      const data = await response.json();
+      const data =response.data;
       setFilteredBhajans(data);
     } catch (error) {
       console.error('Error searching bhajans:', error);
@@ -160,7 +160,7 @@ export default function BhajanMusicPlayer() {
       audio.pause();
       
       // Set new source
-      audio.src = `${API_BASE_URL}/jevansutra/audio/stream/${filename}`;
+      audio.src = `/jevansutra/audio/stream/${filename}`;
       audio.volume = volume / 100;
       
       // Reset time

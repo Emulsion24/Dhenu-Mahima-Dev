@@ -308,7 +308,7 @@ export default function Objective() {
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link
-                  href="/contact"
+                  href="/message"
                   className="inline-block bg-white text-orange-600 font-semibold px-8 py-4 rounded-full hover:bg-gray-100 transition-colors shadow-lg"
                 >
                   संपर्क करें

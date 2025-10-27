@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api", // backend URL
+  baseURL: "https://saccharic-noncollusively-loni.ngrok-free.dev/api", // backend URL
   withCredentials: true,               // important for HttpOnly cookies
 });
 

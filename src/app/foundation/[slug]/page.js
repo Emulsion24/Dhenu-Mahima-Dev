@@ -4,7 +4,7 @@ import React, { useEffect,useState } from 'react';
 import { ArrowLeft, Target, Heart, Users, TrendingUp, Mail, Phone, MapPin, ExternalLink, Calendar, Award } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import axios from 'axios';
+import API from '@/lib/api';
 
 export default function FoundationPage({ slug }) {
   const [foundation, setFoundation] = useState(null);
@@ -14,7 +14,7 @@ const params = useParams(); // Next.js hook to get URL params
   useEffect(() => {
     async function fetchFoundation() {
       try {
-        const response = await axios.get(`http://localhost:5000/api/admin/foundation/${currentSlug}`);
+        const response = await API.get(`/admin/foundation/${currentSlug}`);
         setFoundation(response.data);
         setLoading(false);
       } catch (error) {
