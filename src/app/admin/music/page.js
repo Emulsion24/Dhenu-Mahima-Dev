@@ -2,8 +2,7 @@
 import { useState, useRef, useMemo, useEffect,useReducer } from "react";
 import { Edit, Trash2, Search, Plus, Mic, Upload, X, Play, Pause, Music, ImageIcon, User, Album, Download } from "lucide-react";
 import API from "@/lib/api";
-const API_URL="http://localhost:5000/api"
-// Simulated user info (replace with your auth logic)
+
 const CURRENT_USER = {
   role: "admin", // change to "user" to test non-admin behavior
 };

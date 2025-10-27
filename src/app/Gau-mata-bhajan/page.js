@@ -83,7 +83,8 @@ export default function GaumataBhajanPlayer() {
         const filename = urlParts[urlParts.length - 1];
         
         // Use streaming endpoint
-        const streamUrl = `/gaumata-bhajans/audio/stream/${filename}`;
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://saccharic-noncollusively-loni.ngrok-free.dev';
+        const streamUrl = `${apiBaseUrl}/api/gaumata-bhajans/audio/stream/${filename}`;
         audioRef.current.src = streamUrl;
         
         if (isPlaying) {

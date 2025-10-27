@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import API from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 
 export default function ContactUsPage() {
   const [sansthans, setSansthans] = useState([]);

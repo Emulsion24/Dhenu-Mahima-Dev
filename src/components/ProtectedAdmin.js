@@ -53,14 +53,18 @@ export default function ProtectedAdmin({ children }) {
   }, [router, setUser]);
 
   // Show loader while checking auth
-  if (loading || !authChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Checking admin access...</p>
+ if (loading || !authChecked) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-100 to-yellow-50">
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 rounded-full border-4 border-t-orange-500 border-orange-200 animate-spin"></div>
       </div>
-    );
-  }
-
+      <p className="mt-6 text-lg font-semibold text-gray-700 animate-pulse">
+        Checking admin access...
+      </p>
+    </div>
+  );
+}
   // After auth check, only render children if user role is admin/subadmin
   if (user && (user.role === "admin" || user.role === "subadmin")) {
     return <>{children}</>;
