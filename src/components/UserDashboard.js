@@ -217,7 +217,7 @@ export default function UserDashboard() {
                     <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                       <Lock size={48} className="text-orange-500 mb-4" />
                       <p className="text-white mb-4">
-                        Your browser doesn't support inline PDF viewing.
+                        Your browser doesn&apos;t support inline PDF viewing.
                       </p>
                       <a
                         href={pdfUrl}
