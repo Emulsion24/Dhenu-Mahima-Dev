@@ -83,7 +83,7 @@ export default function GaumataBhajanPlayer() {
         const filename = urlParts[urlParts.length - 1];
         
         // Use streaming endpoint
-              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://g4s408kkw4cg48ccskcwc8kg.72.60.221.4.sslip.io';
+              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dhenumahima.com';
         const streamUrl = `${apiBaseUrl}/api/gaumata-bhajans/audio/stream/${filename}`;
         audioRef.current.src = streamUrl;
         
