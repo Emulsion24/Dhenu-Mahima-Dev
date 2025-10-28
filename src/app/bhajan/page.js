@@ -1,4 +1,6 @@
 "use client"
+import dotenv from "dotenv";
+dotenv.config();
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
@@ -6,7 +8,7 @@ import {
   TrendingUp, Flame, Menu, X, Loader2, RefreshCw
 } from 'lucide-react';
 import API from '@/lib/api';
-
+const NEXT_PUBLIC_API_URL=process.env.NEXT_PUBLIC_API_URL
 
 export default function BhajanMusicPlayer() {
   const [bhajans, setBhajans] = useState([]);
@@ -160,7 +162,7 @@ export default function BhajanMusicPlayer() {
       audio.pause();
       
       // Set new source
-      audio.src = `https://api.dhenumahima.com/api/jevansutra/audio/stream/${filename}`;
+      audio.src = `${NEXT_PUBLIC_API_URL}/jevansutra/audio/stream/${filename}`;
       audio.volume = volume / 100;
       
       // Reset time

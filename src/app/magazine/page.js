@@ -136,6 +136,9 @@ export default function MagazineMembership() {
             clearInterval(interval);
             setPaymentStatus('failed');
             setPollingInterval(null);
+              setTimeout(() => {
+              window.location.href = '/magazine';
+            }, 2000);
           }
         }
       } catch (error) {

@@ -1,4 +1,6 @@
 "use client"
+import dotenv from "dotenv";
+dotenv.config();
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
@@ -6,7 +8,7 @@ import {
   TrendingUp, Flame, Menu, X
 } from 'lucide-react';
 import API from '@/lib/api';
-
+const NEXT_PUBLIC_API_URL=process.env.NEXT_PUBLIC_API_URL
 
 
 export default function GaumataBhajanPlayer() {
@@ -83,7 +85,7 @@ export default function GaumataBhajanPlayer() {
         const filename = urlParts[urlParts.length - 1];
         
         // Use streaming endpoint
-              const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dhenumahima.com';
+              const apiBaseUrl = NEXT_PUBLIC_API_URL;
         const streamUrl = `${apiBaseUrl}/api/gaumata-bhajans/audio/stream/${filename}`;
         audioRef.current.src = streamUrl;
         
