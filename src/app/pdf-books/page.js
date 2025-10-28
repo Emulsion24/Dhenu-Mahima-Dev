@@ -1,4 +1,6 @@
 'use client'
+import toast from "react-hot-toast";
+import Link from "next/link";
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock, Tag, CheckCircle, ZoomIn, ZoomOut } from 'lucide-react';
 import Footer from '@/components/Footer';
@@ -186,13 +188,28 @@ export default function PDFBookViewer() {
   const handlePurchase = async (bookId) => {
     try {
       setIsPurchasing(true);
-      
-      if (!user?.id) {
-        alert('Please login to purchase books');
-        window.location.href = '/login';
-        return;
-      }
 
+    // ✅ Check login first
+    if (!user?.id) {
+      toast.custom((t) => (
+        <div className="bg-white shadow-lg rounded-xl p-4 border border-orange-300 flex flex-col gap-2 w-72">
+          <p className="text-gray-800 font-semibold">
+            🔒 Please login to purchase books
+          </p>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              window.location.href = "/login";
+            }}
+            className="bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition-colors font-medium"
+          >
+            Go to Login
+          </button>
+        </div>
+      ));
+      setIsPurchasing(false);
+      return;
+    }
       const orderResponse = await API.post('/pdf-payment/create-order', {
         bookId,
         couponCode: appliedCoupon?.code || null

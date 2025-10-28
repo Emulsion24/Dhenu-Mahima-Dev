@@ -1,6 +1,5 @@
 "use client"
-import dotenv from "dotenv";
-dotenv.config();
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
@@ -8,7 +7,8 @@ import {
   TrendingUp, Flame, Menu, X
 } from 'lucide-react';
 import API from '@/lib/api';
-const NEXT_PUBLIC_API_URL=process.env.NEXT_PUBLIC_API_URL
+
+const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 
 export default function GaumataBhajanPlayer() {
@@ -26,6 +26,7 @@ export default function GaumataBhajanPlayer() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isRepeat, setIsRepeat] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
+  const [audioError, setAudioError] = useState(null);
 
   const audioRef = useRef(null);
 
@@ -48,14 +49,13 @@ export default function GaumataBhajanPlayer() {
           duration: bhajan.duration,
           thumbnail: bhajan.imageUrl || '/images/default-bhajan.png',
           audioUrl: bhajan.audioUrl,
-          views: '0', // You can add view tracking later
-          category: bhajan.category.name
+          views: '0',
+          category: bhajan.category?.name || 'भजन'
         }));
         setBhajans(formattedBhajans);
       }
     } catch (error) {
       console.error('Error fetching bhajans:', error);
-      // Fallback to sample data if API fails
       setBhajans([
         {
           id: 1,
@@ -64,8 +64,9 @@ export default function GaumataBhajanPlayer() {
           album: "गौ भक्ति संगीत",
           duration: "4:05",
           thumbnail: "/images/1.png",
-          audioUrl: "",
-          views: "2.5M"
+          audioUrl: "/audio/sample.mp3",
+          views: "2.5M",
+          category: "आरती"
         }
       ]);
     } finally {
@@ -74,75 +75,124 @@ export default function GaumataBhajanPlayer() {
   };
 
   // Initialize audio element
- 
+  useEffect(() => {
+    const audio = document.createElement('audio');
+    audio.preload = 'metadata';
+    audio.crossOrigin = 'anonymous';
+    audioRef.current = audio;
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(Math.floor(audio.currentTime));
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(Math.floor(audio.duration));
+      setAudioError(null);
+    };
+
+    const handleEnded = () => {
+      if (isRepeat) {
+        audio.currentTime = 0;
+        audio.play();
+      } else if (isShuffle) {
+        const randomIndex = Math.floor(Math.random() * bhajans.length);
+        setCurrentSong(randomIndex);
+      } else {
+        handleNext();
+      }
+    };
+
+    const handleError = (e) => {
+      console.error('Audio error:', e);
+      setAudioError('Failed to load audio');
+      setIsPlaying(false);
+    };
+
+    const handleCanPlay = () => {
+      setAudioError(null);
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.pause();
+      audio.src = '';
+    };
+  }, [isRepeat, isShuffle, bhajans.length]);
+
   // Update audio source when song changes
   useEffect(() => {
     if (bhajans.length > 0 && audioRef.current) {
       const currentBhajan = bhajans[currentSong];
       if (currentBhajan && currentBhajan.audioUrl) {
-        // Extract filename from audioUrl
-        const urlParts = currentBhajan.audioUrl.split('/');
-        const filename = urlParts[urlParts.length - 1];
+        setAudioError(null);
         
-        // Use streaming endpoint
-              const apiBaseUrl = NEXT_PUBLIC_API_URL;
-        const streamUrl = `${apiBaseUrl}/api/gaumata-bhajans/audio/stream/${filename}`;
-        audioRef.current.src = streamUrl;
+        let audioUrl;
+        if (currentBhajan.audioUrl.startsWith('http')) {
+                    const urlParts = currentBhajan.audioUrl.split('/');
+          const filename = urlParts[urlParts.length - 1];
+          audioUrl = `${NEXT_PUBLIC_API_URL}/gaumata-bhajans/audio/stream/${filename}`;
+        } else {
+          const urlParts = currentBhajan.audioUrl.split('/');
+          const filename = urlParts[urlParts.length - 1];
+          audioUrl = `${NEXT_PUBLIC_API_URL}/gaumata-bhajans/audio/stream/${filename}`;
+        }
+        
+        console.log('Loading audio from:', audioUrl);
+        audioRef.current.src = audioUrl;
+        audioRef.current.load();
         
         if (isPlaying) {
-          audioRef.current.play().catch(err => {
-            console.error('Error playing audio:', err);
-            setIsPlaying(false);
-          });
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => {
+              console.error('Error playing audio:', err);
+              setIsPlaying(false);
+              setAudioError('Failed to play audio. Please try again.');
+            });
+          }
         }
       }
     }
   }, [currentSong, bhajans]);
 
-  // Handle play/pause
-  useEffect(() => {
+  const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(err => {
-          console.error('Error playing audio:', err);
-          setIsPlaying(false);
-        });
-      } else {
         audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+              setAudioError(null);
+            })
+            .catch(err => {
+              console.error('Error playing audio:', err);
+              setIsPlaying(false);
+              setAudioError('Failed to play audio. Please try again.');
+            });
+        }
       }
     }
-  }, [isPlaying]);
+  };
 
-  // Handle volume changes
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
     }
   }, [volume, isMuted]);
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(Math.floor(audioRef.current.currentTime));
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(Math.floor(audioRef.current.duration));
-    }
-  };
-
-  const handleAudioEnded = () => {
-    if (isRepeat) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
-    } else if (isShuffle) {
-      const randomIndex = Math.floor(Math.random() * bhajans.length);
-      setCurrentSong(randomIndex);
-    } else {
-      handleNext();
-    }
-  };
 
   const handleProgressClick = (e) => {
     if (audioRef.current && duration > 0) {
@@ -205,24 +255,7 @@ export default function GaumataBhajanPlayer() {
   const handleLogoClick = () => {
     window.location.href = '/';
   };
-   useEffect(() => {
-    const audio = new Audio();
-    audioRef.current = audio;
 
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleAudioEnded);
-
-    return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleAudioEnded);
-      audio.pause();
-    };
-  }, [handleTimeUpdate, handleLoadedMetadata, handleAudioEnded]);
-
-
-  // Filter bhajans based on search
   const filteredBhajans = bhajans.filter(bhajan => 
     bhajan.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     bhajan.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -231,7 +264,7 @@ export default function GaumataBhajanPlayer() {
 
   if (loading) {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-white text-xl font-semibold">Loading Bhajans...</p>
@@ -242,12 +275,12 @@ export default function GaumataBhajanPlayer() {
 
   if (bhajans.length === 0) {
     return (
-      <div className="h-screen bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 flex items-center justify-center">
+      <div className="h-screen bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500 flex items-center justify-center">
         <div className="text-center text-white">
           <p className="text-2xl font-bold mb-4">No bhajans available</p>
           <button 
             onClick={fetchBhajans}
-            className="px-6 py-3 bg-white text-green-700 rounded-full font-semibold hover:bg-gray-100 transition"
+            className="px-6 py-3 bg-white text-orange-700 rounded-full font-semibold hover:bg-gray-100 transition"
           >
             Retry
           </button>
@@ -257,12 +290,10 @@ export default function GaumataBhajanPlayer() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-orange-400 via-amber-500 to-yellow-500 text-white flex flex-col overflow-hidden">
       
-      {/* Header */}
-      <header className="bg-gradient-to-r from-green-800 to-emerald-700 bg-opacity-95 backdrop-blur-md border-b border-green-300 sticky top-0 z-50 shadow-lg">
+      <header className="bg-gradient-to-r from-orange-800 to-amber-700 bg-opacity-95 backdrop-blur-md border-b border-orange-300 sticky top-0 z-50 shadow-lg">
         <div className="flex items-center justify-between px-4 sm:px-6 py-3">
-          {/* Logo and Menu */}
           <div className="flex items-center gap-3 sm:gap-6">
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -278,7 +309,6 @@ export default function GaumataBhajanPlayer() {
               onClick={handleLogoClick}
             />
 
-            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-4 lg:gap-6">
               {navItems.map(tab => {
                 const Icon = tab.icon;
@@ -288,7 +318,7 @@ export default function GaumataBhajanPlayer() {
                     onClick={() => handleNavigation(tab.key)}
                     className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-full transition text-sm lg:text-base
                       ${activeTab === tab.key
-                        ? 'bg-white text-green-700 shadow-md'
+                        ? 'bg-white text-orange-700 shadow-md'
                         : 'hover:bg-white hover:bg-opacity-20'}`}
                   >
                     <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -299,7 +329,6 @@ export default function GaumataBhajanPlayer() {
             </nav>
           </div>
 
-          {/* Search */}
           <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setShowSearch(!showSearch)}
@@ -321,7 +350,6 @@ export default function GaumataBhajanPlayer() {
           </div>
         </div>
 
-        {/* Mobile Search */}
         {showSearch && (
           <div className="md:hidden px-4 pb-3">
             <div className="relative">
@@ -337,7 +365,6 @@ export default function GaumataBhajanPlayer() {
           </div>
         )}
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <nav className="md:hidden px-4 pb-4 space-y-2">
             {navItems.map(tab => {
@@ -351,7 +378,7 @@ export default function GaumataBhajanPlayer() {
                   }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition
                     ${activeTab === tab.key
-                      ? 'bg-white text-green-700'
+                      ? 'bg-white text-orange-700'
                       : 'hover:bg-white hover:bg-opacity-20'}`}
                 >
                   <Icon className="w-5 h-5" />
@@ -363,15 +390,18 @@ export default function GaumataBhajanPlayer() {
         )}
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-32 sm:pb-36">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
           
-          {/* Featured Section */}
+          {audioError && (
+            <div className="mb-4 bg-red-500 bg-opacity-20 backdrop-blur-sm border border-red-300 rounded-lg p-4">
+              <p className="text-white font-semibold">{audioError}</p>
+            </div>
+          )}
+
           <section className="mb-8 sm:mb-12">
-            <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl bg-gradient-to-r from-green-600 to-emerald-500">
+            <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl bg-gradient-to-r from-orange-600 to-amber-500">
               
-              {/* Background Image */}
               {bhajans[currentSong]?.thumbnail && (
                 <img 
                   src={bhajans[currentSong].thumbnail} 
@@ -380,14 +410,12 @@ export default function GaumataBhajanPlayer() {
                 />
               )}
 
-              {/* Overlay for readability */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/30 to-transparent"></div>
 
-              {/* Foreground content */}
               <div className="relative h-full flex items-end p-4 sm:p-6 lg:p-8 text-white">
                 <div className="w-full">
                   <div className="flex items-center gap-2 mb-2">
-                    <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-green-300" />
+                    <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-orange-300" />
                     <span className="text-xs sm:text-sm font-semibold">अभी चल रहा है</span>
                   </div>
 
@@ -400,8 +428,8 @@ export default function GaumataBhajanPlayer() {
                   </p>
 
                   <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    className="bg-white text-green-700 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition flex items-center gap-2 text-sm sm:text-base shadow-lg"
+                    onClick={togglePlay}
+                    className="bg-white text-orange-700 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition flex items-center gap-2 text-sm sm:text-base shadow-lg"
                   >
                     {isPlaying ? (
                       <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -415,13 +443,12 @@ export default function GaumataBhajanPlayer() {
             </div>
           </section>
 
-          {/* Quick Picks */}
           <section className="mb-8 sm:mb-12">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold">
                 {searchQuery ? 'खोज परिणाम' : 'सभी भजन'}
               </h3>
-              <span className="text-xs sm:text-sm text-green-100">
+              <span className="text-xs sm:text-sm text-orange-100">
                 {filteredBhajans.length} भजन
               </span>
             </div>
@@ -430,7 +457,7 @@ export default function GaumataBhajanPlayer() {
                 <div
                   key={bhajan.id}
                   onClick={() => handleSongSelect(bhajans.findIndex(b => b.id === bhajan.id))}
-                  className={`bg-green-900 bg-opacity-10 backdrop-blur-sm rounded-lg p-2 sm:p-3 hover:bg-opacity-20 transition cursor-pointer group ${
+                  className={`bg-orange-900 bg-opacity-10 backdrop-blur-sm rounded-lg p-2 sm:p-3 hover:bg-opacity-20 transition cursor-pointer group ${
                     currentSong === bhajans.findIndex(b => b.id === bhajan.id) ? 'ring-2 ring-white' : ''
                   }`}
                 >
@@ -440,11 +467,11 @@ export default function GaumataBhajanPlayer() {
                       alt={bhajan.title} 
                       className="w-full aspect-square object-cover rounded-lg" 
                     />
-                    <button className="absolute bottom-2 right-2 bg-gradient-to-r from-green-400 to-emerald-500 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg">
+                    <button className="absolute bottom-2 right-2 bg-gradient-to-r from-orange-400 to-amber-500 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg">
                       <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" fill="white" />
                     </button>
                     {currentSong === bhajans.findIndex(b => b.id === bhajan.id) && isPlaying && (
-                      <div className="absolute top-2 left-2 bg-green-500 px-2 py-1 rounded-full text-xs font-semibold">
+                      <div className="absolute top-2 left-2 bg-orange-500 px-2 py-1 rounded-full text-xs font-semibold">
                         Playing
                       </div>
                     )}
@@ -459,15 +486,13 @@ export default function GaumataBhajanPlayer() {
         </div>
       </main>
 
-      {/* Player Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-green-900 to-emerald-800 backdrop-blur-xl border-t border-green-300 shadow-2xl">
-        {/* Progress Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-orange-900 to-amber-800 backdrop-blur-xl border-t border-orange-300 shadow-2xl">
         <div 
-          className="relative h-1 sm:h-1.5 bg-green-200 cursor-pointer group"
+          className="relative h-1 sm:h-1.5 bg-orange-200 cursor-pointer group"
           onClick={handleProgressClick}
         >
           <div
-            className="absolute h-full bg-teal-600 transition-all"
+            className="absolute h-full bg-yellow-500 transition-all"
             style={{ width: `${progressPercent}%` }}
           ></div>
           <div
@@ -477,9 +502,7 @@ export default function GaumataBhajanPlayer() {
         </div>
 
         <div className="px-3 sm:px-6 py-3 sm:py-4">
-          {/* Mobile Layout */}
           <div className="flex flex-col gap-3 sm:hidden">
-            {/* Song Info */}
             <div className="flex items-center gap-3">
               <img
                 src={bhajans[currentSong]?.thumbnail}
@@ -495,7 +518,6 @@ export default function GaumataBhajanPlayer() {
               </button>
             </div>
 
-            {/* Main Controls */}
             <div className="flex items-center justify-center gap-6">
               <button 
                 onClick={handlePrevious}
@@ -504,8 +526,8 @@ export default function GaumataBhajanPlayer() {
                 <SkipBack className="w-7 h-7" fill="currentColor" />
               </button>
               <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="bg-white text-green-700 w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl"
+                onClick={togglePlay}
+                className="bg-white text-orange-700 w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl"
               >
                 {isPlaying ? <Pause className="w-7 h-7" fill="currentColor" /> : <Play className="w-7 h-7 ml-1" fill="currentColor" />}
               </button>
@@ -517,7 +539,6 @@ export default function GaumataBhajanPlayer() {
               </button>
             </div>
 
-            {/* Time & Secondary Controls */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 text-xs text-gray-200">
                 <span className="font-medium">{formatTime(currentTime)}</span>
@@ -546,9 +567,7 @@ export default function GaumataBhajanPlayer() {
             </div>
           </div>
 
-          {/* Desktop Layout */}
           <div className="hidden sm:flex items-center justify-between gap-6 lg:gap-8">
-            {/* Current Song Info */}
             <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xs lg:max-w-sm">
               <img
                 src={bhajans[currentSong]?.thumbnail}
@@ -564,12 +583,11 @@ export default function GaumataBhajanPlayer() {
               </button>
             </div>
 
-            {/* Player Controls - Center */}
             <div className="flex flex-col items-center gap-3 flex-shrink-0">
               <div className="flex items-center gap-4 lg:gap-6">
                 <button 
                   onClick={() => setIsShuffle(!isShuffle)}
-                  className={`hover:text-red-400 transition p-1 ${isShuffle ? 'text-white' : 'text-gray-300'}`}
+                  className={`hover:text-yellow-400 transition p-1 ${isShuffle ? 'text-white' : 'text-gray-300'}`}
                 >
                   <Shuffle className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>
@@ -580,8 +598,8 @@ export default function GaumataBhajanPlayer() {
                   <SkipBack className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" />
                 </button>
                 <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="bg-white text-green-700 w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl"
+                  onClick={togglePlay}
+                  className="bg-white text-orange-700 w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl"
                 >
                   {isPlaying ? <Pause className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" /> : <Play className="w-6 h-6 lg:w-7 lg:h-7 ml-0.5" fill="currentColor" />}
                 </button>
@@ -593,7 +611,7 @@ export default function GaumataBhajanPlayer() {
                 </button>
                 <button 
                   onClick={() => setIsRepeat(!isRepeat)}
-                  className={`hover:text-red-400 transition p-1 ${isRepeat ? 'text-white' : 'text-gray-300'}`}
+                  className={`hover:text-yellow-400 transition p-1 ${isRepeat ? 'text-white' : 'text-gray-300'}`}
                 >
                   <Repeat className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>
@@ -617,11 +635,10 @@ export default function GaumataBhajanPlayer() {
               </div>
             </div>
 
-            {/* Volume Controls - Right */}
             <div className="flex items-center gap-4 flex-1 justify-end max-w-xs">
               <button
                 onClick={() => setIsMuted(!isMuted)}
-                className="hover:text-red-400 transition text-white p-1"
+                className="hover:text-yellow-400 transition text-white p-1"
               >
                 {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
               </button>

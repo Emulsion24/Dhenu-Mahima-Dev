@@ -58,7 +58,7 @@ const initiatePhonePePayment = async (e) => {
       name: formData.name,
       email: formData.email,
       phone: formData.phone,
-      pan: formData.pan
+      pan: formData.pan?formData.pan:""
     });
 
     // Step 2: Check if backend returned redirect URL

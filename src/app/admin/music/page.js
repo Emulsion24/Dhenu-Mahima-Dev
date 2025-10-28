@@ -1,6 +1,6 @@
 "use client";
-import { useState, useRef, useMemo, useEffect,useReducer } from "react";
-import { Edit, Trash2, Search, Plus, Mic, Upload, X, Play, Pause, Music, ImageIcon, User, Album, Download } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Edit, Trash2, Search, Plus, Mic, Upload, X, Play, Pause, Music, ImageIcon, User, Album, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import API from "@/lib/api";
 
 const CURRENT_USER = {
@@ -18,6 +18,14 @@ export default function BhajanPage() {
   const [playingId, setPlayingId] = useState(null);
   const [loading, setLoading] = useState(false);
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [limit] = useState(20);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
     artist: "",
@@ -27,33 +35,64 @@ export default function BhajanPage() {
     duration: "0:00"
   });
 
-const audioRef = useRef(new Audio());
-
+  const audioRef = useRef(new Audio());
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const currentAudioRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   useEffect(() => {
     fetchBhajans();
-  }, []);
+  }, [currentPage]);
 
-  // Fetch bhajans from backend
+  // Debounced search - reset to page 1 and fetch
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      if (currentPage === 1) {
+        fetchBhajans();
+      } else {
+        setCurrentPage(1);
+      }
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [search]);
+
+  // Fetch bhajans from backend with pagination and search
   const fetchBhajans = async () => {
     try {
       setLoading(true);
-      const response = await API.get(`/jevansutra`);
+      const response = await API.get(`/jevansutra`, {
+        params: {
+          page: currentPage,
+          limit: limit,
+          search: search,
+          sortBy: 'createdAt',
+          sortOrder: 'desc'
+        }
+      });
   
-      const data = response.data;
+      const { data, pagination } = response.data;
 
       // Add streaming URL for each bhajan
-      const bhajansWithUrls = data.map(b => (
-        {
+      const bhajansWithUrls = data.map(b => ({
         ...b,
-
         audioUrl: `${b.audioUrl}`,
         downloadUrl: `${b.audioUrl}`
       }));
+      
       setBhajanList(bhajansWithUrls);
+      setTotalPages(pagination.totalPages);
+      setTotalCount(pagination.totalCount);
+      setHasNextPage(pagination.hasNextPage);
+      setHasPrevPage(pagination.hasPrevPage);
     } catch (error) {
       console.error("Error fetching bhajans:", error);
       alert("Failed to load bhajans");
@@ -117,63 +156,55 @@ const audioRef = useRef(new Audio());
     }
   };
 
- const handleSaveBhajan = async () => {
-  if (!formData.name || !formData.artist) {
-    alert("Please fill in name and artist fields");
-    return;
-  }
-
-  if (!editBhajan && !formData.audioFile) {
-    alert("Please upload or record an audio file");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('artist', formData.artist);
-    formDataToSend.append('album', formData.album || '');
-    formDataToSend.append('duration', formData.duration);
-
-    if (formData.audioFile) formDataToSend.append('audio', formData.audioFile);
-    if (formData.imageFile) formDataToSend.append('image', formData.imageFile);
-
-    let response;
-
-    if (editBhajan) {
-      // PUT request to update
-      response = await API.put(`/jevansutra/${editBhajan.id}`, formDataToSend, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-    } else {
-      // POST request to add
-      response = await API.post(`/jevansutra`, formDataToSend, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+  const handleSaveBhajan = async () => {
+    if (!formData.name || !formData.artist) {
+      alert("Please fill in name and artist fields");
+      return;
     }
 
-    console.log("API Response:", response.data);
-
-    // Check if backend returned the saved bhajan object
-    if (response.data && (response.data.id || response.data._id)) {
-      await fetchBhajans();  // refresh list
-      resetForm();
-      alert(editBhajan ? "Bhajan updated successfully!" : "Bhajan added successfully!");
-    } else {
-      // fallback if response format is different
-      alert(response.data.message || "Failed to save bhajan");
+    if (!editBhajan && !formData.audioFile) {
+      alert("Please upload or record an audio file");
+      return;
     }
-  } catch (error) {
-    console.error("Error saving bhajan:", error);
-    alert(error.response?.data?.message || "Failed to save bhajan");
-  } finally {
-    setLoading(false);
-  }
-};
 
+    try {
+      setLoading(true);
 
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('artist', formData.artist);
+      formDataToSend.append('album', formData.album || '');
+      formDataToSend.append('duration', formData.duration);
+
+      if (formData.audioFile) formDataToSend.append('audio', formData.audioFile);
+      if (formData.imageFile) formDataToSend.append('image', formData.imageFile);
+
+      let response;
+
+      if (editBhajan) {
+        response = await API.put(`/jevansutra/${editBhajan.id}`, formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        response = await API.post(`/jevansutra`, formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      }
+
+      if (response.data && (response.data.id || response.data._id || response.data.data)) {
+        await fetchBhajans();
+        resetForm();
+        alert(editBhajan ? "Bhajan updated successfully!" : "Bhajan added successfully!");
+      } else {
+        alert(response.data.message || "Failed to save bhajan");
+      }
+    } catch (error) {
+      console.error("Error saving bhajan:", error);
+      alert(error.response?.data?.message || "Failed to save bhajan");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const resetForm = () => {
     setFormData({ name:"", artist:"", album:"", imageFile:null, audioFile:null, duration:"0:00" });
@@ -201,118 +232,122 @@ const audioRef = useRef(new Audio());
     if (!confirm("Are you sure you want to delete this bhajan?")) return;
     try {
       setLoading(true);
-  
       const response = await API.delete(`/jevansutra/${id}`);
       if (response.data) {
         await fetchBhajans();
         alert("Bhajan deleted successfully!");
-      } else alert("Failed to delete bhajan");
+      } else {
+        alert("Failed to delete bhajan");
+      }
     } catch (error) {
       console.error(error);
       alert("Failed to delete bhajan");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Download for admin only
- const handleDownload = async (bhajan) => {
-  if (CURRENT_USER.role !== "admin") {
-    alert("Only admin can download audio files");
-    return;
-  }
-
-  try {
-    // Extract filename from full URL
-    const urlParts = bhajan.downloadUrl.split("/");
-    const filename = urlParts[urlParts.length - 1]; // last part is the file name
-
-    // Request the file from backend
-    const response = await API.get(`/jevansutra/audio/download/${filename}`, {
-      responseType: "blob", // important for binary data
-    });
-
-    // Create a download link
-    const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = `${bhajan.name} - ${bhajan.artist}.mp3`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(blobUrl);
-
-    alert("Download started!");
-  } catch (error) {
-    console.error("Download failed:", error);
-    alert(error.response?.data?.message || "Failed to download audio file");
-  }
-};
-
-
-const togglePlay = (bhajan) => {
-  const audio = audioRef.current;
-
-  // Debug logs
-  console.log("Toggle play clicked for:", bhajan.name, bhajan.audioUrl);
-
-  // If clicking the currently playing bhajan → pause it
-  if (playingId === bhajan.id) {
-    console.log("Pausing current audio:", bhajan.name);
-    audio.pause();
-    setPlayingId(null);
-    return;
-  }
-
-  // Otherwise, play new bhajan
-  if (bhajan.audioUrl) {
-    // Pause any previous audio
-    if (!audio.paused) {
-      console.log("Stopping previous audio");
-      audio.pause();
+  const handleDownload = async (bhajan) => {
+    if (CURRENT_USER.role !== "admin") {
+      alert("Only admin can download audio files");
+      return;
     }
 
-    // Set new source
-    audio.src = bhajan.audioUrl;
+    try {
+      const urlParts = bhajan.downloadUrl.split("/");
+      const filename = urlParts[urlParts.length - 1];
 
-    // Reset current time and play
-    audio.currentTime = 0;
-    audio
-      .play()
-      .then(() => {
-        console.log("Audio playing:", bhajan.name);
-        setPlayingId(bhajan.id);
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") {
-          console.log("Audio play aborted (expected if interrupted)");
-        } else {
-          console.error("Audio play error:", err);
-        }
+      const response = await API.get(`/jevansutra/audio/download/${filename}`, {
+        responseType: "blob",
       });
 
-    // When audio ends
-    audio.onended = () => {
-      console.log("Audio ended:", bhajan.name);
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${bhajan.name} - ${bhajan.artist}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+
+      alert("Download started!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert(error.response?.data?.message || "Failed to download audio file");
+    }
+  };
+
+  const togglePlay = (bhajan) => {
+    const audio = audioRef.current;
+
+    if (playingId === bhajan.id) {
+      audio.pause();
       setPlayingId(null);
-    };
+      return;
+    }
 
-    // Optional: handle buffering/loading
-    audio.onwaiting = () => console.log("Audio buffering...");
-    audio.oncanplaythrough = () => console.log("Audio ready to play");
-  } else {
-    console.warn("No audio URL available for this bhajan");
-    alert("No audio file available");
-  }
-};
+    if (bhajan.audioUrl) {
+      if (!audio.paused) {
+        audio.pause();
+      }
 
-  const filteredBhajans = useMemo(() => {
-    return bhajanList.filter(b => 
-      b.name.toLowerCase().includes(search.toLowerCase()) ||
-      b.artist.toLowerCase().includes(search.toLowerCase()) ||
-      (b.album && b.album.toLowerCase().includes(search.toLowerCase()))
-    );
-  }, [bhajanList, search]);
+      audio.src = bhajan.audioUrl;
+      audio.currentTime = 0;
+      audio
+        .play()
+        .then(() => {
+          setPlayingId(bhajan.id);
+        })
+        .catch((err) => {
+          if (err.name !== "AbortError") {
+            console.error("Audio play error:", err);
+          }
+        });
 
-  const uniqueArtists = new Set(bhajanList.map(b => b.artist)).size;
+      audio.onended = () => {
+        setPlayingId(null);
+      };
+    } else {
+      alert("No audio file available");
+    }
+  };
+
+  const uniqueArtists = bhajanList.length > 0 ? new Set(bhajanList.map(b => b.artist)).size : 0;
+  const uniqueAlbums = bhajanList.length > 0 ? new Set(bhajanList.filter(b => b.album).map(b => b.album)).size : 0;
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-rose-50 p-3 sm:p-4 md:p-8">
@@ -323,7 +358,7 @@ const togglePlay = (bhajan) => {
               <Music className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-             Jeevan Sutra Management
+              Jeevan Sutra Management
             </h1>
           </div>
           <p className="text-neutral-600 text-sm sm:text-base ml-9 sm:ml-14">Manage your spiritual music collection</p>
@@ -360,7 +395,8 @@ const togglePlay = (bhajan) => {
                 }}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-md font-medium text-sm sm:text-base"
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Bhajan
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden xs:inline">Add Bhajan</span>
               </button>
             </div>
           </div>
@@ -371,7 +407,7 @@ const togglePlay = (bhajan) => {
             <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
               <div className="text-center sm:text-left">
                 <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Total</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900">{bhajanList.length}</p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900">{totalCount}</p>
               </div>
               <div className="p-2 sm:p-3 bg-purple-100 rounded-lg sm:rounded-xl">
                 <Music className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600" />
@@ -393,9 +429,7 @@ const togglePlay = (bhajan) => {
             <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
               <div className="text-center sm:text-left">
                 <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Albums</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900">
-                  {new Set(bhajanList.filter(b => b.album).map(b => b.album)).size}
-                </p>
+                <p className="text-xl sm:text-2xl font-bold text-neutral-900">{uniqueAlbums}</p>
               </div>
               <div className="p-2 sm:p-3 bg-rose-100 rounded-lg sm:rounded-xl">
                 <Album className="w-4 h-4 sm:w-6 sm:h-6 text-rose-600" />
@@ -404,25 +438,25 @@ const togglePlay = (bhajan) => {
           </div>
         </div>
 
-        {search && (
+        {search && !loading && (
           <div className="mb-4 px-2">
             <p className="text-sm text-neutral-600">
-              Found <span className="font-semibold text-purple-600">{filteredBhajans.length}</span> bhajan{filteredBhajans.length !== 1 ? 's' : ''}
+              Found <span className="font-semibold text-purple-600">{totalCount}</span> bhajan{totalCount !== 1 ? 's' : ''}
               {search && ` matching "${search}"`}
             </p>
           </div>
         )}
 
         {loading && (
-          <div className="text-center py-8">
-            <div className="inline-block w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-            <p className="text-neutral-600 mt-2">Loading...</p>
+          <div className="text-center py-12">
+            <div className="inline-block w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+            <p className="text-neutral-600 mt-3 font-medium">Loading bhajans...</p>
           </div>
         )}
 
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {!loading && filteredBhajans.length > 0 ? (
-            filteredBhajans.map((bhajan) => (
+          {!loading && bhajanList.length > 0 ? (
+            bhajanList.map((bhajan) => (
               <div
                 key={bhajan.id}
                 className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
@@ -505,11 +539,66 @@ const togglePlay = (bhajan) => {
           ) : !loading ? (
             <div className="col-span-full bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-8 sm:p-12 text-center">
               <Music className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-300 mx-auto mb-3" />
-              <p className="text-neutral-400 font-medium text-sm sm:text-base">No bhajans found</p>
-              <p className="text-neutral-400 text-xs sm:text-sm mt-1">Try adjusting your search or add a new bhajan</p>
+              <p className="text-neutral-400 font-medium text-sm sm:text-base">
+                {search ? `No bhajans found matching "${search}"` : "No bhajans found"}
+              </p>
+              <p className="text-neutral-400 text-xs sm:text-sm mt-1">
+                {search ? "Try adjusting your search" : "Add a new bhajan to get started"}
+              </p>
             </div>
           ) : null}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
+            <div className="text-sm text-neutral-600 text-center sm:text-left">
+              Showing <span className="font-semibold text-purple-600">{((currentPage - 1) * limit) + 1}</span> to{' '}
+              <span className="font-semibold text-purple-600">{Math.min(currentPage * limit, totalCount)}</span> of{' '}
+              <span className="font-semibold text-purple-600">{totalCount}</span> bhajans
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!hasPrevPage}
+                className="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Previous page"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {renderPageNumbers().map((page, index) => (
+                  page === '...' ? (
+                    <span key={`ellipsis-${index}`} className="px-2 text-neutral-400">...</span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`min-w-[2.5rem] px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+                        currentPage === page
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                          : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                ))}
+              </div>
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!hasNextPage}
+                className="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Next page"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {showModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-3 sm:p-4">

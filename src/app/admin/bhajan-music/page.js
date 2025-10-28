@@ -147,38 +147,9 @@ export default function GauMataBhajanPage() {
     }
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
+  
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        setRecordedAudio(audioUrl);
-        const file = new File([audioBlob], "recorded-bhajan.wav", { type: 'audio/wav' });
-        setFormData({ ...formData, audioFile: file });
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-    } catch (error) {
-      alert("Could not access microphone. Please check permissions.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      setIsRecording(false);
-    }
-  };
+  
 
   const handleSaveBhajan = async () => {
     if (!formData.name || !formData.artist || !formData.category) {
@@ -388,16 +359,7 @@ export default function GauMataBhajanPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 sm:gap-3">
-              <button
-                onClick={() => {
-                  setModalType("record");
-                  setShowModal(true);
-                }}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg sm:rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-md font-medium text-sm sm:text-base"
-              >
-                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Record</span>
-              </button>
+              
               <button
                 onClick={() => {
                   setModalType("add");
@@ -611,39 +573,8 @@ export default function GauMataBhajanPage() {
                 {modalType === "record" ? "Record Gau Mata Bhajan" : editBhajan ? "Edit Gau Mata Bhajan" : "Add New Gau Mata Bhajan"}
               </h2>
 
-              {/* Recording Section */}
-              {modalType === "record" && (
-                <div className="mb-4 sm:mb-6 p-4 sm:p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                  <div className="flex flex-col items-center gap-3 sm:gap-4">
-                    <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}>
-                      <Mic className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
-                    </div>
-                    <div className="text-center">
-                      <p className="font-semibold text-neutral-900 mb-1 text-sm sm:text-base">
-                        {isRecording ? "Recording in progress..." : "Ready to record"}
-                      </p>
-                      <p className="text-xs sm:text-sm text-neutral-600">
-                        {isRecording ? "Click stop when finished" : "Click the button below to start"}
-                      </p>
-                    </div>
-                    <button
-                      onClick={isRecording ? stopRecording : startRecording}
-                      className={`px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl text-white font-medium shadow-md transition-all duration-200 text-sm sm:text-base ${
-                        isRecording 
-                          ? 'bg-red-500 hover:bg-red-600' 
-                          : 'bg-green-500 hover:bg-green-600'
-                      }`}
-                    >
-                      {isRecording ? "Stop Recording" : "Start Recording"}
-                    </button>
-                    {recordedAudio && (
-                      <div className="w-full mt-4">
-                        <audio src={recordedAudio} controls className="w-full" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+        
+              
 
               {/* Audio File Upload */}
               <div className="mb-4 sm:mb-6">

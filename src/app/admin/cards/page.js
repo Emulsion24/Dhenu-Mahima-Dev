@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Save, X, Image, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Save, X, Image as ImageIcon , Loader2 } from "lucide-react";
+import Image from "next/image";
 import API from "@/lib/api";
 
 // Add token to requests
@@ -214,7 +215,7 @@ const moveDown = async (id) => {
 
         {cards.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <Image size={64} className="mx-auto text-gray-300 mb-4" />
+            <ImageIcon size={64} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-700 mb-2">No cards yet</h3>
             <p className="text-gray-500 mb-6">Get started by adding your first card</p>
             <button
@@ -233,7 +234,13 @@ const moveDown = async (id) => {
                 className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
               >
                 <div className="h-32 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
-                  <Image size={48} className="text-white opacity-50" />
+                 <Image
+  src={card.image || "/images/1.png"}
+  alt={card.title}
+  width={100}
+  height={100}
+  className="rounded-lg shadow-md object-contain"
+/>
                 </div>
                 
                 <div className="p-6">

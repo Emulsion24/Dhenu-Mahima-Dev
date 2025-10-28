@@ -1,26 +1,24 @@
 "use client"
-import dotenv from "dotenv";
-dotenv.config();
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Repeat, Shuffle, Heart, Search, Home, Library,
-  TrendingUp, Flame, Menu, X, Loader2, RefreshCw
+  Repeat, Shuffle, Heart, Search, ChevronLeft, ChevronRight,
+  Loader2, RefreshCw,
+  Home
 } from 'lucide-react';
-import API from '@/lib/api';
-const NEXT_PUBLIC_API_URL=process.env.NEXT_PUBLIC_API_URL
+import { useRouter } from 'next/navigation';
+
+// Replace with your actual API URL
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function BhajanMusicPlayer() {
   const [bhajans, setBhajans] = useState([]);
-  const [filteredBhajans, setFilteredBhajans] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
-  const [activeTab, setActiveTab] = useState('jiban-sutra');
   const [currentSong, setCurrentSong] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,64 +27,102 @@ export default function BhajanMusicPlayer() {
   const [liked, setLiked] = useState([]);
   const [error, setError] = useState(null);
   const [isBuffering, setIsBuffering] = useState(false);
+  const router =useRouter();
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
   const volumeBarRef = useRef(null);
 
-  // Fetch bhajans from backend
+  // Fetch bhajans from backend with pagination
   useEffect(() => {
-    fetchBhajans();
+    fetchBhajans(1, '');
   }, []);
 
-  const fetchBhajans = async () => {
+  const fetchBhajans = async (page = 1, search = '') => {
     try {
-      setLoading(true);
+      if (page === 1) {
+        setLoading(true);
+      } else {
+        setIsLoadingMore(true);
+      }
       setError(null);
-      const response = await API.get(`/jevansutra`);
       
-      if (!response.data) {
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: '10',
+        sortBy: 'createdAt',
+        sortOrder: 'desc'
+      });
+      
+      if (search) {
+        queryParams.append('search', search);
+      }
+      
+      const response = await fetch(`${BACKEND_URL}/jevansutra?${queryParams}`);
+      
+      if (!response.ok) {
         throw new Error('Failed to fetch bhajans');
       }
       
-      const data = response.data
-      setBhajans(data);
-      setFilteredBhajans(data);
+      const data = await response.json();
+      
+      if (data.success) {
+        setBhajans(data.data);
+        setCurrentPage(data.pagination.currentPage);
+        setTotalPages(data.pagination.totalPages);
+        setTotalCount(data.pagination.totalCount);
+        setHasNextPage(data.pagination.hasNextPage);
+        setHasPrevPage(data.pagination.hasPrevPage);
+        
+        // Reset current song to 0 when loading new page
+        if (page !== currentPage) {
+          setCurrentSong(0);
+          setIsPlaying(false);
+        }
+      }
+      
       setLoading(false);
+      setIsLoadingMore(false);
     } catch (error) {
       console.error('Error fetching bhajans:', error);
       setError('Failed to load bhajans. Please check if the server is running.');
       setLoading(false);
+      setIsLoadingMore(false);
     }
   };
 
   // Search functionality
-  const handleSearch = async (query) => {
+  const handleSearch = (query) => {
     setSearchQuery(query);
+    setCurrentPage(1);
     
-    if (!query.trim()) {
-      setFilteredBhajans(bhajans);
-      return;
-    }
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchBhajans(1, query);
+    }, 500);
+    
+    return () => clearTimeout(timeoutId);
+  };
 
-    try {
-      const response = await API.get(`/jevansutra/search?query=${encodeURIComponent(query)}`);
-      
-      if (!response.data) {
-        throw new Error('Search failed');
-      }
-      
-      const data =response.data;
-      setFilteredBhajans(data);
-    } catch (error) {
-      console.error('Error searching bhajans:', error);
-      // Fallback to client-side search
-      const filtered = bhajans.filter(bhajan => 
-        bhajan.name.toLowerCase().includes(query.toLowerCase()) ||
-        bhajan.artist.toLowerCase().includes(query.toLowerCase()) ||
-        (bhajan.album && bhajan.album.toLowerCase().includes(query.toLowerCase()))
-      );
-      setFilteredBhajans(filtered);
+  // Pagination handlers
+  const handleNextPage = () => {
+    if (hasNextPage) {
+      const nextPage = currentPage + 1;
+      fetchBhajans(nextPage, searchQuery);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (hasPrevPage) {
+      const prevPage = currentPage - 1;
+      fetchBhajans(prevPage, searchQuery);
     }
   };
 
@@ -113,14 +149,8 @@ export default function BhajanMusicPlayer() {
       }
     };
 
-    const handleWaiting = () => {
-      setIsBuffering(true);
-    };
-
-    const handleCanPlay = () => {
-      setIsBuffering(false);
-    };
-
+    const handleWaiting = () => setIsBuffering(true);
+    const handleCanPlay = () => setIsBuffering(false);
     const handleError = (e) => {
       console.error('Audio error:', e);
       setIsBuffering(false);
@@ -148,24 +178,19 @@ export default function BhajanMusicPlayer() {
 
   // Load current song
   useEffect(() => {
-    if (filteredBhajans.length > 0 && audioRef.current) {
+    if (bhajans.length > 0 && audioRef.current) {
       const audio = audioRef.current;
-      const currentBhajan = filteredBhajans[currentSong];
+      const currentBhajan = bhajans[currentSong];
       
       if (!currentBhajan) return;
       
-      // Extract filename from audioUrl
       const audioUrl = currentBhajan.audioUrl;
       const filename = audioUrl.split('/').pop();
       
-      // Pause current playback
       audio.pause();
-      
-      // Set new source
-      audio.src = `${NEXT_PUBLIC_API_URL}/jevansutra/audio/stream/${filename}`;
+      audio.src = `${BACKEND_URL}/jevansutra/audio/stream/${filename}`;
       audio.volume = volume / 100;
       
-      // Reset time
       setCurrentTime(0);
       setDuration(0);
       
@@ -176,11 +201,11 @@ export default function BhajanMusicPlayer() {
         });
       }
     }
-  }, [currentSong, filteredBhajans]);
+  }, [currentSong, bhajans]);
 
   // Handle play/pause
   useEffect(() => {
-    if (audioRef.current && filteredBhajans.length > 0) {
+    if (audioRef.current && bhajans.length > 0) {
       if (isPlaying) {
         audioRef.current.play().catch(err => {
           console.error('Playback error:', err);
@@ -207,26 +232,36 @@ export default function BhajanMusicPlayer() {
   };
 
   const handleNext = () => {
-    if (filteredBhajans.length === 0) return;
+    if (bhajans.length === 0) return;
     
     if (isShuffle) {
       let randomIndex;
       do {
-        randomIndex = Math.floor(Math.random() * filteredBhajans.length);
-      } while (randomIndex === currentSong && filteredBhajans.length > 1);
+        randomIndex = Math.floor(Math.random() * bhajans.length);
+      } while (randomIndex === currentSong && bhajans.length > 1);
       setCurrentSong(randomIndex);
     } else {
-      setCurrentSong((currentSong + 1) % filteredBhajans.length);
+      if (currentSong === bhajans.length - 1 && hasNextPage) {
+        // Load next page if at end of current page
+        handleNextPage();
+      } else {
+        setCurrentSong((currentSong + 1) % bhajans.length);
+      }
     }
   };
 
   const handlePrevious = () => {
-    if (filteredBhajans.length === 0) return;
+    if (bhajans.length === 0) return;
     
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
     } else {
-      setCurrentSong((currentSong - 1 + filteredBhajans.length) % filteredBhajans.length);
+      if (currentSong === 0 && hasPrevPage) {
+        // Load previous page if at start of current page
+        handlePrevPage();
+      } else {
+        setCurrentSong((currentSong - 1 + bhajans.length) % bhajans.length);
+      }
     }
   };
 
@@ -262,23 +297,6 @@ export default function BhajanMusicPlayer() {
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  const navItems = [
-    { key: 'dhenu-mahima', label: 'धेनु महिमा', icon: Home },
-    { key: 'jiban-sutra', label: 'जीवन सूत्र', icon: TrendingUp },
-    { key: 'library', label: 'लाइब्रेरी', icon: Library }
-  ];
-
-  const handleNavigation = (key) => {
-    setActiveTab(key);
-    if (key === 'dhenu-mahima') {
-      window.location.href = '/';
-    }
-  };
-
-  const handleLogoClick = () => {
-    window.location.href = '/';
-  };
-
   if (loading) {
     return (
       <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 flex items-center justify-center">
@@ -298,7 +316,7 @@ export default function BhajanMusicPlayer() {
             <p className="text-2xl font-bold mb-4">⚠️ त्रुटि</p>
             <p className="text-lg mb-6">{error}</p>
             <button
-              onClick={fetchBhajans}
+              onClick={() => fetchBhajans(1, '')}
               className="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition flex items-center gap-2 mx-auto"
             >
               <RefreshCw className="w-5 h-5" />
@@ -310,7 +328,7 @@ export default function BhajanMusicPlayer() {
     );
   }
 
-  if (filteredBhajans.length === 0 && !searchQuery) {
+  if (bhajans.length === 0 && !searchQuery) {
     return (
       <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 flex items-center justify-center">
         <div className="text-center text-white px-4">
@@ -318,7 +336,7 @@ export default function BhajanMusicPlayer() {
             <p className="text-2xl font-bold mb-2">🎵 कोई भजन उपलब्ध नहीं है</p>
             <p className="text-lg mb-6">No bhajans available</p>
             <button
-              onClick={fetchBhajans}
+              onClick={() => fetchBhajans(1, '')}
               className="bg-white text-orange-600 px-6 py-3 rounded-full font-semibold hover:bg-gray-100 transition flex items-center gap-2 mx-auto"
             >
               <RefreshCw className="w-5 h-5" />
@@ -337,32 +355,14 @@ export default function BhajanMusicPlayer() {
       <header className="bg-gradient-to-r from-amber-800 to-orange-600 bg-opacity-95 backdrop-blur-md border-b border-yellow-300 sticky top-0 z-50 shadow-lg">
         <div className="flex items-center justify-between px-4 sm:px-6 py-3">
           <div className="flex items-center gap-3 sm:gap-6">
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-            
-
-            <nav className="hidden md:flex items-center gap-4 lg:gap-6">
-              {navItems.map(tab => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => handleNavigation(tab.key)}
-                    className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-full transition text-sm lg:text-base
-                      ${activeTab === tab.key
-                        ? 'bg-white text-orange-600 shadow-md'
-                        : 'hover:bg-white hover:bg-opacity-20'}`}
-                  >
-                    <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
-                    <span className="hidden lg:inline">{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+            <button
+  onClick={() => router.push('/')}
+  className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+>
+  <Home className="w-4 h-4 inline-block mr-1" />
+  Dhenu Mahima
+</button>
+            <h1 className="text-xl sm:text-2xl font-bold">🎵 जीवन सूत्र</h1>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -379,9 +379,16 @@ export default function BhajanMusicPlayer() {
                 type="text"
                 placeholder="भजन खोजें..."
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-white bg-opacity-20 rounded-full pl-9 lg:pl-10 pr-3 lg:pr-4 py-2 w-48 lg:w-80 text-sm lg:text-base focus:outline-none focus:bg-opacity-30 text-black placeholder-gray-700"
               />
+              <button
+  onClick={() => fetchBhajans(1, searchQuery)}
+  className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+>
+  <Search className="w-4 h-4 inline-block mr-1" />
+  खोजें
+</button>
             </div>
           </div>
         </div>
@@ -400,30 +407,6 @@ export default function BhajanMusicPlayer() {
             </div>
           </div>
         )}
-
-        {mobileMenuOpen && (
-          <nav className="md:hidden px-4 pb-4 space-y-2">
-            {navItems.map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => {
-                    handleNavigation(tab.key);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition
-                    ${activeTab === tab.key
-                      ? 'bg-white text-orange-600'
-                      : 'hover:bg-white hover:bg-opacity-20'}`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        )}
       </header>
 
       {/* Main Content */}
@@ -433,10 +416,10 @@ export default function BhajanMusicPlayer() {
           {/* Featured Section */}
           <section className="mb-8 sm:mb-12">
             <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl bg-gradient-to-r from-orange-600 to-red-600">
-              {filteredBhajans[currentSong]?.imageUrl && (
+              {bhajans[currentSong]?.imageUrl && (
                 <img
-                  src={filteredBhajans[currentSong].imageUrl}
-                  alt={filteredBhajans[currentSong].name}
+                  src={bhajans[currentSong].imageUrl}
+                  alt={bhajans[currentSong].name}
                   className="absolute inset-0 w-full h-full object-cover opacity-50"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -449,19 +432,18 @@ export default function BhajanMusicPlayer() {
               <div className="relative h-full flex items-end p-4 sm:p-6 lg:p-8 text-white">
                 <div className="w-full">
                   <div className="flex items-center gap-2 mb-2">
-                    <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
                     <span className="text-xs sm:text-sm font-semibold">
                       {isPlaying ? 'अभी चल रहा है' : 'चुना हुआ'}
                     </span>
                   </div>
 
                   <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] line-clamp-2">
-                    {filteredBhajans[currentSong]?.name || 'भजन'}
+                    {bhajans[currentSong]?.name || 'भजन'}
                   </h2>
 
                   <p className="text-sm sm:text-base lg:text-lg text-gray-100 mb-3 sm:mb-4">
-                    {filteredBhajans[currentSong]?.artist} 
-                    {filteredBhajans[currentSong]?.album && ` • ${filteredBhajans[currentSong].album}`}
+                    {bhajans[currentSong]?.artist} 
+                    {bhajans[currentSong]?.album && ` • ${bhajans[currentSong].album}`}
                   </p>
 
                   <button
@@ -483,16 +465,16 @@ export default function BhajanMusicPlayer() {
             </div>
           </section>
 
-          {/* Quick Picks */}
+          {/* Bhajan List */}
           <section className="mb-8 sm:mb-12">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold">
-                {searchQuery ? `खोज परिणाम (${filteredBhajans.length})` : 'सभी भजन'}
+                {searchQuery ? `खोज परिणाम (${totalCount})` : `सभी भजन (${totalCount})`}
               </h3>
               <button 
                 onClick={() => {
                   setSearchQuery('');
-                  fetchBhajans();
+                  fetchBhajans(1, '');
                 }}
                 className="text-xs sm:text-sm text-yellow-100 hover:text-white transition flex items-center gap-2"
               >
@@ -501,60 +483,97 @@ export default function BhajanMusicPlayer() {
               </button>
             </div>
 
-            {filteredBhajans.length === 0 && searchQuery ? (
+            {bhajans.length === 0 && searchQuery ? (
               <div className="text-center py-12 bg-white bg-opacity-10 rounded-2xl">
                 <p className="text-xl mb-2">🔍 कोई परिणाम नहीं मिला</p>
                 <p className="text-sm text-gray-200">कृपया अन्य शब्दों से खोजें</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-                {filteredBhajans.map((bhajan, index) => (
-                  <div
-                    key={bhajan.id}
-                    onClick={() => handleSongSelect(index)}
-                    className={`bg-red-900 bg-opacity-10 backdrop-blur-sm rounded-lg p-2 sm:p-3 hover:bg-opacity-20 transition cursor-pointer group ${
-                      currentSong === index ? 'ring-2 ring-white bg-opacity-30' : ''
-                    }`}
-                  >
-                    <div className="relative mb-2 sm:mb-3">
-                      {bhajan.imageUrl ? (
-                        <img 
-                          src={bhajan.imageUrl} 
-                          alt={bhajan.name} 
-                          className="w-full aspect-square object-cover rounded-lg"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextElementSibling.style.display = 'flex';
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                  {bhajans.map((bhajan, index) => (
+                    <div
+                      key={bhajan.id}
+                      onClick={() => handleSongSelect(index)}
+                      className={`bg-red-900 bg-opacity-10 backdrop-blur-sm rounded-lg p-2 sm:p-3 hover:bg-opacity-20 transition cursor-pointer group ${
+                        currentSong === index ? 'ring-2 ring-white bg-opacity-30' : ''
+                      }`}
+                    >
+                      <div className="relative mb-2 sm:mb-3">
+                        {bhajan.imageUrl ? (
+                          <img 
+                            src={bhajan.imageUrl} 
+                            alt={bhajan.name} 
+                            className="w-full aspect-square object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className={`w-full aspect-square bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-4xl ${bhajan.imageUrl ? 'hidden' : 'flex'}`}>
+                          🎵
+                        </div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSongSelect(index);
                           }}
-                        />
-                      ) : null}
-                      <div className={`w-full aspect-square bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-4xl ${bhajan.imageUrl ? 'hidden' : 'flex'}`}>
-                        🎵
+                          className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg"
+                        >
+                          {currentSong === index && isPlaying ? (
+                            <Pause className="w-4 h-4 sm:w-5 sm:h-5" fill="white" />
+                          ) : (
+                            <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" fill="white" />
+                          )}
+                        </button>
                       </div>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSongSelect(index);
-                        }}
-                        className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg"
-                      >
-                        {currentSong === index && isPlaying ? (
-                          <Pause className="w-4 h-4 sm:w-5 sm:h-5" fill="white" />
-                        ) : (
-                          <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" fill="white" />
-                        )}
-                      </button>
+                      <h4 className="font-semibold text-xs sm:text-sm mb-1 truncate" title={bhajan.name}>
+                        {bhajan.name}
+                      </h4>
+                      <p className="text-xs text-gray-200 truncate" title={bhajan.artist}>
+                        {bhajan.artist}
+                      </p>
+                      <p className="text-xs text-gray-300 mt-1">{bhajan.duration}</p>
                     </div>
-                    <h4 className="font-semibold text-xs sm:text-sm mb-1 truncate" title={bhajan.name}>
-                      {bhajan.name}
-                    </h4>
-                    <p className="text-xs text-gray-200 truncate" title={bhajan.artist}>
-                      {bhajan.artist}
-                    </p>
-                    <p className="text-xs text-gray-300 mt-1">{bhajan.duration}</p>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="mt-8 flex items-center justify-center gap-4">
+                    <button
+                      onClick={handlePrevPage}
+                      disabled={!hasPrevPage || isLoadingMore}
+                      className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-full flex items-center gap-2 transition"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                      <span className="hidden sm:inline">पिछला</span>
+                    </button>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold bg-white bg-opacity-20 px-4 py-2 rounded-full">
+                        पृष्ठ {currentPage} / {totalPages}
+                      </span>
+                    </div>
+                    
+                    <button
+                      onClick={handleNextPage}
+                      disabled={!hasNextPage || isLoadingMore}
+                      className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-full flex items-center gap-2 transition"
+                    >
+                      <span className="hidden sm:inline">अगला</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+
+                {isLoadingMore && (
+                  <div className="mt-8 flex justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                  </div>
+                )}
+              </>
             )}
           </section>
         </div>
@@ -582,10 +601,10 @@ export default function BhajanMusicPlayer() {
           {/* Mobile Layout */}
           <div className="flex flex-col gap-3 sm:hidden">
             <div className="flex items-center gap-3">
-              {filteredBhajans[currentSong]?.imageUrl ? (
+              {bhajans[currentSong]?.imageUrl ? (
                 <img
-                  src={filteredBhajans[currentSong].imageUrl}
-                  alt={filteredBhajans[currentSong].name}
+                  src={bhajans[currentSong].imageUrl}
+                  alt={bhajans[currentSong].name}
                   className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -593,22 +612,22 @@ export default function BhajanMusicPlayer() {
                   }}
                 />
               ) : null}
-              <div className={`w-14 h-14 rounded-lg shadow-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-2xl flex-shrink-0 ${filteredBhajans[currentSong]?.imageUrl ? 'hidden' : 'flex'}`}>
+              <div className={`w-14 h-14 rounded-lg shadow-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-2xl flex-shrink-0 ${bhajans[currentSong]?.imageUrl ? 'hidden' : 'flex'}`}>
                 🎵
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="font-semibold truncate text-base text-white">
-                  {filteredBhajans[currentSong]?.name || 'भजन'}
+                  {bhajans[currentSong]?.name || 'भजन'}
                 </h4>
                 <p className="text-sm text-gray-200 truncate">
-                  {filteredBhajans[currentSong]?.artist || 'कलाकार'}
+                  {bhajans[currentSong]?.artist || 'कलाकार'}
                 </p>
               </div>
               <button 
-                onClick={() => toggleLike(filteredBhajans[currentSong]?.id)}
-                className={`transition p-2 flex-shrink-0 ${liked.includes(filteredBhajans[currentSong]?.id) ? 'text-red-400' : 'text-white hover:text-red-400'}`}
+                onClick={() => toggleLike(bhajans[currentSong]?.id)}
+                className={`transition p-2 flex-shrink-0 ${liked.includes(bhajans[currentSong]?.id) ? 'text-red-400' : 'text-white hover:text-red-400'}`}
               >
-                <Heart className="w-6 h-6" fill={liked.includes(filteredBhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
+                <Heart className="w-6 h-6" fill={liked.includes(bhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
               </button>
             </div>
 
@@ -616,13 +635,13 @@ export default function BhajanMusicPlayer() {
               <button 
                 onClick={handlePrevious}
                 className="hover:text-white transition text-gray-200 p-2"
-                disabled={filteredBhajans.length === 0}
+                disabled={bhajans.length === 0}
               >
                 <SkipBack className="w-7 h-7" fill="currentColor" />
               </button>
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                disabled={isBuffering || filteredBhajans.length === 0}
+                disabled={isBuffering || bhajans.length === 0}
                 className="bg-white text-orange-600 w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl disabled:opacity-50"
               >
                 {isBuffering ? (
@@ -636,7 +655,7 @@ export default function BhajanMusicPlayer() {
               <button 
                 onClick={handleNext}
                 className="hover:text-white transition text-gray-200 p-2"
-                disabled={filteredBhajans.length === 0}
+                disabled={bhajans.length === 0}
               >
                 <SkipForward className="w-7 h-7" fill="currentColor" />
               </button>
@@ -679,10 +698,10 @@ export default function BhajanMusicPlayer() {
           {/* Desktop Layout */}
           <div className="hidden sm:flex items-center justify-between gap-6 lg:gap-8">
             <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xs lg:max-w-sm">
-              {filteredBhajans[currentSong]?.imageUrl ? (
+              {bhajans[currentSong]?.imageUrl ? (
                 <img
-                  src={filteredBhajans[currentSong].imageUrl}
-                  alt={filteredBhajans[currentSong].name}
+                  src={bhajans[currentSong].imageUrl}
+                  alt={bhajans[currentSong].name}
                   className="w-16 h-16 lg:w-20 lg:h-20 rounded-lg shadow-lg flex-shrink-0 object-cover"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -690,22 +709,22 @@ export default function BhajanMusicPlayer() {
                   }}
                 />
               ) : null}
-              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg shadow-lg flex-shrink-0 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-3xl ${filteredBhajans[currentSong]?.imageUrl ? 'hidden' : 'flex'}`}>
+              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg shadow-lg flex-shrink-0 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-3xl ${bhajans[currentSong]?.imageUrl ? 'hidden' : 'flex'}`}>
                 🎵
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="font-semibold truncate text-base lg:text-lg text-white mb-1">
-                  {filteredBhajans[currentSong]?.name || 'भजन'}
+                  {bhajans[currentSong]?.name || 'भजन'}
                 </h4>
                 <p className="text-sm lg:text-base text-gray-200 truncate">
-                  {filteredBhajans[currentSong]?.artist || 'कलाकार'}
+                  {bhajans[currentSong]?.artist || 'कलाकार'}
                 </p>
               </div>
               <button 
-                onClick={() => toggleLike(filteredBhajans[currentSong]?.id)}
-                className={`transition p-2 flex-shrink-0 ${liked.includes(filteredBhajans[currentSong]?.id) ? 'text-red-400' : 'text-white hover:text-red-400'}`}
+                onClick={() => toggleLike(bhajans[currentSong]?.id)}
+                className={`transition p-2 flex-shrink-0 ${liked.includes(bhajans[currentSong]?.id) ? 'text-red-400' : 'text-white hover:text-red-400'}`}
               >
-                <Heart className="w-6 h-6" fill={liked.includes(filteredBhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
+                <Heart className="w-6 h-6" fill={liked.includes(bhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
               </button>
             </div>
 
@@ -719,14 +738,14 @@ export default function BhajanMusicPlayer() {
                 </button>
                 <button 
                   onClick={handlePrevious}
-                  disabled={filteredBhajans.length === 0}
+                  disabled={bhajans.length === 0}
                   className="hover:scale-110 transition text-white p-1 disabled:opacity-50"
                 >
                   <SkipBack className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" />
                 </button>
                 <button
                   onClick={() => setIsPlaying(!isPlaying)}
-                  disabled={isBuffering || filteredBhajans.length === 0}
+                  disabled={isBuffering || bhajans.length === 0}
                   className="bg-white text-orange-600 w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl disabled:opacity-50"
                 >
                   {isBuffering ? (
@@ -739,7 +758,7 @@ export default function BhajanMusicPlayer() {
                 </button>
                 <button 
                   onClick={handleNext}
-                  disabled={filteredBhajans.length === 0}
+                  disabled={bhajans.length === 0}
                   className="hover:scale-110 transition text-white p-1 disabled:opacity-50"
                 >
                   <SkipForward className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" />

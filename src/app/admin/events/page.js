@@ -90,23 +90,18 @@ export default function AdminEventsPage() {
   };
 
   const handleLiveLinkChange = (index, value) => {
-    const newLinks = [...formData.liveLinks];
-    newLinks[index] = value;
-    setFormData(prev => ({ ...prev, liveLinks: newLinks }));
-  };
-
-  const addLiveLink = () => {
-    setFormData(prev => ({ 
-      ...prev, 
-      liveLinks: [...prev.liveLinks, ""] 
-    }));
-  };
-
-  const removeLiveLink = (index) => {
-    const newLinks = formData.liveLinks.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, liveLinks: newLinks }));
-  };
-
+  const newLinks = [...formData.liveLinks];
+  
+  // Ensure array has at least 2 elements
+  while (newLinks.length < 2) {
+    newLinks.push('');
+  }
+  
+  newLinks[index] = value;
+  setFormData({ ...formData, liveLinks: newLinks });
+};
+  
+  
   const openAddModal = () => {
     setEditingEvent(null);
     setFormData({
@@ -468,38 +463,57 @@ export default function AdminEventsPage() {
 
                 {/* Live Links */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">
-                    YouTube Live Links
-                  </label>
-                  {formData.liveLinks.map((link, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={link}
-                        onChange={(e) => handleLiveLinkChange(index, e.target.value)}
-                        className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-                        placeholder="e.g., Dhenu TV"
-                      />
-                      {formData.liveLinks.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeLiveLink(index)}
-                          className="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-colors"
-                        >
-                          <X size={20} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addLiveLink}
-                    className="mt-2 px-4 py-2 bg-orange-100 text-orange-600 rounded-xl hover:bg-orange-200 transition-colors font-semibold text-sm flex items-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Add Another Link
-                  </button>
-                </div>
+  <label className="block text-sm font-bold text-gray-800 mb-3">
+    YouTube Live Links
+  </label>
+  
+  {/* Dhenu TV Link */}
+  <div className="mb-4">
+    <label className="block text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
+      <div className="w-6 h-6 bg-red-600 rounded-lg flex items-center justify-center">
+        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+      </div>
+      Dhenu TV YouTube Link
+    </label>
+    <input
+      type="url"
+      value={formData.liveLinks[0] || ''}
+      onChange={(e) => handleLiveLinkChange(0, e.target.value)}
+      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
+      placeholder="https://youtube.com/@dhenutv"
+    />
+  </div>
+
+  {/* Jevansutra Link */}
+  <div>
+    <label className="block text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
+      <div className="w-6 h-6 bg-red-600 rounded-lg flex items-center justify-center">
+        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+      </div>
+      Jevansutra YouTube Link
+    </label>
+    <input
+      type="url"
+      value={formData.liveLinks[1] || ''}
+      onChange={(e) => handleLiveLinkChange(1, e.target.value)}
+      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
+      placeholder="https://youtube.com/@jevansutra"
+    />
+  </div>
+
+  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+    <p className="text-xs text-blue-700 flex items-start gap-2">
+      <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+      </svg>
+      <span>Enter the full YouTube channel or live stream URLs for both channels.</span>
+    </p>
+  </div>
+</div>
 
                 {/* Description */}
                 <div>
