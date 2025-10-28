@@ -236,66 +236,71 @@ export default function GopalPariwarAdminPanel() {
   };
 
   // Open Edit Modal
-  const openEditModal = (member) => {
-    // Parse data if it's stringified
-    const parsedPersonalInfo = typeof member.personalInfo === 'string' 
-      ? JSON.parse(member.personalInfo) 
-      : member.personalInfo;
-    
-    const parsedSpiritualEducation = typeof member.spiritualEducation === 'string' 
-      ? JSON.parse(member.spiritualEducation) 
-      : member.spiritualEducation;
-    
-    const parsedResponsibilities = typeof member.responsibilities === 'string' 
-      ? JSON.parse(member.responsibilities) 
-      : member.responsibilities;
-    
-    const parsedPledges = typeof member.pledges === 'string' 
-      ? JSON.parse(member.pledges) 
-      : member.pledges;
-    
-    const parsedSocialLinks = member.socialLinks 
-      ? (typeof member.socialLinks === 'string' 
-          ? JSON.parse(member.socialLinks) 
-          : member.socialLinks)
-      : null;
+const safeParse = (data) => {
+  try {
+    // If it's a string, try parsing it
+    const parsed = typeof data === "string" ? JSON.parse(data) : data;
+    // If result is still a string (double encoded), parse again
+    return typeof parsed === "string" ? JSON.parse(parsed) : parsed;
+  } catch {
+    return {}; // return empty object if invalid JSON
+  }
+};
 
-    setEditingMember(member);
-    setFormData({
-      heroImage: member.heroImage || "",
-      heroTitle: member.heroTitle || "",
-      heroSubtitle: member.heroSubtitle || "",
-      personalInfo: {
-        name: parsedPersonalInfo?.name || "",
-        birthDate: parsedPersonalInfo?.birthDate || "",
-        birthPlace: parsedPersonalInfo?.birthPlace || "",
-        phone: parsedPersonalInfo?.phone || "",
-        email: parsedPersonalInfo?.email || "",
-        location: parsedPersonalInfo?.location || "",
-      },
-      spiritualEducation: {
-        guruName: parsedSpiritualEducation?.guruName || "",
-        initiationDate: parsedSpiritualEducation?.initiationDate || "",
-        education: parsedSpiritualEducation?.education || "",
-        qualifications: parsedSpiritualEducation?.qualifications || "",
-      },
-      lifeJourney: member.lifeJourney || "",
-      responsibilities: Array.isArray(parsedResponsibilities) ? parsedResponsibilities : [],
-      pledges: Array.isArray(parsedPledges) ? parsedPledges : [],
-      socialLinks: {
-        facebook: parsedSocialLinks?.facebook || "",
-        instagram: parsedSocialLinks?.instagram || "",
-        twitter: parsedSocialLinks?.twitter || "",
-        youtube: parsedSocialLinks?.youtube || "",
-        website: parsedSocialLinks?.website || "",
-      },
-    });
-    setImagePreview(member.heroImage || "");
-    setImageFile(null);
-    setHasUnsavedChanges(false);
-    setCurrentStep(1);
-    setShowModal(true);
-  };
+const safeParseArray = (data) => {
+  try {
+    const parsed = typeof data === "string" ? JSON.parse(data) : data;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const openEditModal = (member) => {
+  const parsedPersonalInfo = safeParse(member.personalInfo);
+  const parsedSpiritualEducation = safeParse(member.spiritualEducation);
+  const parsedResponsibilities = safeParseArray(member.responsibilities);
+  const parsedPledges = safeParseArray(member.pledges);
+  const parsedSocialLinks = member.socialLinks ? safeParse(member.socialLinks) : {};
+
+  setEditingMember(member);
+  setFormData({
+    heroImage: member.heroImage || "",
+    heroTitle: member.heroTitle || "",
+    heroSubtitle: member.heroSubtitle || "",
+    personalInfo: {
+      name: parsedPersonalInfo?.name || "",
+      birthDate: parsedPersonalInfo?.birthDate || "",
+      birthPlace: parsedPersonalInfo?.birthPlace || "",
+      phone: parsedPersonalInfo?.phone || "",
+      email: parsedPersonalInfo?.email || "",
+      location: parsedPersonalInfo?.location || "",
+    },
+    spiritualEducation: {
+      guruName: parsedSpiritualEducation?.guruName || "",
+      initiationDate: parsedSpiritualEducation?.initiationDate || "",
+      education: parsedSpiritualEducation?.education || "",
+      qualifications: parsedSpiritualEducation?.qualifications || "",
+    },
+    lifeJourney: member.lifeJourney || "",
+    responsibilities: parsedResponsibilities,
+    pledges: parsedPledges,
+    socialLinks: {
+      facebook: parsedSocialLinks?.facebook || "",
+      instagram: parsedSocialLinks?.instagram || "",
+      twitter: parsedSocialLinks?.twitter || "",
+      youtube: parsedSocialLinks?.youtube || "",
+      website: parsedSocialLinks?.website || "",
+    },
+  });
+
+  setImagePreview(member.heroImage || "");
+  setImageFile(null);
+  setHasUnsavedChanges(false);
+  setCurrentStep(1);
+  setShowModal(true);
+};
+
 
   // Close Modal
   const closeModal = () => {
@@ -498,9 +503,7 @@ if (loading) {
                   <h3 className="text-xl font-bold text-slate-800 mb-1">
                     {member.heroTitle}
                   </h3>
-                  <p className="text-sm font-semibold text-orange-600 mb-3">
-                    {member.heroSubtitle}
-                  </p>
+                 
                   <p className="text-sm text-slate-600 mb-4 line-clamp-3">
                     {member.personalInfo?.name}
                   </p>

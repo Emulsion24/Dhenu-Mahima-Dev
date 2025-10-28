@@ -26,8 +26,7 @@ export default function AboutUsPage() {
           name: m.personalInfo ? safeParse(m.personalInfo).name || "Unknown" : "Unknown",
           nameEn: m.heroTitle || "—",
           slug: m.id, // or m.slug if available in backend
-          role: "संरक्षक सदस्य",
-          roleEn: "Member",
+         
           image: m.heroImage || "https://placehold.co/400x500/FF9933/fff?text=Team+Member",
           shortBio: m.lifeJourney?.slice(0, 80) || "—",
           fullBio: m.lifeJourney || "—",
@@ -159,10 +158,7 @@ export default function AboutUsPage() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                       <div className="absolute bottom-4 left-4 right-4">
-                        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 border border-orange-200">
-                          <p className="text-sm font-bold text-orange-600">{member.role}</p>
-                          <p className="text-xs text-gray-600">{member.roleEn}</p>
-                        </div>
+                      
                       </div>
                     </div>
 

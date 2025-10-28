@@ -320,7 +320,7 @@ const moveDown = async (id) => {
                       onChange={handleInputChange}
                       required
                       disabled={loading}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors disabled:bg-gray-100"
+                      className="w-full px-4 text-black py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors disabled:bg-gray-100"
                       placeholder="हिंदी में शीर्षक दर्ज करें"
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                     />
@@ -336,7 +336,7 @@ const moveDown = async (id) => {
                       value={formData.titleEn}
                       onChange={handleInputChange}
                       disabled={loading}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors disabled:bg-gray-100"
+                      className="w-full text-black px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors disabled:bg-gray-100"
                       placeholder="Enter English title (optional)"
                     />
                   </div>
@@ -352,11 +352,11 @@ const moveDown = async (id) => {
                       onChange={handleInputChange}
                       required
                       disabled={loading}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors disabled:bg-gray-100"
+                      className="w-full text-black px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none transition-colors disabled:bg-gray-100"
                       placeholder="/page or https://example.com"
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      Enter a relative path (/page) or full URL (https://...)
+                      Enter a relative path (/page) 
                     </p>
                   </div>
                 </div>

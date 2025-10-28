@@ -75,11 +75,7 @@ const handleAddBanner = async () => {
     }
   };
 
-  const toggleActive = (id) => {
-    setBanners(banners.map(b => 
-      b.id === id ? { ...b, active: !b.active } : b
-    ));
-  };
+
 
   const moveUp = async (id) => {
     const index = banners.findIndex(b => b.id === id);
@@ -143,19 +139,6 @@ const handleAddBanner = async () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-indigo-100 p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-neutral-500 text-sm font-medium mb-1">Active Banners</p>
-                <p className="text-2xl font-bold text-neutral-900">
-                  {banners.filter(b => b.active).length}
-                </p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-xl">
-                <Eye className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
 
           <div className="bg-white rounded-xl border border-indigo-100 p-5 shadow-sm flex items-center justify-center">
             <button
@@ -195,13 +178,7 @@ const handleAddBanner = async () => {
                         alt={banner.title}
                         className="w-full h-full object-cover"
                       />
-                      {!banner.active && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm bg-red-500 px-3 py-1 rounded-full">
-                            Inactive
-                          </span>
-                        </div>
-                      )}
+                      
                     </div>
 
                     {/* Banner Info & Actions */}
@@ -210,11 +187,7 @@ const handleAddBanner = async () => {
                         <h3 className="text-lg font-bold text-neutral-900 mb-1 truncate">
                           {banner.title}
                         </h3>
-                        <p className="text-sm text-neutral-500">
-                          Status: <span className={`font-semibold ${banner.active ? 'text-green-600' : 'text-red-600'}`}>
-                            {banner.active ? 'Active' : 'Inactive'}
-                          </span>
-                        </p>
+                       
                       </div>
 
                       {/* Action Buttons */}
@@ -248,26 +221,7 @@ const handleAddBanner = async () => {
                         </div>
 
                         {/* Toggle Active */}
-                        <button
-                          onClick={() => toggleActive(banner.id)}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                            banner.active
-                              ? 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
-                              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
-                          }`}
-                        >
-                          {banner.active ? (
-                            <>
-                              <Eye className="w-4 h-4" />
-                              <span className="hidden sm:inline">Active</span>
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-4 h-4" />
-                              <span className="hidden sm:inline">Inactive</span>
-                            </>
-                          )}
-                        </button>
+                        
 
                         {/* Preview */}
                         <button
