@@ -1,6 +1,6 @@
 "use client";
 import API from "@/lib/api";
-
+import { Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
@@ -15,6 +15,7 @@ import {
   Twitter,
   Youtube,
   Globe,
+  MessageCircleMore,
   Phone,
   Mail,
   MapPin,
@@ -41,13 +42,14 @@ const Toast = ({ message, type, onClose }) => (
 
 // Loading Overlay Component
 const LoadingOverlay = ({ message = "Loading..." }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-8 flex flex-col items-center gap-4">
-      <Loader size={48} className="animate-spin text-orange-600" />
-      <p className="text-gray-700 font-semibold">{message}</p>
-    </div>
-  </div>
+   <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 font-medium">Loading events...</p>
+        </div>
+      </div>
 );
+
 
 export default function GopalPariwarAdminPanel() {
   const [members, setMembers] = useState([]);
@@ -222,6 +224,7 @@ export default function GopalPariwarAdminPanel() {
         instagram: "",
         twitter: "",
         youtube: "",
+        whatsapp: "",
         website: "",
       },
     });
@@ -407,11 +410,13 @@ export default function GopalPariwarAdminPanel() {
     }
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
-
+if (loading) {
+  return(<LoadingOverlay />)
+   
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-      {loading && <LoadingOverlay />}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+     
 
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header */}
@@ -924,7 +929,18 @@ export default function GopalPariwarAdminPanel() {
                             placeholder="Twitter profile URL"
                           />
                         </div>
-
+                           <div className="flex items-center gap-3">
+                          <div className="p-2 bg-red-100 text-red-600 rounded-lg">
+                           <MessageCircleMore size={20} />
+                          </div>
+                          <input
+                            type="url"
+                            value={formData.socialLinks?.whatsapp || ""}
+                            onChange={(e) => handleNestedChange('socialLinks', 'whatsapp', e.target.value)}
+                            className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-slate-800"
+                            placeholder="WhatsApp URL"
+                          />
+                        </div>
                         {/* YouTube */}
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-red-100 text-red-600 rounded-lg">
@@ -938,6 +954,7 @@ export default function GopalPariwarAdminPanel() {
                             placeholder="YouTube channel URL"
                           />
                         </div>
+                     
 
                         {/* Website */}
                         <div className="flex items-center gap-3">

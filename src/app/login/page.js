@@ -6,6 +6,8 @@ import { useAuthStore } from "@/store/authStore";
 import { useState, useEffect, useRef } from "react";
 import { Mail, Lock, User, Phone, Eye, EyeOff, LogIn, UserPlus, Home, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AuthComponent() {
   const router = useRouter();
@@ -42,14 +44,14 @@ export default function AuthComponent() {
     const userData = await fetchUser();
 
     if (userData && userData.role) {      // ✅ null check
-      console.log("User data:", userData);
+  
       redirectByRole(userData.role);
       hasRedirected.current = true;
     } else {
       setIsLoading(false);
     }
   } catch (error) {
-    console.error("Auth check failed:", error);
+    toast.error("Auth check failed:", error);
     setIsLoading(false);
   }
 };
@@ -84,13 +86,13 @@ hasRedirected.current = true;
       if (isLogin) {
         // Login flow
         const data = await login(formData.email, formData.password);
-        alert("Login successful!");
-        console.log("Login successful, user:", data.role);
+        toast.success("Login successful!");
+       
         redirectByRole(data.role);
       } else {
         // Signup flow - validate passwords match
         if (formData.password !== formData.confirmPassword) {
-          alert("Passwords do not match");
+          toast.error("Passwords do not match");
           return;
         }
 
@@ -103,12 +105,12 @@ hasRedirected.current = true;
           formData.address
         );
         
-        alert("OTP sent to your email!");
+    toast.success("OTP sent to your email!");
         setPendingEmail(formData.email);
         setShowOtpModal(true);
       }
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "Something went wrong");
+    toast.error(err.response?.data?.message || err.message || "Something went wrong");
     }
   };
 
@@ -116,13 +118,21 @@ hasRedirected.current = true;
     e.preventDefault();
     
     if (!otp || otp.length < 6) {
-      alert("Please enter a valid 6-digit OTP");
+     toast("Please enter a valid 6-digit OTP", {
+  icon: "⚠️",
+  style: {
+    background: "linear-gradient(to right, #fbbf24, #fde68a)",
+    color: "#78350f",
+    fontWeight: "600",
+  },
+});
+
       return;
     }
 
     try {
       const data = await verifyOtp(pendingEmail, otp);
-      alert("Registration successful! Please login.");
+toast.success("Registration successful! Please login.");
       setShowOtpModal(false);
       setOtp("");
       setPendingEmail("");
@@ -136,23 +146,37 @@ hasRedirected.current = true;
         address: ""
       });
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "OTP verification failed");
+     
+      toast.error(err.response?.data?.message || err.message || "OTP verification failed");
     }
   };
 
   const handleForgotPassword = async () => {
     if (!forgotEmail || !forgotEmail.includes('@')) {
-      alert("Please enter a valid email address");
-      return;
+
+      toast.error("Please enter a valid email address", {
+  style: {
+    background: "linear-gradient(to right, #f97316, #fbbf24)",
+    color: "white",
+    fontWeight: "600",
+    borderRadius: "8px",
+  },
+  iconTheme: {
+    primary: "white",
+    secondary: "#f97316",
+  },
+});
+
     }
 
     try {
       await forgotPassword(forgotEmail);
-      alert("Password reset link sent to your email!");
+      toast.success("Password reset link sent to your email!");
       setShowForgotPassword(false);
       setForgotEmail("");
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "Failed to send reset link");
+
+      toast.error(err.response?.data?.message || err.message || "Failed to send reset link");
     }
   };
 
@@ -171,12 +195,25 @@ hasRedirected.current = true;
   // Show loading screen while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-semibold">Checking authentication...</p>
+       <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-400 animate-gradient-move">
+      {/* Glowing ring background */}
+      <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+
+      {/* Main loader */}
+      <div className="relative flex flex-col items-center justify-center z-10">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 blur-md opacity-75 animate-ping"></div>
+          <Loader2 className="w-16 h-16 text-white animate-spin relative z-10 drop-shadow-lg" />
         </div>
+
+        <h1 className="text-white text-2xl font-bold mt-6 drop-shadow-lg tracking-wide animate-pulse">
+          Preparing Your Experience...
+        </h1>
+        <p className="text-white/90 mt-2 text-sm font-medium">
+          Please wait a moment ✨
+        </p>
       </div>
+    </div>
     );
   }
 

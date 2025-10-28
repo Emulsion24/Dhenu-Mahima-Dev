@@ -24,13 +24,10 @@ export default function MessageSection() {
         setError(null);
         const res = await getMessage();
         
-        console.log("Message data:", res);
-        console.log("Type:", typeof res);
-        console.log("Has info?", res?.info);
-        console.log("Is empty object?", Object.keys(res || {}).length === 0);
+     
         
         // Check if response is empty object
-        if (!res || Object.keys(res).length === 0) {
+        if (!res.info || Object.keys(res).length === 0) {
           setError("No message found in database");
           setQuote("कोई संदेश उपलब्ध नहीं है। कृपया व्यवस्थापक पैनल से संदेश जोड़ें।");
           return;
@@ -58,7 +55,7 @@ export default function MessageSection() {
   const splitSentences = (text) => {
     if (!text || typeof text !== 'string') return [];
     return text
-      .split(/।|,|\.|!|\?|;/g)
+      .split(/\./g)
       .map(line => line.trim())
       .filter(line => line);
   };
@@ -163,7 +160,7 @@ export default function MessageSection() {
               style={{
                 fontFamily: "Noto Serif Devanagari, Georgia, serif",
                 textShadow: "1px 1px 2px rgba(0,0,0,0.25)",
-                lineHeight: "1.8",
+                lineHeight: "1.2",
               }}
             >
               {isLoading ? (

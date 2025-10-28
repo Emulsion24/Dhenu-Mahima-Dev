@@ -296,8 +296,8 @@ export default function AdminNewsPage() {
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">समाचार प्रबंधन</h1>
-              <p className="text-gray-600">News Management Dashboard</p>
+              <h1 className="text-3xl font-bold text-yellow-500 mb-2">समाचार प्रबंधन</h1>
+              <p className="text-orange-500 ">News Management Dashboard</p>
             </div>
             <button
               onClick={openAddModal}
@@ -315,23 +315,23 @@ export default function AdminNewsPage() {
           <div className="grid md:grid-cols-2 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-black" size={20} />
               <input
                 type="text"
                 placeholder="समाचार खोजें..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                className="w-full text-orange-500 pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
               />
             </div>
 
             {/* Category Filter */}
             <div className="relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-black" size={20} />
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none appearance-none"
+                className="w-full text-black pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none appearance-none"
               >
                 <option value="all">सभी श्रेणियाँ</option>
                 {categories.map(cat => (
@@ -357,13 +357,13 @@ export default function AdminNewsPage() {
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white">
                   <tr>
-                    <th className="px-6 py-4 text-left">छवि</th>
-                    <th className="px-6 py-4 text-left">शीर्षक</th>
-                    <th className="px-6 py-4 text-left">श्रेणी</th>
-                    <th className="px-6 py-4 text-left">तिथि</th>
-                    <th className="px-6 py-4 text-left">दृश्य</th>
-                    <th className="px-6 py-4 text-left">विशेष</th>
-                    <th className="px-6 py-4 text-center">कार्रवाई</th>
+                    <th className="px-6 py-4  text-left">छवि</th>
+                    <th className="px-6 py-4  text-left">शीर्षक</th>
+                    <th className="px-6 py-4  text-left">श्रेणी</th>
+                    <th className="px-6 py-4  text-left">तिथि</th>
+                    <th className="px-6 py-4  text-left">दृश्य</th>
+                    <th className="px-6 py-4  text-left">विशेष</th>
+                    <th className="px-6 py-4  text-center">कार्रवाई</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -471,7 +471,7 @@ export default function AdminNewsPage() {
                 {/* Image Upload */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">छवि अपलोड करें</label>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 text-black">
                     <div className="relative w-32 h-32 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden hover:border-orange-500 transition-colors">
                       {previewImage ? (
                         <img src={previewImage} alt="Preview" className="w-full h-full object-cover" />
@@ -484,7 +484,7 @@ export default function AdminNewsPage() {
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        className="absolute inset-0 opacity-0 cursor-pointer text-black"
                       />
                     </div>
                     <div className="flex-1">
@@ -510,19 +510,19 @@ export default function AdminNewsPage() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    className="w-full text-black px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                     placeholder="समाचार का शीर्षक हिंदी में..."
                   />
                 </div>
 
                 {/* Title English */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Title (English) *</label>
+                  <label className="block text-sm font-semibold text-black mb-2">Title (English) *</label>
                   <input
                     type="text"
                     value={formData.titleEn}
                     onChange={(e) => setFormData({ ...formData, titleEn: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    className="w-full text-black px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                     placeholder="News title in English..."
                   />
                 </div>
@@ -534,7 +534,7 @@ export default function AdminNewsPage() {
                     value={formData.excerpt}
                     onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                     rows="3"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    className="w-full px-4 text-black py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                     placeholder="समाचार का संक्षिप्त सारांश..."
                   />
                 </div>
@@ -546,7 +546,7 @@ export default function AdminNewsPage() {
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                      className="w-full px-4 py-3 border-2 text-black border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                     >
                       {categories.map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
@@ -559,7 +559,7 @@ export default function AdminNewsPage() {
                       type="text"
                       value={formData.date}
                       onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                      className="w-full px-4 py-3 border-2 text-black border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                       placeholder="15 अक्टूबर 2024"
                     />
                   </div>
@@ -569,7 +569,7 @@ export default function AdminNewsPage() {
                       type="text"
                       value={formData.readTime}
                       onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                      className="w-full text-black px-4 py-3 text-black border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                       placeholder="5 मिनट"
                     />
                   </div>
@@ -592,9 +592,9 @@ export default function AdminNewsPage() {
                 {/* Tags */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">टैग</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-2 ">
                     {formData.tags.map((tag, i) => (
-                      <span key={i} className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
+                      <span key={i} className=" bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-2">
                         {tag}
                         <button onClick={() => removeTag(tag)} className="hover:bg-orange-200 rounded-full p-0.5">
                           <X size={14} />
@@ -611,7 +611,7 @@ export default function AdminNewsPage() {
                         e.target.value = '';
                       }
                     }}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
+                    className="w-full text-black px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none"
                     placeholder="टैग जोड़ने के लिए Enter दबाएं..."
                   />
                 </div>
@@ -668,7 +668,7 @@ export default function AdminNewsPage() {
                                     newItems[itemIndex] = e.target.value;
                                     updateContentBlock(index, 'items', newItems);
                                   }}
-                                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                                  className="flex-1 text-black px-3 py-2 border border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
                                   placeholder="सूची आइटम..."
                                 />
                                 <button
@@ -694,7 +694,7 @@ export default function AdminNewsPage() {
                             value={block.text}
                             onChange={(e) => updateContentBlock(index, 'text', e.target.value)}
                             rows={block.type === 'heading' ? 1 : 3}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
+                            className="w-full text-black px-3 text-black py-2 border border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none"
                             placeholder={block.type === 'heading' ? 'शीर्षक...' : 'पैराग्राफ टेक्स्ट...'}
                           />
                         )}

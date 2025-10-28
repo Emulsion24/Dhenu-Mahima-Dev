@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import Headers from "@/components/Header";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, ChevronRight, ArrowRight } from "lucide-react";
+import {MessageCircleMore,Globe, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, ChevronRight, ArrowRight, Youtube } from "lucide-react";
 import API from "@/lib/api";
 
 export default function AboutUsPage() {
@@ -36,10 +36,12 @@ export default function AboutUsPage() {
             phone: safeParse(m.personalInfo)?.phone || "",
           },
           social: {
-            facebook: "#",
-            twitter: "#",
-            instagram: "#",
-            linkedin: "#",
+          facebook: safeParse(m.socialLinks)?.facebook || "#",
+        instagram: safeParse(m.socialLinks)?.instagram || "#",
+        twitter: safeParse(m.socialLinks)?.twitter || "#",
+        youtube: safeParse(m.socialLinks)?.youtube || "#",
+        whatsapp: safeParse(m.socialLinks)?.whatsapp || "#",
+        website: safeParse(m.socialLinks)?.website || "#",
           },
         }));
 
@@ -78,9 +80,19 @@ export default function AboutUsPage() {
     return (
       <>
         <Headers />
-        <div className="flex items-center justify-center h-screen">
-          <p className="text-orange-600 font-semibold text-lg">Loading members...</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-8 animate-pulse">
+  {[...Array(6)].map((_, i) => (
+    <div
+      key={i}
+      className="bg-white rounded-xl shadow-md p-4 space-y-4 border border-gray-100"
+    >
+      <div className="w-full h-40 bg-gray-200 rounded-lg"></div>
+      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  ))}
+</div>
+
         <Footer />
       </>
     );
@@ -229,12 +241,28 @@ export default function AboutUsPage() {
                             <Instagram size={18} />
                           </a>
                         )}
-                        {member.social.linkedin && (
+                        {member.social.whatsapp && (
                           <a
-                            href={member.social.linkedin}
+                            href={member.social.whatsapp}
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-green-700 to-green-800 flex items-center justify-center text-white hover:scale-110 transition-transform"
+                          >
+                            <MessageCircleMore size={18} />
+                          </a>
+                        )}
+                        {member.social.website && (
+                          <a
+                            href={member.social.website}
                             className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-700 to-blue-800 flex items-center justify-center text-white hover:scale-110 transition-transform"
                           >
-                            <Linkedin size={18} />
+                            <Globe size={18} />
+                          </a>
+                        )}
+                        {member.social.youtube && (
+                          <a
+                            href={member.social.youtube}
+                            className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-800 flex items-center justify-center text-white hover:scale-110 transition-transform"
+                          >
+                            <Youtube size={18} />
                           </a>
                         )}
                       </div>

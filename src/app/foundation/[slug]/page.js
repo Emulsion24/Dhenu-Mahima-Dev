@@ -5,6 +5,8 @@ import { ArrowLeft, Target, Heart, Users, TrendingUp, Mail, Phone, MapPin, Exter
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import API from '@/lib/api';
+import { Loader2 } from "lucide-react";
+
 
 export default function FoundationPage({ slug }) {
   const [foundation, setFoundation] = useState(null);
@@ -26,7 +28,21 @@ const params = useParams(); // Next.js hook to get URL params
     fetchFoundation();
   }, [currentSlug]);
 
-  if (loading) return <div className="text-center py-20">Loading...</div>;
+  if (loading) return (  <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 backdrop-blur-sm z-50">
+      <div className="bg-white/90 p-8 rounded-3xl shadow-2xl border border-white/30 flex flex-col items-center animate-fadeIn">
+        <div className="relative mb-4">
+          <Loader2 className="w-14 h-14 text-orange-600 animate-spin" />
+          <div className="absolute inset-0 w-14 h-14 border-4 border-amber-300 rounded-full animate-ping opacity-60" />
+        </div>
+
+        <h2 className="text-lg font-semibold text-gray-800 mb-1">
+          Fetching Details...
+        </h2>
+        <p className="text-sm text-gray-600">
+          Please wait while we load all the information.
+        </p>
+      </div>
+    </div>);
   if (!foundation) return <div className="text-center py-20">Foundation not found</div>;
 
   return (

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import API from "@/lib/api";
-
+import { Loader2 } from "lucide-react";
 export default function ProtectedUser({ children }) {
   const router = useRouter();
   const { user, setUser } = useAuthStore(); // ✅ fixed capitalization
@@ -54,12 +54,25 @@ export default function ProtectedUser({ children }) {
 
   if (loading || !authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-semibold text-lg">Verifying access...</p>
+   <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-400 animate-gradient-move">
+      {/* Glowing ring background */}
+      <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+
+      {/* Main loader */}
+      <div className="relative flex flex-col items-center justify-center z-10">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 blur-md opacity-75 animate-ping"></div>
+          <Loader2 className="w-16 h-16 text-white animate-spin relative z-10 drop-shadow-lg" />
         </div>
+
+        <h1 className="text-white text-2xl font-bold mt-6 drop-shadow-lg tracking-wide animate-pulse">
+          Preparing Your Experience...
+        </h1>
+        <p className="text-white/90 mt-2 text-sm font-medium">
+          Please wait a moment ✨
+        </p>
       </div>
+    </div>
     );
   }
 

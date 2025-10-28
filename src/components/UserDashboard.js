@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
@@ -16,7 +15,7 @@ import {
   Eye,
   ChevronLeft,
   Lock,
-  Loader2,
+Loader2 
 } from "lucide-react";
 
 export default function UserDashboard() {
@@ -156,12 +155,25 @@ export default function UserDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+  <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-400 animate-gradient-move">
+      {/* Glowing ring background */}
+      <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
+
+      {/* Main loader */}
+      <div className="relative flex flex-col items-center justify-center z-10">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 blur-md opacity-75 animate-ping"></div>
+          <Loader2 className="w-16 h-16 text-white animate-spin relative z-10 drop-shadow-lg" />
         </div>
+
+        <h1 className="text-white text-2xl font-bold mt-6 drop-shadow-lg tracking-wide animate-pulse">
+          Preparing Your Experience...
+        </h1>
+        <p className="text-white/90 mt-2 text-sm font-medium">
+          Please wait a moment ✨
+        </p>
       </div>
+    </div>
     );
   }
 
