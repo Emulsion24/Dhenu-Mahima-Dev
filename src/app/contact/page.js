@@ -77,7 +77,7 @@ const GaukathaPage = () => {
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value} = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -181,12 +181,12 @@ const GaukathaPage = () => {
              <div>
               <label htmlFor="contact" className="block text-sm font-medium text-gray-700">Email</label>
               <input 
-                type="mail" 
+                type="email" 
                 id="email" 
                 name="email" 
                 value={formData.email}
                 onChange={handleChange}
-                maxLength="10"
+                maxLength="100"
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-black" 
                 placeholder="example@email.com" 
                 required 
