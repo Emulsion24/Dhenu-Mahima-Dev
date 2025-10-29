@@ -16,9 +16,7 @@ import {
   Youtube,
   Globe,
   MessageCircleMore,
-  Phone,
-  Mail,
-  MapPin,
+
   Loader,
   AlertCircle,
   CheckCircle,
@@ -87,7 +85,7 @@ export default function GopalPariwarAdminPanel() {
       instagram: "",
       twitter: "",
       youtube: "",
-      website: "",
+      whatsapp: "",
     },
   });
 
@@ -952,7 +950,7 @@ if (loading) {
                           </div>
                           <input
                             type="url"
-                            value={formData.socialLinks?.whatsapp || ""}
+                            value={formData.socialLinks?.whatsapp|| ""}
                             onChange={(e) => handleNestedChange('socialLinks', 'whatsapp', e.target.value)}
                             className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-slate-800"
                             placeholder="WhatsApp URL"
@@ -973,7 +971,7 @@ if (loading) {
                         </div>
                      
 
-                        {/* Website */}
+  
                         
                       </div>
                     </div>

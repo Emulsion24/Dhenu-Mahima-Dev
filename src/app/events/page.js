@@ -89,7 +89,7 @@ export default function AgamiKatha() {
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-3 drop-shadow-2xl leading-tight">
-              ग्वाल संत श्री के
+              परम पूज्य ग्वाल संत श्री के
             </h1>
             <h2 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 drop-shadow-2xl leading-tight bg-gradient-to-r from-yellow-200 via-white to-yellow-200 bg-clip-text text-transparent">
               आगामी कथा एवं आयोजन

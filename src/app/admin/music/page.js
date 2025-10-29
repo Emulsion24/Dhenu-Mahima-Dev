@@ -194,7 +194,7 @@ export default function BhajanPage() {
       if (response.data && (response.data.id || response.data._id || response.data.data)) {
         await fetchBhajans();
         resetForm();
-        alert(editBhajan ? "Bhajan updated successfully!" : "Bhajan added successfully!");
+        alert(editBhajan ? "Jeevansutra updated successfully!" : "Jeevansutra added successfully!");
       } else {
         alert(response.data.message || "Failed to save bhajan");
       }
@@ -361,7 +361,7 @@ export default function BhajanPage() {
               Jeevan Sutra Management
             </h1>
           </div>
-          <p className="text-neutral-600 text-sm sm:text-base ml-9 sm:ml-14">Manage your spiritual music collection</p>
+         
         </div>
 
         <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm">
@@ -370,7 +370,7 @@ export default function BhajanPage() {
               <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4 sm:w-5 sm:h-5" />
               <input
                 type="text"
-                placeholder="Search by name, artist, or album..."
+                placeholder="Search by jeevansutra,artist-name.."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-purple-50 border border-purple-100 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 placeholder-neutral-400 text-sm sm:text-base"
@@ -385,8 +385,8 @@ export default function BhajanPage() {
                 }}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg sm:rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-md font-medium text-sm sm:text-base"
               >
-                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Record</span>
+                <Mic className="w-4 h-4 sm:w-5 sm:h-5" />Record Jeevansutra
+
               </button>
               <button
                 onClick={() => {
@@ -395,8 +395,7 @@ export default function BhajanPage() {
                 }}
                 className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg sm:rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-md font-medium text-sm sm:text-base"
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="hidden xs:inline">Add Bhajan</span>
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Upload Jeevansutra
               </button>
             </div>
           </div>
@@ -406,7 +405,7 @@ export default function BhajanPage() {
           <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-5 shadow-sm">
             <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
               <div className="text-center sm:text-left">
-                <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Total</p>
+                <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Total Jeevansutra</p>
                 <p className="text-xl sm:text-2xl font-bold text-neutral-900">{totalCount}</p>
               </div>
               <div className="p-2 sm:p-3 bg-purple-100 rounded-lg sm:rounded-xl">
@@ -425,23 +424,13 @@ export default function BhajanPage() {
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 p-3 sm:p-5 shadow-sm">
-            <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
-              <div className="text-center sm:text-left">
-                <p className="text-neutral-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Albums</p>
-                <p className="text-xl sm:text-2xl font-bold text-neutral-900">{uniqueAlbums}</p>
-              </div>
-              <div className="p-2 sm:p-3 bg-rose-100 rounded-lg sm:rounded-xl">
-                <Album className="w-4 h-4 sm:w-6 sm:h-6 text-rose-600" />
-              </div>
-            </div>
-          </div>
+          
         </div>
 
         {search && !loading && (
           <div className="mb-4 px-2">
             <p className="text-sm text-neutral-600">
-              Found <span className="font-semibold text-purple-600">{totalCount}</span> bhajan{totalCount !== 1 ? 's' : ''}
+              Found <span className="font-semibold text-purple-600">{totalCount}</span> Jeevansutra{totalCount !== 1 ? 's' : ''}
               {search && ` matching "${search}"`}
             </p>
           </div>
@@ -450,7 +439,7 @@ export default function BhajanPage() {
         {loading && (
           <div className="text-center py-12">
             <div className="inline-block w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-            <p className="text-neutral-600 mt-3 font-medium">Loading bhajans...</p>
+            <p className="text-neutral-600 mt-3 font-medium">Loading Jeevansutra...</p>
           </div>
         )}
 
@@ -611,7 +600,7 @@ export default function BhajanPage() {
               </button>
 
               <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent pr-8">
-                {modalType === "record" ? "Record Bhajan" : editBhajan ? "Edit Bhajan" : "Add New Bhajan"}
+                {modalType === "record" ? "Record Jeevansutra" : editBhajan ? "Edit Jeevansutra" : "Add Jeevansutra"}
               </h2>
 
               {modalType === "record" && (
@@ -707,11 +696,11 @@ export default function BhajanPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">
-                    Bhajan Name <span className="text-red-500">*</span>
+                    Jeevansutra Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter bhajan name"
+                    placeholder="Enter Jeevansutra name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
@@ -731,16 +720,7 @@ export default function BhajanPage() {
                   />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">Album Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter album name"
-                    value={formData.album}
-                    onChange={(e) => setFormData({ ...formData, album: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
-                  />
-                </div>
+                
               </div>
 
               <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
@@ -756,7 +736,7 @@ export default function BhajanPage() {
                   className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all shadow-md font-medium text-sm sm:text-base disabled:opacity-50"
                   disabled={loading}
                 >
-                  {loading ? "Saving..." : editBhajan ? "Update Bhajan" : "Save Bhajan"}
+                  {loading ? "Saving..." : editBhajan ? "Update Jeevansutra" : "Save Jeevansutra"}
                 </button>
               </div>
             </div>
