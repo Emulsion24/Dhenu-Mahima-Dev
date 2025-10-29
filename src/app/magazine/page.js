@@ -122,23 +122,25 @@ export default function MagazineMembership() {
         console.log(response)
         if (response.data.success) {
           const state = response.data.data.state;
-          
+          const amountp=parseInt(response.data.data.amount);
+          const orderID=response.data.data.orderId;
+          const amount=amountp/100;
           if (state === 'COMPLETED') {
             clearInterval(interval);
             setPaymentStatus('success');
             setPollingInterval(null);
             
             // Redirect to success page after 2 seconds
-            setTimeout(() => {
-              window.location.href = '/magazine';
-            }, 2000);
+            
+              window.location.href = `/magazine-status?status=${state}&txn=${orderID}&amount=${amount}`;
+            
           } else if (state === 'FAILED') {
             clearInterval(interval);
             setPaymentStatus('failed');
             setPollingInterval(null);
-              setTimeout(() => {
-              window.location.href = '/magazine';
-            }, 2000);
+             
+              window.location.href = `/magazine-status?status=${state}&txn=${orderID}&amount=${amount}`;
+         
           }
         }
       } catch (error) {
