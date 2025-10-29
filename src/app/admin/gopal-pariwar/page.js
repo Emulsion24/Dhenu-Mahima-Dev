@@ -777,18 +777,7 @@ if (loading) {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-bold text-slate-800 mb-2">
-                        Qualifications
-                      </label>
-                      <textarea
-                        value={formData.spiritualEducation?.qualifications || ""}
-                        onChange={(e) => handleNestedChange('spiritualEducation', 'qualifications', e.target.value)}
-                        rows="3"
-                        className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-slate-800 font-medium resize-none"
-                        placeholder="Special qualifications and achievements"
-                      />
-                    </div>
+                   
 
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-2">

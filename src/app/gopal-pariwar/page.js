@@ -4,6 +4,14 @@ import Headers from "@/components/Header";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {MessageCircleMore,Globe, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, ChevronRight, ArrowRight, Youtube } from "lucide-react";
+import { 
+  FaFacebook, 
+  FaTwitter, 
+  FaInstagram, 
+  FaYoutube,
+  FaWhatsapp,
+  FaLinkedin 
+} from 'react-icons/fa';
 import API from "@/lib/api";
 
 export default function AboutUsPage() {
@@ -35,12 +43,12 @@ export default function AboutUsPage() {
             phone: safeParse(m.personalInfo)?.phone || "",
           },
           social: {
-          facebook: safeParse(m.socialLinks)?.facebook || "#",
-        instagram: safeParse(m.socialLinks)?.instagram || "#",
-        twitter: safeParse(m.socialLinks)?.twitter || "#",
-        youtube: safeParse(m.socialLinks)?.youtube || "#",
-        whatsapp: safeParse(m.socialLinks)?.whatsapp || "#",
-        website: safeParse(m.socialLinks)?.website || "#",
+          facebook: safeParse(m.socialLinks)?.facebook || "",
+        instagram: safeParse(m.socialLinks)?.instagram || "",
+        twitter: safeParse(m.socialLinks)?.twitter || "",
+        youtube: safeParse(m.socialLinks)?.youtube || "",
+        whatsapp: safeParse(m.socialLinks)?.whatsapp || "",
+    
           },
         }));
 
@@ -234,7 +242,7 @@ export default function AboutUsPage() {
                             href={member.social.instagram}
                             className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white hover:scale-110 transition-transform"
                           >
-                            <Instagram size={18} />
+                            < FaInstagram size={18} />
                           </a>
                         )}
                         {member.social.whatsapp && (
@@ -242,17 +250,10 @@ export default function AboutUsPage() {
                             href={member.social.whatsapp}
                             className="w-10 h-10 rounded-full bg-gradient-to-br from-green-700 to-green-800 flex items-center justify-center text-white hover:scale-110 transition-transform"
                           >
-                            <MessageCircleMore size={18} />
+                            <FaWhatsapp size={18} />
                           </a>
                         )}
-                        {member.social.website && (
-                          <a
-                            href={member.social.website}
-                            className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-700 to-blue-800 flex items-center justify-center text-white hover:scale-110 transition-transform"
-                          >
-                            <Globe size={18} />
-                          </a>
-                        )}
+                        
                         {member.social.youtube && (
                           <a
                             href={member.social.youtube}
