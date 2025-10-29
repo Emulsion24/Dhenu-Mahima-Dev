@@ -225,7 +225,7 @@ export default function GopalPariwarAdminPanel() {
         twitter: "",
         youtube: "",
         whatsapp: "",
-        website: "",
+      
       },
     });
     setImagePreview("");
@@ -236,16 +236,41 @@ export default function GopalPariwarAdminPanel() {
   };
 
   // Open Edit Modal
-const safeParse = (data) => {
-  try {
-    // If it's a string, try parsing it
-    const parsed = typeof data === "string" ? JSON.parse(data) : data;
-    // If result is still a string (double encoded), parse again
-    return typeof parsed === "string" ? JSON.parse(parsed) : parsed;
-  } catch {
-    return {}; // return empty object if invalid JSON
-  }
-};
+const safeParse = (value) => {
+    try {
+      // Handle null, undefined, or empty values
+      if (!value) return {};
+      
+      // If already an object, return it
+      if (typeof value === "object") return value;
+      
+      // Try to parse string
+      if (typeof value === "string") {
+        let cleaned = value.trim();
+        
+        // Handle double-stringified JSON
+        if (cleaned.startsWith('"')) {
+          cleaned = JSON.parse(cleaned);
+        }
+        
+        // Fix incomplete JSON by removing trailing incomplete properties
+        // Pattern: ends with ," or ,} or just ,
+        cleaned = cleaned.replace(/,\s*["{]?\s*$/, '');
+        
+        // Ensure it ends with }
+        if (!cleaned.endsWith('}')) {
+          cleaned += '}';
+        }
+        
+        return JSON.parse(cleaned);
+      }
+      
+      return {};
+    } catch (error) {
+      console.error("Parse error for value:", value, error);
+      return {};
+    }
+  };
 
 const safeParseArray = (data) => {
   try {
@@ -290,7 +315,7 @@ const openEditModal = (member) => {
       instagram: parsedSocialLinks?.instagram || "",
       twitter: parsedSocialLinks?.twitter || "",
       youtube: parsedSocialLinks?.youtube || "",
-      website: parsedSocialLinks?.website || "",
+      whatsapp: parsedSocialLinks?.whatsapp || "",
     },
   });
 
@@ -949,18 +974,7 @@ if (loading) {
                      
 
                         {/* Website */}
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-slate-100 text-slate-600 rounded-lg">
-                            <Globe size={20} />
-                          </div>
-                          <input
-                            type="url"
-                            value={formData.socialLinks?.website || ""}
-                            onChange={(e) => handleNestedChange('socialLinks', 'website', e.target.value)}
-                            className="flex-1 px-4 py-2 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-slate-800"
-                            placeholder="Personal website URL"
-                          />
-                        </div>
+                        
                       </div>
                     </div>
                   </div>

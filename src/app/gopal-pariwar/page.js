@@ -19,7 +19,41 @@ export default function AboutUsPage() {
   const [teamMembers, setTeamMembers] = useState([]); // 🔹 Replaces static array
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
+const safeParse = (value) => {
+    try {
+      // Handle null, undefined, or empty values
+      if (!value) return {};
+      
+      // If already an object, return it
+      if (typeof value === "object") return value;
+      
+      // Try to parse string
+      if (typeof value === "string") {
+        let cleaned = value.trim();
+        
+        // Handle double-stringified JSON
+        if (cleaned.startsWith('"')) {
+          cleaned = JSON.parse(cleaned);
+        }
+        
+        // Fix incomplete JSON by removing trailing incomplete properties
+        // Pattern: ends with ," or ,} or just ,
+        cleaned = cleaned.replace(/,\s*["{]?\s*$/, '');
+        
+        // Ensure it ends with }
+        if (!cleaned.endsWith('}')) {
+          cleaned += '}';
+        }
+        
+        return JSON.parse(cleaned);
+      }
+      
+      return {};
+    } catch (error) {
+      console.error("Parse error for value:", value, error);
+      return {};
+    }
+  };
   // ✅ Fetch data from backend
   useEffect(() => {
     const fetchMembers = async () => {
@@ -64,15 +98,7 @@ export default function AboutUsPage() {
   }, []);
 
   // Helper for safe JSON parsing (handles double-stringified data)
-  const safeParse = (value) => {
-    try {
-      return JSON.parse(
-        typeof value === "string" && value.startsWith('"') ? JSON.parse(value) : value
-      );
-    } catch {
-      return {};
-    }
-  };
+  
 
   const toggleExpand = (id) => {
     setExpandedMember(expandedMember === id ? null : id);

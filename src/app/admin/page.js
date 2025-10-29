@@ -28,11 +28,11 @@ export default function AdminDashboard() {
   // Quick Actions Config
   const quickActions = [
     { name: "Add User", link: "/admin/users", icon: UserPlus, color: "from-blue-500 to-blue-600", hoverColor: "hover:from-blue-600 hover:to-blue-700" },
-    { name: "Add Bhajan", link: "/admin/music", icon: Music, color: "from-purple-500 to-purple-600", hoverColor: "hover:from-purple-600 hover:to-purple-700" },
-    { name: "Upload PDF", link: "/admin/pdf-book", icon: FilePlus, color: "from-pink-500 to-pink-600", hoverColor: "hover:from-pink-600 hover:to-pink-700" },
-    { name: "Send Message", link: "/admin/director-message", icon: MessageCircle, color: "from-green-500 to-green-600", hoverColor: "hover:from-green-600 hover:to-green-700" },
+    { name: "Add Jeevansutra", link: "/admin/music", icon: Music, color: "from-purple-500 to-purple-600", hoverColor: "hover:from-purple-600 hover:to-purple-700" },
+    { name: "Upload PDF-Book", link: "/admin/pdf-book", icon: FilePlus, color: "from-pink-500 to-pink-600", hoverColor: "hover:from-pink-600 hover:to-pink-700" },
+    { name: "Directer Message", link: "/admin/director-message", icon: MessageCircle, color: "from-green-500 to-green-600", hoverColor: "hover:from-green-600 hover:to-green-700" },
     { name: "Add News", link: "/admin/news", icon: Newspaper, color: "from-orange-500 to-orange-600", hoverColor: "hover:from-orange-600 hover:to-orange-700" },
-    { name: "Record Bhajan", link: "/admin/music", icon: Mic, color: "from-red-500 to-red-600", hoverColor: "hover:from-red-600 hover:to-red-700" },
+    { name: "Record Jeevansutra", link: "/admin/music", icon: Mic, color: "from-red-500 to-red-600", hoverColor: "hover:from-red-600 hover:to-red-700" },
   ];
 
   return (
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
           Welcome Back, Admin! 👋
         </h1>
         <p className="text-slate-600 text-sm sm:text-base font-medium">
-          Here’s what’s happening with your platform today
+          Here's what's happening with your platform today
         </p>
       </div>
 

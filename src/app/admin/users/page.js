@@ -19,7 +19,8 @@ export default function UsersPage() {
     email: "", 
     phone: "", 
     role: "user",
-    password: "" 
+    password: "" ,
+    isVerified:''
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,6 +95,7 @@ const handleAddUser = async () => {
         email: formUser.email,
         phone: formUser.phone,
         role: formUser.role,
+        
         ...(formUser.password && { password: formUser.password }),
       });
 
@@ -105,6 +107,7 @@ const handleAddUser = async () => {
         email: formUser.email,
         phone: formUser.phone,
         role: formUser.role,
+   
         password: formUser.password,
       });
 
@@ -416,6 +419,7 @@ const handleAddUser = async () => {
                     <option value="user">User</option>
                   </select>
                 </div>
+               
               </div>
 
               <div className="flex gap-3 mt-8">
