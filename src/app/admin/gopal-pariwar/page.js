@@ -465,7 +465,7 @@ if (loading) {
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-xl hover:from-orange-700 hover:to-amber-700 transition-all shadow-lg font-semibold"
             >
               <Plus size={20} />
-              Add Maharaj
+             Add Member
             </button>
           </div>
         </div>
@@ -583,13 +583,13 @@ if (loading) {
                   <div className="space-y-6">
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                       <Image className="text-orange-600" />
-                      Hero Section
+                      Profile section
                     </h3>
 
                     {/* Photo Upload */}
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-2">
-                        Hero Image <span className="text-red-500">*</span>
+                        Profile Image <span className="text-red-500">*</span>
                       </label>
                       <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-orange-500 transition-colors">
                         {imagePreview ? (
@@ -634,7 +634,7 @@ if (loading) {
                     {/* Hero Title */}
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-2">
-                        Hero Title <span className="text-red-500">*</span>
+                        Name in Hindi <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -650,7 +650,7 @@ if (loading) {
                     {/* Hero Subtitle */}
                     <div>
                       <label className="block text-sm font-bold text-slate-800 mb-2">
-                        Hero Subtitle
+                        Name in English
                       </label>
                       <input
                         type="text"
