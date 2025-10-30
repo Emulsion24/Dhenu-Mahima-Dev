@@ -382,7 +382,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
 
   const tabs = [
     { id: "basic", label: "Basic Info" },
-    { id: "stats", label: "Statistics" },
+
     { id: "activities", label: "Activities" },
     { id: "objectives", label: "Objectives" },
     { id: "supportive", label: "Supportive" },
@@ -600,7 +600,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       type="text"
                       value={selectedFoundation.name}
                       onChange={(e) => updateFoundation("name", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                       placeholder="Foundation name in Hindi"
                     />
@@ -615,7 +615,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
       type="text"
       value={selectedFoundation.order||"no order"}
       onChange={(e) => updateFoundation("order", e.target.value)}
-      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
       placeholder="Order (e.g., 1, 2, 3...)"
     />
@@ -632,7 +632,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       type="text"
                       value={selectedFoundation.tagline}
                       onChange={(e) => updateFoundation("tagline", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                       placeholder="Tagline"
                     />
@@ -646,7 +646,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       type="text"
                       value={selectedFoundation.established}
                       onChange={(e) => updateFoundation("established", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       placeholder="2023"
                     />
                   </div>
@@ -659,7 +659,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       value={selectedFoundation.description}
                       onChange={(e) => updateFoundation("description", e.target.value)}
                       rows="6"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                       placeholder="Foundation description in Hindi"
                     />
@@ -668,43 +668,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
               )}
 
               {/* Statistics Tab */}
-              {activeTab === "stats" && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-orange-900 mb-6">Statistics</h2>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {selectedFoundation.stats.map((stat, index) => (
-                      <div key={index} className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition">
-                        <div className="mb-4">
-                          <label className="block text-gray-700 font-semibold mb-2">
-                            Label (लेबल)
-                          </label>
-                          <input
-                            type="text"
-                            value={stat.label}
-                            onChange={(e) => handleStatChange(index, "label", e.target.value)}
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-                            style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
-                            placeholder="Statistic label"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-gray-700 font-semibold mb-2">
-                            Value
-                          </label>
-                          <input
-                            type="text"
-                            value={stat.value}
-                            onChange={(e) => handleStatChange(index, "value", e.target.value)}
-                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-                            placeholder="150+"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+             
               {/* Key Activities Tab */}
               {activeTab === "activities" && (
                 <div className="space-y-6">
@@ -868,7 +832,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       type="email"
                       value={selectedFoundation.contact.email}
                       onChange={(e) => handleContactChange("email", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       placeholder="email@example.com"
                     />
                   </div>
@@ -881,7 +845,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       type="tel"
                       value={selectedFoundation.contact.phone}
                       onChange={(e) => handleContactChange("phone", e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       placeholder="+91 98765 43210"
                     />
                   </div>
@@ -894,7 +858,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       value={selectedFoundation.contact.address}
                       onChange={(e) => handleContactChange("address", e.target.value)}
                       rows="4"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       placeholder="Full address"
                     />
                   </div>
@@ -906,7 +870,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       value={selectedFoundation.contact.website }
                       onChange={(e) => handleContactChange("website", e.target.value)}
                       rows="4"
-                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                     className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       placeholder="Website Link"
                     />
                   </div>
@@ -949,7 +913,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                         type="text"
                         value={tempData.title || ""}
                         onChange={(e) => setTempData({ ...tempData, title: e.target.value })}
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                        className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                         style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                         placeholder="Objective title"
                       />
@@ -962,7 +926,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                         value={tempData.description || ""}
                         onChange={(e) => setTempData({ ...tempData, description: e.target.value })}
                         rows="6"
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                        className="w-full px-4 text-gray-800 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                         style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                         placeholder="Objective description"
                       />
@@ -977,7 +941,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       value={tempData.text || ""}
                       onChange={(e) => setTempData({ ...tempData, text: e.target.value })}
                       rows="6"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                       placeholder={`Enter ${modalType === "activity" ? "activity" : "supportive objective"} text`}
                     />

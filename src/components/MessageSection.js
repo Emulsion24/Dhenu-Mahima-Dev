@@ -8,8 +8,106 @@ export default function MessageSection() {
   const [quote, setQuote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sunData, setSunData] = useState({ sunrise: "6:18 AM", sunset: "5:15 PM" });
+  const [tithi, setTithi] = useState("आश्विन शुक्ल पक्ष चतुर्थी");
+  const [loadingSunData, setLoadingSunData] = useState(true);
 
   const { getMessage } = useLandingStore();
+
+  // Fetch sunrise/sunset data
+  useEffect(() => {
+    const fetchSunData = async () => {
+      try {
+        setLoadingSunData(true);
+        // Using New Delhi coordinates
+        const lat = 28.6139;
+        const lng = 77.2090;
+        
+        // Fetch from sunrise-sunset.org API (free, no API key needed)
+        const response = await fetch(
+          `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`
+        );
+        const data = await response.json();
+        
+        if (data.status === "OK") {
+          // Convert UTC to IST and format
+          const sunriseUTC = new Date(data.results.sunrise);
+          const sunsetUTC = new Date(data.results.sunset);
+          
+          const formatTime = (date) => {
+            return date.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              hour12: true,
+              timeZone: "Asia/Kolkata"
+            });
+          };
+          
+          setSunData({
+            sunrise: formatTime(sunriseUTC),
+            sunset: formatTime(sunsetUTC)
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching sun data:", err);
+        // Keep default values if API fails
+      } finally {
+        setLoadingSunData(false);
+      }
+    };
+
+    fetchSunData();
+  }, []);
+
+  // Fetch Hindi Tithi
+  useEffect(() => {
+    const fetchTithi = async () => {
+      try {
+        const today = new Date();
+        const day = today.getDate();
+        const month = today.getMonth() + 1;
+        const year = today.getFullYear();
+        
+        // Using Indian Astrology API (free tier available)
+        // Alternative: You can also use https://api.vedicrishiastro.com/
+        const response = await fetch(
+          `https://json.astrologyapi.com/v1/panchang/tithi`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Note: You'll need to sign up for a free API key at https://astrologyapi.com
+              // For demo purposes, keeping the default tithi
+            },
+            body: JSON.stringify({
+              day: day,
+              month: month,
+              year: year,
+              hour: 12,
+              min: 0,
+              lat: 28.6139,
+              lon: 77.2090,
+              tzone: 5.5
+            })
+          }
+        );
+        
+        // If API call fails or you don't have API key, it will keep default tithi
+        if (response.ok) {
+          const data = await response.json();
+          if (data.tithi_name) {
+            setTithi(data.tithi_name);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching tithi:", err);
+        // Keep default tithi value
+      }
+    };
+
+    // Uncomment when you have API key
+    // fetchTithi();
+  }, []);
 
   useEffect(() => {
     const today = new Date();
@@ -24,16 +122,12 @@ export default function MessageSection() {
         setError(null);
         const res = await getMessage();
         
-     
-        
-        // Check if response is empty object
         if (!res.info || Object.keys(res).length === 0) {
           setError("No message found in database");
           setQuote("कोई संदेश उपलब्ध नहीं है। कृपया व्यवस्थापक पैनल से संदेश जोड़ें।");
           return;
         }
         
-        // Check if response has info property
         if (res.info && typeof res.info === 'string') {
           setQuote(res.info);
         } else {
@@ -60,6 +154,12 @@ export default function MessageSection() {
       .filter(line => line);
   };
 
+  const handleDateClick = () => {
+
+    window.location.href = "/calendar";
+
+  };
+
   return (
     <section id="director-message" className="relative py-24 overflow-hidden bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
       <div className="absolute bottom-0 left-0 right-0 rotate-180">
@@ -79,15 +179,23 @@ export default function MessageSection() {
           <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
           <div className="text-left">
             <p className="text-[10px] sm:text-xs font-semibold text-stone-700 uppercase">Sunrise</p>
-            <p className="text-sm sm:text-base font-bold text-orange-700">6:18 AM</p>
+            <p className="text-sm sm:text-base font-bold text-orange-700">
+              {loadingSunData ? "..." : sunData.sunrise}
+            </p>
           </div>
         </div>
 
-        {/* Date Card */}
-        <div className="flex-1 flex flex-col items-center bg-white/75 backdrop-blur-md rounded-3xl shadow-lg px-4 py-3 border border-yellow-300 hover:-translate-y-1 transition-transform duration-300 min-w-[90px] sm:min-w-[140px]">
+        {/* Date Card - Now Clickable */}
+        <div 
+          onClick={handleDateClick}
+          className="flex-1 flex flex-col items-center bg-white/75 backdrop-blur-md rounded-3xl shadow-lg px-4 py-3 border border-yellow-300 hover:-translate-y-1 hover:shadow-xl hover:border-yellow-400 transition-all duration-300 min-w-[90px] sm:min-w-[140px] cursor-pointer active:scale-95"
+        >
           <p className="text-xs sm:text-sm font-bold text-stone-800">{date}</p>
           <p className="text-[10px] sm:text-[11px] text-orange-800 font-bold leading-tight text-center" style={{ fontFamily: "Noto Serif Devanagari, serif" }}>
-            आश्विन शुक्ल पक्ष चतुर्थी
+            {tithi}
+          </p>
+          <p className="text-[8px] sm:text-[9px] text-orange-600 mt-1 font-medium">
+            (पंचांग देखें)
           </p>
         </div>
 
@@ -96,7 +204,9 @@ export default function MessageSection() {
           <Sunset className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
           <div className="text-left">
             <p className="text-[10px] sm:text-xs font-semibold text-stone-700 uppercase">Sunset</p>
-            <p className="text-sm sm:text-base font-bold text-red-700">5:15 PM</p>
+            <p className="text-sm sm:text-base font-bold text-red-700">
+              {loadingSunData ? "..." : sunData.sunset}
+            </p>
           </div>
         </div>
       </div>

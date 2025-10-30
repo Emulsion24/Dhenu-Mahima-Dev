@@ -16,6 +16,7 @@ import {
   Filter
 } from "lucide-react";
 import API from "@/lib/api";
+import { FaRupeeSign } from "react-icons/fa";
 
 export default function DonationsPage() {
   const [donations, setDonations] = useState([]);
@@ -181,7 +182,7 @@ export default function DonationsPage() {
       case "phonepe":
         return <Smartphone size={18} />;
       default:
-        return <DollarSign size={18} />;
+        return <FaRupeeSign size={18} />;
     }
   };
 
@@ -199,13 +200,7 @@ export default function DonationsPage() {
               <p className="text-slate-600 font-medium">Transaction History & Management</p>
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={openAddModal}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl font-semibold"
-              >
-                <Plus size={20} />
-                <span className="font-semibold">Add Donation</span>
-              </button>
+             
             </div>
           </div>
         </div>
@@ -215,7 +210,7 @@ export default function DonationsPage() {
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-lg p-6 text-white border-2 border-blue-500">
             <div className="flex items-center justify-between mb-2">
               <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                <DollarSign size={28} className="font-bold" />
+                <FaRupeeSign size={18} className="font-bold" />
               </div>
               <TrendingUp size={24} className="text-blue-200" />
             </div>
@@ -389,7 +384,7 @@ export default function DonationsPage() {
               {/* Empty State */}
               {donations.length === 0 && !loading && (
                 <div className="text-center py-16">
-                  <DollarSign size={64} className="mx-auto text-slate-300 mb-4" />
+                  <FaRupeeSign  size={64} className="mx-auto text-slate-300 mb-4" />
                   <h3 className="text-xl font-bold text-slate-800 mb-2">No donations found</h3>
                   <p className="text-slate-600 font-medium">Try adjusting your search or filters</p>
                 </div>
@@ -514,7 +509,7 @@ export default function DonationsPage() {
               </div>
             </div>
 
-            {/* Showing X-Y of Z */}
+   
             <div className="mt-4 text-center text-slate-600 font-medium">
               Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of{" "}
               {totalCount} donations
@@ -522,117 +517,9 @@ export default function DonationsPage() {
           </div>
         )}
 
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 flex justify-between items-center rounded-t-2xl shadow-lg">
-                <h2 className="text-2xl font-bold">Add New Donation</h2>
-                <button
-                  onClick={closeModal}
-                  className="text-white hover:bg-white/20 transition-colors p-2 rounded-full"
-                >
-                  <X size={24} />
-                </button>
-              </div>
 
-              {/* Modal Body */}
-              <div className="p-6 space-y-6">
-                {/* Donor Name */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">
-                    Donor Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-800 font-medium"
-                    placeholder="Enter donor name"
-                  />
-                </div>
+        
 
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-800 font-medium"
-                    placeholder="donor@example.com"
-                  />
-                </div>
-
-                {/* Amount */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">
-                    Donation Amount *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-600 font-bold text-lg">
-                      ₹
-                    </span>
-                    <input
-                      type="number"
-                      name="amount"
-                      value={formData.amount}
-                      onChange={handleInputChange}
-                      required
-                      min="1"
-                      className="w-full pl-10 pr-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-800 font-bold text-lg"
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-
-                {/* PAN Last 4 Digits */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">
-                    PAN Last 4 Digits (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="pan"
-                    value={formData.pan}
-                    onChange={handleInputChange}
-                    maxLength="4"
-                    pattern="[0-9A-Za-z]{4}"
-                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-800 font-bold text-lg"
-                    placeholder="1234"
-                  />
-                </div>
-
-                {/* Submit Buttons */}
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 px-6 py-3 border-2 border-slate-400 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-bold shadow-md"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-bold shadow-lg hover:shadow-xl"
-                  >
-                    Proceed to Payment
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Footer Summary */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mt-6 border border-slate-200">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-slate-700 font-bold text-base">

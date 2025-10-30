@@ -185,20 +185,20 @@ export default function TermsConditionsAdmin() {
                 type="text"
                 value={termsData.title}
                 onChange={(e) => handleBasicInfoChange('title', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                 placeholder="Terms of Seva (Service)"
               />
             </div>
 
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">
+              <label className="block text-gray-800 font-semibold mb-2">
                 Subtitle
               </label>
               <textarea
                 value={termsData.subtitle}
                 onChange={(e) => handleBasicInfoChange('subtitle', e.target.value)}
                 rows="3"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                 placeholder="Brief description"
               />
             </div>
@@ -208,12 +208,12 @@ export default function TermsConditionsAdmin() {
                 Last Updated Date
               </label>
               <div className="relative">
-                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-800" size={20} />
                 <input
                   type="text"
                   value={termsData.lastUpdated}
                   onChange={(e) => handleBasicInfoChange('lastUpdated', e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                   placeholder="October 5, 2025"
                 />
               </div>
@@ -305,7 +305,7 @@ export default function TermsConditionsAdmin() {
                   type="email"
                   value={termsData.contact.email}
                   onChange={(e) => handleContactChange('email', e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                   placeholder="seva@example.com"
                 />
               </div>
@@ -321,7 +321,7 @@ export default function TermsConditionsAdmin() {
                   type="tel"
                   value={termsData.contact.phone}
                   onChange={(e) => handleContactChange('phone', e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                   placeholder="+91 123 456 7890"
                 />
               </div>
@@ -335,7 +335,7 @@ export default function TermsConditionsAdmin() {
                 type="text"
                 value={termsData.contact.phoneHours}
                 onChange={(e) => handleContactChange('phoneHours', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                className="w-full px-4 text-gray-800 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                 placeholder="Mon-Fri, 9am - 5pm IST"
               />
             </div>
@@ -350,7 +350,7 @@ export default function TermsConditionsAdmin() {
                   value={termsData.contact.address}
                   onChange={(e) => handleContactChange('address', e.target.value)}
                   rows="3"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                   placeholder="Full mailing address"
                 />
               </div>
@@ -387,7 +387,7 @@ export default function TermsConditionsAdmin() {
                     type="text"
                     value={tempData.title || ''}
                     onChange={(e) => setTempData({ ...tempData, title: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                    className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                     placeholder="e.g., Community Dharma"
                   />
                 </div>
@@ -400,7 +400,7 @@ export default function TermsConditionsAdmin() {
                     value={tempData.content || ''}
                     onChange={(e) => setTempData({ ...tempData, content: e.target.value })}
                     rows="12"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none font-mono text-sm"
+                    className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none font-mono text-sm"
                     placeholder="Enter the content for this section. Use \n\n for paragraphs and • for bullet points."
                   />
                   <p className="text-sm text-gray-500 mt-2">

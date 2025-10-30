@@ -232,7 +232,7 @@ export default function PrivacyPolicyAdmin() {
                 type="text"
                 value={policyData.title}
                 onChange={(e) => handleBasicInfoChange('title', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 placeholder="Privacy Policy"
               />
             </div>
@@ -245,7 +245,7 @@ export default function PrivacyPolicyAdmin() {
                 value={policyData.subtitle}
                 onChange={(e) => handleBasicInfoChange('subtitle', e.target.value)}
                 rows="3"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 placeholder="Brief description about your privacy policy"
               />
             </div>
@@ -258,7 +258,7 @@ export default function PrivacyPolicyAdmin() {
                 type="date"
                 value={policyData.lastUpdated}
                 onChange={(e) => handleBasicInfoChange('lastUpdated', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
               />
             </div>
           </div>
@@ -355,7 +355,7 @@ export default function PrivacyPolicyAdmin() {
                   type="email"
                   value={policyData.contact.email}
                   onChange={(e) => handleContactChange('email', e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                   placeholder="privacy@example.com"
                 />
               </div>
@@ -371,7 +371,7 @@ export default function PrivacyPolicyAdmin() {
                   type="tel"
                   value={policyData.contact.phone}
                   onChange={(e) => handleContactChange('phone', e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                   placeholder="+91 123 456 7890"
                 />
               </div>
@@ -385,7 +385,7 @@ export default function PrivacyPolicyAdmin() {
                 type="text"
                 value={policyData.contact.phoneHours}
                 onChange={(e) => handleContactChange('phoneHours', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                 placeholder="Mon-Fri, 9am - 5pm IST"
               />
             </div>
@@ -400,7 +400,7 @@ export default function PrivacyPolicyAdmin() {
                   value={policyData.contact.address}
                   onChange={(e) => handleContactChange('address', e.target.value)}
                   rows="3"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                  className="w-full text-gray-800 pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                   placeholder="Full mailing address"
                 />
               </div>
@@ -437,7 +437,7 @@ export default function PrivacyPolicyAdmin() {
                     type="text"
                     value={tempData.title || ''}
                     onChange={(e) => setTempData({ ...tempData, title: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
                     placeholder="e.g., Data Security"
                   />
                 </div>
@@ -450,7 +450,7 @@ export default function PrivacyPolicyAdmin() {
                     value={tempData.content || ''}
                     onChange={(e) => setTempData({ ...tempData, content: e.target.value })}
                     rows="12"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm"
+                    className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none font-mono text-sm"
                     placeholder="Enter the content for this section. Use line breaks to separate paragraphs."
                   />
                   <p className="text-sm text-gray-500 mt-2">
