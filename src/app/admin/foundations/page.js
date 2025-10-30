@@ -613,7 +613,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     </label>
     <input
       type="text"
-      value={selectedFoundation.order||"no order"}
+      value={selectedFoundation.order}
       onChange={(e) => updateFoundation("order", e.target.value)}
       className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}

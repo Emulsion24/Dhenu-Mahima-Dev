@@ -358,7 +358,7 @@ const initiatePhonePePayment = async (e) => {
     <p className="text-lg font-semibold mt-1">UPI ID: <span className="text-white">9773687886m@pnb</span></p>
   </div>
 
-  {/* Footer Impact */}
+
  
 </div>
 
@@ -366,7 +366,7 @@ const initiatePhonePePayment = async (e) => {
 
             
 
-            {/* Quote */}
+
           
           </div>
         </div>
