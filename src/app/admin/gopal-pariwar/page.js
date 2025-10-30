@@ -401,23 +401,28 @@ const openEditModal = (member) => {
   };
 
   // Handle Delete
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this member?")) {
-      return;
-    }
+ const handleDelete = async (id) => {
+  if (!window.confirm("Are you sure you want to delete this member?")) {
+    return;
+  }
 
-    try {
-      setLoading(true);
-       API.delete(`/admin/gopalpariwar/delete/${id}`);
+  try {
+    setLoading(true);
+    const res = await API.delete(`/admin/gopalpariwar/delete/${id}`);
+
+    if (res.data) {
       setMembers(members.filter((member) => member.id !== id));
-      showToast("Member deleted successfully", 'success');
-    } catch (err) {
-      console.error("Error deleting member:", err);
-      showToast("Failed to delete member: " + err.message, 'error');
-    } finally {
-      setLoading(false);
+      showToast("Member deleted successfully", "success");
     }
-  };
+  } catch (error) {
+   
+    
+
+    console.error("Error deleting member:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const nextStep = (e) => {
     if (e) {

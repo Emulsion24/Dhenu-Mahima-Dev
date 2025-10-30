@@ -205,7 +205,8 @@ const handleDownload = async (book) => {
     link.remove();
   } catch (error) {
     console.error("Download error:", error);
-    alert(error.response?.data?.message || "You are not authorized to download this file");
+    
+    
   }
 };
 

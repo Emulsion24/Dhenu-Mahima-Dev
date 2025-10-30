@@ -59,8 +59,12 @@ export default function AuthComponent() {
   const redirectByRole = (role) => {
   if (!role) return; // 🛑 Prevent crash
 hasRedirected.current = true;
-  switch (role) {
+
+  switch (role) { 
     case "admin":
+      router.push("/admin");
+      break;
+        case "subadmin":
       router.push("/admin");
       break;
     case "user":
@@ -86,7 +90,7 @@ hasRedirected.current = true;
       if (isLogin) {
         // Login flow
         const data = await login(formData.email, formData.password);
-        toast.success("Login successful!");
+       
        
         redirectByRole(data.role);
       } else {
@@ -105,12 +109,12 @@ hasRedirected.current = true;
           formData.address
         );
         
-    toast.success("OTP sent to your email!");
+    
         setPendingEmail(formData.email);
         setShowOtpModal(true);
       }
     } catch (err) {
-    toast.error(err.response?.data?.message || err.message || "Something went wrong");
+    console.error(err);
     }
   };
 
@@ -132,7 +136,7 @@ hasRedirected.current = true;
 
     try {
       const data = await verifyOtp(pendingEmail, otp);
-toast.success("Registration successful! Please login.");
+
       setShowOtpModal(false);
       setOtp("");
       setPendingEmail("");
@@ -147,7 +151,7 @@ toast.success("Registration successful! Please login.");
       });
     } catch (err) {
      
-      toast.error(err.response?.data?.message || err.message || "OTP verification failed");
+      
     }
   };
 
@@ -171,12 +175,12 @@ toast.success("Registration successful! Please login.");
 
     try {
       await forgotPassword(forgotEmail);
-      toast.success("Password reset link sent to your email!");
+     
       setShowForgotPassword(false);
       setForgotEmail("");
     } catch (err) {
 
-      toast.error(err.response?.data?.message || err.message || "Failed to send reset link");
+      
     }
   };
 

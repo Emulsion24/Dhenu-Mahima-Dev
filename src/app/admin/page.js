@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
-  UserPlus, Music, FilePlus, MessageCircle, Newspaper, Users, 
-  BookOpen, Heart, Mic, TrendingUp, ArrowUpRight, Calendar 
+  UserPlus, Music, FilePlus, MessageCircle, Newspaper,
+  Heart, Mic,  ArrowUpRight, Calendar 
 } from "lucide-react";
 import API from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 export default function AdminDashboard() {
   const [recentDonations, setRecentDonations] = useState([]);
+  const {user}=useAuthStore();
 
   useEffect(() => {
     const fetchRecentDonations = async () => {
@@ -40,7 +42,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-2">
-          Welcome Back, Admin! 👋
+          Welcome Back,{user.name}👋
         </h1>
         <p className="text-slate-600 text-sm sm:text-base font-medium">
           Here&apos;s what&apos;s happening with your platform today

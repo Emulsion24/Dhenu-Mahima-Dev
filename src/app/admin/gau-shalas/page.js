@@ -164,8 +164,8 @@ export default function GauShalaPage() {
           setGauShalas(gauShalas.filter((gs) => gs.id !== id));
           showToast("Gau Shala deleted successfully!", "success");
         }
-      } catch (err) {
-        showToast("Failed to delete Gau Shala", "error");
+      } catch (error) {
+        showToast("Failed to delete Gau Shala",error);
       }
     }
   };
