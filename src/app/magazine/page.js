@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Check, BookOpen, Star, Zap, Users, Shield, ArrowRight, Loader2, AlertCircle, CheckCircle, X, Clock } from "lucide-react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import API from "@/lib/api";
 
 const membershipPlans = [
   {
@@ -234,7 +235,26 @@ export default function MagazineMembership() {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
+function validateUPI(vpa) {
+  if (!vpa || typeof vpa !== 'string') {
+    return { valid: false, message: 'UPI ID is required' };
+  }
 
+  // Basic UPI format: username@bank
+  const upiRegex = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
+
+  if (!upiRegex.test(vpa.trim())) {
+    return { valid: false, message: 'Invalid UPI ID format (e.g. user@okaxis)' };
+  }
+
+  // Optional: block known invalid placeholders
+  const invalidSamples = ['test@upi', 'example@upi', 'demo@upi'];
+  if (invalidSamples.includes(vpa.toLowerCase())) {
+    return { valid: false, message: 'Please enter a valid UPI ID' };
+  }
+
+  return { valid: true, message: 'Valid UPI ID' };
+}
  const handleValidateVPA = async () => {
   if (!validateUPI(formData.vpa)) {
     setErrors(prev => ({ ...prev, vpa: "वैध UPI ID दर्ज करें (जैसे: name@paytm)" }));
@@ -243,18 +263,21 @@ export default function MagazineMembership() {
 
   try {
     setIsSubmitting(true);
-    const res = await fetch("/api/membership/validate-vpa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vpa: formData.vpa }),
-    });
-    const data = await res.json();
+    const vpa=formData.vpa;
+    const res = await API.post("/membership/validate-vpa",{ vpa });
+    const data = res.data;
 
-    if (data.success && data.valid) {
-      alert(`VPA Verified: ${data.name}`);
-    } else {
-      alert("UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
-    }
+if (data.success) {
+  const { valid, name } = data.data;
+  if (valid) {
+    alert(`✅ VPA Verified: ${name ? name : "Valid UPI ID"}`);
+  } else {
+    alert("❌ UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
+  }
+} else {
+  alert("UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
+}
+
   } catch (err) {
     console.error(err);
     alert("VPA सत्यापन में समस्या आई।");
@@ -334,51 +357,54 @@ export default function MagazineMembership() {
     };
   }, [showPaymentModal, paymentStatus]);
 
-  const startPolling = (merchantOrderId) => {
-    setPaymentStatus('polling');
-    setShowPaymentModal(true);
-    setTimeLeft(300);
-    
-    pollingIntervalRef.current = setInterval(async () => {
-      try {
-        // Replace with your actual API endpoint
-        // const response = await fetch(`/api/membership/callback/${merchantOrderId}`);
-        // const data = await response.json();
-        
-        // Simulated response for demo
-        const data = {
-          success: true,
-          data: {
-            state: 'PENDING', // Will be 'COMPLETED' or 'FAILED'
-            amount: selectedPlan.price * 100,
-            orderId: merchantOrderId
-          }
-        };
-        
-        if (data.success) {
-          const state = data.data.state;
-          const amount = parseInt(data.data.amount) / 100;
-          const orderID = data.data.orderId;
-          
-          if (state === 'COMPLETED') {
-            clearInterval(pollingIntervalRef.current);
-            clearInterval(timerIntervalRef.current);
-            setPaymentStatus('success');
-            
-            setTimeout(() => {
-              window.location.href = `/magazine-status?status=${state}&txn=${orderID}&amount=${amount}`;
-            }, 2000);
-          } else if (state === 'FAILED') {
-            clearInterval(pollingIntervalRef.current);
-            clearInterval(timerIntervalRef.current);
-            setPaymentStatus('failed');
-          }
+ const startPolling = (merchantOrderId) => {
+  setPaymentStatus('polling');
+  setShowPaymentModal(true);
+  setTimeLeft(300); // 5 minutes timer
+
+  // Start polling for payment status
+  pollingIntervalRef.current = setInterval(async () => {
+    try {
+      const response = await API.post(`/membership/order-status/${merchantOrderId}`);
+      const data = response.data;
+
+      if (data.success) {
+        const state = data.data.state;
+        const amount = parseInt(data.data.amount) / 100;
+        const orderID = data.data.orderId;
+
+        if (state === 'COMPLETED') {
+          clearInterval(pollingIntervalRef.current);
+          clearInterval(timerIntervalRef.current);
+          setPaymentStatus('success');
+
+          setTimeout(() => {
+            window.location.href = `/magazine-status?status=${state}&txn=${orderID}&amount=${amount}`;
+          }, 2000);
+        } else if (state === 'FAILED') {
+          clearInterval(pollingIntervalRef.current);
+          clearInterval(timerIntervalRef.current);
+          setPaymentStatus('failed');
         }
-      } catch (error) {
-        console.error('Polling error:', error);
       }
-    }, 3000);
-  };
+    } catch (error) {
+      console.error('Polling error:', error.message);
+    }
+  }, 3000); // Poll every 3 seconds
+
+  // Start countdown timer
+  timerIntervalRef.current = setInterval(() => {
+    setTimeLeft((prev) => {
+      if (prev <= 1) {
+        clearInterval(timerIntervalRef.current);
+        clearInterval(pollingIntervalRef.current);
+        setPaymentStatus('timeout');
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+};
 
  const handleSubmit = async (e) => {
   e.preventDefault();
@@ -396,25 +422,19 @@ export default function MagazineMembership() {
 
     if (formData.membershipType === "lifetime") {
       // Lifetime: Direct redirect
-      const response = await fetch("/api/membership/lifetime-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const result = await response.json();
+      const response = await API.post("/api/membership/create-order-onetime",payload);
+      const result =  response;
       if (result.success && result.redirectUrl) {
         window.location.href = result.redirectUrl; // 🔁 Redirect to payment page
       } else {
         alert("भुगतान लिंक प्राप्त करने में समस्या आई।");
       }
     } else {
+  const newpay = { ...payload, paymentMode: "UPI_COLLECT" };
       // Annual: Collect flow (requires VPA)
-      const response = await fetch("/api/membership/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, paymentMode: "UPI_COLLECT" }),
-      });
-      const result = await response.json();
+      const response = await API.post("/membership/create-order",newpay)
+
+      const result =  response;
       if (result.success) {
         setOrderDetails(result.data);
         startPolling(result.data.merchantOrderId);
