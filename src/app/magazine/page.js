@@ -122,7 +122,7 @@ const PaymentModal = ({ isOpen, onClose, orderDetails, paymentStatus, timeLeft }
 
             <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
               <p className="text-sm text-yellow-800 font-semibold">
-                💡 यदि notification नहीं मिला, तो अपने UPI ऐप में "Pending Requests" section manually check करें
+                💡 यदि notification नहीं मिला, तो अपने UPI ऐप में &quot;Pending Requests&quot; section manually check करें
               </p>
             </div>
           </div>
@@ -955,23 +955,23 @@ if (data.success) {
                 <div className="space-y-3 text-sm text-purple-800">
                   <div className="bg-white rounded-lg p-3">
                     <p className="font-bold text-purple-900 mb-1">Google Pay:</p>
-                    <p>होम स्क्रीन पर "Pending" या notification देखें</p>
+                    <p>होम स्क्रीन पर &quot;Pending&quot; या notification देखें</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
                     <p className="font-bold text-purple-900 mb-1">PhonePe:</p>
-                    <p>होम पर "Pending Requests" या notification check करें</p>
+                    <p>होम पर &quot;Pending Requests&quot; या notification check करें</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
                     <p className="font-bold text-purple-900 mb-1">Paytm:</p>
-                    <p>"Passbook" में "Pending" section देखें</p>
+                    <p> &quot;Passbook&quot; में &quot;Pending&quot; section देखें</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
                     <p className="font-bold text-purple-900 mb-1">BHIM / Other UPI Apps:</p>
-                    <p>होम स्क्रीन पर "Collect Request" या "Pending" देखें</p>
+                    <p>होम स्क्रीन पर &quot;Collect Request&quot; या &quot;Pending&quot; देखें</p>
                   </div>
                   <div className="mt-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4">
                     <p className="font-bold text-yellow-900 mb-2">💡 यदि notification नहीं मिला:</p>
-                    <p className="text-yellow-800">अपने UPI ऐप को manually खोलें और "Pending Requests" या "Collect Requests" section में देखें</p>
+                    <p className="text-yellow-800">अपने UPI ऐप को manually खोलें और &quot;Pending Requests&quot; या &quot;Collect Requests&quot; section में देखें</p>
                   </div>
                 </div>
               </div>
