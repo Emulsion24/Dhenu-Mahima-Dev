@@ -87,6 +87,7 @@ export default function GopalPariwarAdminPanel() {
       youtube: "",
       whatsapp: "",
     },
+    order:'',
   });
 
   // Show toast notification
@@ -225,6 +226,7 @@ export default function GopalPariwarAdminPanel() {
         whatsapp: "",
       
       },
+      order:''
     });
     setImagePreview("");
     setImageFile(null);
@@ -315,6 +317,7 @@ const openEditModal = (member) => {
       youtube: parsedSocialLinks?.youtube || "",
       whatsapp: parsedSocialLinks?.whatsapp || "",
     },
+    order:member.order||'',
   });
 
   setImagePreview(member.heroImage || "");
@@ -354,6 +357,7 @@ const openEditModal = (member) => {
     apiFormData.append("responsibilities", JSON.stringify(formData.responsibilities));
     apiFormData.append("pledges", JSON.stringify(formData.pledges));
     apiFormData.append("socialLinks", JSON.stringify(formData.socialLinks));
+    apiFormData.append("order", formData.order || "");
 
     return apiFormData;
   };
@@ -544,7 +548,7 @@ if (loading) {
               <div className="sticky top-0 bg-gradient-to-r from-orange-600 to-amber-600 text-white p-6 rounded-t-2xl z-10">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-2xl font-bold">
-                    {editingMember ? "Edit Maharaj Profile" : "Add New Maharaj"}
+                    {editingMember ? "Edit Member Profile" : "Add New Member"}
                   </h2>
                   <button
                     onClick={closeModal}
@@ -627,6 +631,23 @@ if (loading) {
                           </div>
                         )}
                       </div>
+                      {editingMember && (
+  <div>
+    <label className="block text-sm font-bold text-slate-800 mb-2">
+      Order<span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      name="order"
+      value={formData.order}
+      onChange={handleInputChange}
+      required
+      className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-slate-800 font-medium"
+      placeholder="e.g., 1,2"
+    />
+  </div>
+)}
+
                     </div>
 
                     {/* Hero Title */}

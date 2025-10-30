@@ -53,6 +53,7 @@ const Toast = ({ message, type, onClose }) => {
 
 export default function GauShalaPage() {
   const [gauShalas, setGauShalas] = useState([]);
+  const [loading, setLoading]=useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingGauShala, setEditingGauShala] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -100,7 +101,7 @@ export default function GauShalaPage() {
     };
 
     fetchGaushalas();
-  }, []);
+  }, [loading]);
 
   const totalGauShalas = gauShalas.length;
   const totalCows = gauShalas.reduce(
@@ -157,7 +158,25 @@ export default function GauShalaPage() {
 
   const openEditModal = (gauShala) => {
     setEditingGauShala(gauShala);
-    setFormData(gauShala);
+   setFormData({
+    name: gauShala.name || "",
+    photo: gauShala.photo || "",
+    address: gauShala.address || "",
+    city: gauShala.city || "",
+    state: gauShala.state || "",
+    pincode: gauShala.pincode || "",
+    establishmentDate:
+      gauShala.establishmentDate ||
+      gauShala.establishmentYear ||
+      "", // Support both possible keys
+    totalCows: gauShala.totalCows || "",
+    capacity: gauShala.capacity || "",
+    contactPerson: gauShala.contactPerson || "",
+    phone: gauShala.phone || "",
+    email: gauShala.email || "",
+    description: gauShala.description || "",
+  });
+
     // Set image preview for existing photo
     setImagePreview(gauShala.photo || "");
     setShowModal(true);
@@ -169,49 +188,58 @@ export default function GauShalaPage() {
     setImagePreview("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    try {
-      const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-         if (key === "photo" && value instanceof File) {
-          data.append("photo", value);
-        } else if (key !== "photo") {
-          data.append(key, value);
-        }
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true); // start loading
+
+  try {
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "photo" && value instanceof File) {
+        data.append("photo", value);
+      } else if (key !== "photo") {
+        data.append(key, value);
+      }
+    });
+
+    let res;
+    if (editingGauShala) {
+      res = await API.put(`/gaushalas/${editingGauShala.id}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (editingGauShala) {
-        const res = await API.put(`/gaushalas/${editingGauShala.id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+      setGauShalas((prev) =>
+        prev.map((gs) => (gs.id === editingGauShala.id ? res.data.data : gs))
+      );
+      showToast("Gau Shala updated successfully!", "success");
+    } else {
+      res = await API.post("/gaushalas", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-        setGauShalas(
-          gauShalas.map((gs) => (gs.id === editingGauShala.id ? res.data : gs))
-        );
-        showToast("Gau Shala updated successfully!", "success");
-      } else {
-        const res = await API.post("/gaushalas", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        setGauShalas([res.data, ...gauShalas]);
-        showToast("Gau Shala created successfully!", "success");
-      }
-
-      closeModal();
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to save Gau Shala", "error");
+      setGauShalas((prev) => [res.data.data, ...prev]);
+      showToast("Gau Shala created successfully!", "success");
     }
-  };
+
+    closeModal();
+  } catch (err) {
+    console.error(err);
+    showToast("Failed to save Gau Shala", "error");
+  } finally {
+    setLoading(false); // stop loading
+  }
+};
+
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this Gau Shala?")) {
       try {
+        setLoading(true);
         const res = await API.delete(`/gaushalas/${id}`);
         if (res.data) {
+               setLoading(false);
           setGauShalas(gauShalas.filter((gs) => gs.id !== id));
           showToast("Gau Shala deleted successfully!", "success");
         }
@@ -242,7 +270,7 @@ export default function GauShalaPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-                🐄 Gau Shala Management
+              Gau Shala Management
               </h1>
               <p className="text-slate-600 font-medium">
                 Manage all Gau Shalas and their information
@@ -365,7 +393,7 @@ export default function GauShalaPage() {
                   {/* Years Badge */}
                   <div className="absolute bottom-3 left-3 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-lg">
                     <p className="text-xs font-bold text-green-700">
-                      {getYearsSinceEstablishment(gauShala.establishmentDate)} Years of Service
+                      {getYearsSinceEstablishment(gauShala.establishmentYear)} Years of Service
                     </p>
                   </div>
                 </div>
@@ -430,12 +458,14 @@ export default function GauShalaPage() {
                           Established
                         </p>
                         <p className="text-sm font-medium text-slate-800">
-                          {new Date(gauShala.establishmentDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
+  {gauShala.establishmentYear
+    ? new Date(gauShala.establishmentYear).toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      })
+    : "No date"}
+</p>
                       </div>
                     </div>
 
@@ -646,19 +676,24 @@ export default function GauShalaPage() {
 
                 {/* Establishment Date, Total Cows, Capacity */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-800 mb-2">
-                      Establishment Date *
-                    </label>
-                    <input
-                      type="date"
-                      name="establishmentDate"
-                      value={formData.establishmentDate}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-slate-800 font-medium"
-                    />
-                  </div>
+   <div>
+  <label className="block text-sm font-bold text-slate-800 mb-2">
+    Establishment Date *
+  </label>
+  <input
+    type="date"
+    name="establishmentDate"
+    value={
+      formData.establishmentDate
+        ? new Date(formData.establishmentDate).toISOString().split("T")[0] // ✅ ensures "YYYY-MM-DD"
+        : ""
+    }
+    onChange={handleInputChange}
+    required
+    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-slate-800 font-medium"
+  />
+</div>
+
                   <div>
                     <label className="block text-sm font-bold text-slate-800 mb-2">
                       Total Cows *
@@ -741,20 +776,34 @@ export default function GauShalaPage() {
 
                 {/* Submit Buttons */}
                 <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg font-semibold"
-                  >
-                    {editingGauShala ? "Update Gau Shala" : "Add Gau Shala"}
-                  </button>
-                </div>
+  {/* Cancel Button */}
+  <button
+    type="button"
+    onClick={closeModal}
+    className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-semibold"
+    disabled={loading}
+  >
+    Cancel
+  </button>
+
+  {/* Submit Button */}
+  <button
+    type="submit"
+    disabled={loading}
+    className={`flex-1 px-6 py-3 rounded-xl font-semibold text-white transition-colors duration-200 ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-purple-600 hover:bg-purple-700"
+    }`}
+  >
+    {loading
+      ? "Saving..."
+      : editingGauShala
+      ? "Update Gau Shala"
+      : "Add Gau Shala"}
+  </button>
+</div>
+
               </form>
             </div>
           </div>

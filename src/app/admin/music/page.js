@@ -32,7 +32,8 @@ export default function BhajanPage() {
     album: "",
     imageFile: null,
     audioFile: null,
-    duration: "0:00"
+    duration: "0:00",
+    order:"",
   });
 
   const audioRef = useRef(new Audio());
@@ -74,7 +75,7 @@ export default function BhajanPage() {
           page: currentPage,
           limit: limit,
           search: search,
-          sortBy: 'createdAt',
+          sortBy: 'order',
           sortOrder: 'desc'
         }
       });
@@ -175,6 +176,7 @@ export default function BhajanPage() {
       formDataToSend.append('artist', formData.artist);
       formDataToSend.append('album', formData.album || '');
       formDataToSend.append('duration', formData.duration);
+         formDataToSend.append('order', formData.order);
 
       if (formData.audioFile) formDataToSend.append('audio', formData.audioFile);
       if (formData.imageFile) formDataToSend.append('image', formData.imageFile);
@@ -222,7 +224,8 @@ export default function BhajanPage() {
       album: bhajan.album || "",
       imageFile: null,
       audioFile: null,
-      duration: bhajan.duration
+      duration: bhajan.duration,
+       order: bhajan.order || ""
     });
     setModalType("edit");
     setShowModal(true);
@@ -313,7 +316,7 @@ export default function BhajanPage() {
   };
 
   const uniqueArtists = bhajanList.length > 0 ? new Set(bhajanList.map(b => b.artist)).size : 0;
-  const uniqueAlbums = bhajanList.length > 0 ? new Set(bhajanList.filter(b => b.album).map(b => b.album)).size : 0;
+  
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -719,6 +722,24 @@ export default function BhajanPage() {
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
                   />
                 </div>
+                <div>
+          {editBhajan && (
+  <>
+    <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">
+      Order <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      placeholder="e.g. 1, 2"
+      value={formData.order}
+      onChange={(e) => setFormData({ ...formData, order: e.target.value })}
+      className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
+    />
+  </>
+)}
+
+                </div>
+
 
                 
               </div>

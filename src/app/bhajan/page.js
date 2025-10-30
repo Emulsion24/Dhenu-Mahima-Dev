@@ -57,7 +57,7 @@ export default function BhajanMusicPlayer() {
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: '10',
-        sortBy: 'createdAt',
+        sortBy: 'order',
         sortOrder: 'desc'
       });
       

@@ -92,9 +92,16 @@ export default function Gowshala() {
                       <td className="py-4 px-4 border-r border-orange-200">
                         {gaushala.address || "—"}
                       </td>
-                      <td className="py-4 px-4 font-semibold text-orange-700">
-                        {gaushala.establishmentYear|| "—"}
-                      </td>
+                  <td className="py-4 px-4 font-semibold text-orange-700">
+  {gaushala.establishmentYear
+    ? new Date(gaushala.establishmentYear).toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      })
+    : "—"}
+</td>
+
                     </tr>
                   ))}
                 </tbody>

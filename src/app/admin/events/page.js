@@ -439,7 +439,7 @@ export default function AdminEventsPage() {
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-                      placeholder="e.g., 5 दिवसीय"
+                      placeholder="1,2"
                     />
                   </div>
                   <div>

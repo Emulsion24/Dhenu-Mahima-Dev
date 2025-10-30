@@ -105,9 +105,10 @@ export default function SwamiGobarGopalPage() {
             { label: "जन्मभूमि", value: personalInfo.birthPlace || "—" },
             { label: "फ़ोन नंबर", value: personalInfo.phone || "—" },
             { label: "ईमेल", value: personalInfo.email || "—" },
+            { label:"गुरु"  , value: spiritualEducation.guruName||"--"} ,                                          
           ],
           spiritualEducation: typeof spiritualEducation === 'object' 
-            ? `${spiritualEducation.guruName || ''} के सानिध्य में ${spiritualEducation.education || ''} की शिक्षा। ${spiritualEducation.qualifications || ''}`
+            ? `${spiritualEducation.education || ''} `
             : spiritualEducation || "",
           lifeJourney: Array.isArray(gopalData.lifeJourney)
             ? gopalData.lifeJourney
@@ -292,7 +293,7 @@ export default function SwamiGobarGopalPage() {
                     
                     {data.spiritualEducation && (
                       <div className="border-l-4 border-amber-400 pl-4 py-2 md:col-span-2">
-                        <p className="text-sm text-gray-600 font-semibold mb-1">आध्यात्मिक शिक्षा</p>
+                        <p className="text-sm text-gray-600 font-semibold mb-1">शिक्षा</p>
                         <p className="text-lg text-gray-900">
                           {data.spiritualEducation}
                         </p>

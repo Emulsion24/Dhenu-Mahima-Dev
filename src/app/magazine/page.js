@@ -1,7 +1,6 @@
-"use client";
+"use client"
 import { useState, useRef, useEffect } from "react";
-import { Check, BookOpen, Gift, Star, Zap, Users, Smartphone, Shield, ArrowRight, Loader2, AlertCircle, CheckCircle } from "lucide-react";
-import API from "@/lib/api";
+import { Check, BookOpen, Star, Zap, Users, Shield, ArrowRight, Loader2, AlertCircle, CheckCircle, X, Clock } from "lucide-react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
@@ -9,8 +8,8 @@ const membershipPlans = [
   {
     type: "annual",
     name: "वार्षिक सदस्यता",
-    price: 500,
-    priceDisplay: "₹500",
+    price: 1100,
+    priceDisplay: "₹1,100",
     duration: "12 महीने",
     icon: BookOpen,
     benefits: [
@@ -22,24 +21,10 @@ const membershipPlans = [
     popular: true
   },
   {
-    type: "halfyearly",
-    name: "अर्धवार्षिक सदस्यता",
-    price: 300,
-    priceDisplay: "₹300",
-    duration: "6 महीने",
-    icon: Gift,
-    benefits: [
-      "6 महीनों के लिए मासिक पत्रिका",
-      "विशेष लेख और साक्षात्कार",
-      "डिजिटल आर्काइव की पहुंच"
-    ],
-    popular: false
-  },
-  {
     type: "lifetime",
     name: "आजीवन सदस्यता",
-    price: 5000,
-    priceDisplay: "₹5000",
+    price: 11000,
+    priceDisplay: "₹11,000",
     duration: "जीवन भर",
     icon: Star,
     benefits: [
@@ -53,6 +38,171 @@ const membershipPlans = [
   }
 ];
 
+// Payment Modal Component
+const PaymentModal = ({ isOpen, onClose, orderDetails, paymentStatus, timeLeft }) => {
+  if (!isOpen) return null;
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 animate-fadeIn">
+      <div className="bg-white rounded-2xl max-w-md w-full p-8 relative shadow-2xl animate-slideUp">
+        
+        {/* Warning Banner */}
+        <div className="bg-red-50 border-2 border-red-500 rounded-xl p-4 mb-6 animate-pulse">
+          <p className="text-red-800 font-bold text-center text-lg flex items-center justify-center gap-2">
+            <AlertCircle className="w-6 h-6" />
+            पेज को Refresh या Back न करें
+          </p>
+          <p className="text-red-700 text-sm text-center mt-2">
+            भुगतान प्रक्रिया चल रही है
+          </p>
+        </div>
+
+        {/* Status Display */}
+        {paymentStatus === 'polling' && (
+          <div className="text-center">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+            </div>
+            
+            <h3 className="text-2xl font-bold text-gray-800 mb-3">
+              भुगतान की प्रतीक्षा में...
+            </h3>
+            
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-6">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Clock className="w-8 h-8 text-blue-600" />
+                <span className="text-4xl font-bold text-blue-600 tabular-nums">
+                  {formatTime(timeLeft)}
+                </span>
+              </div>
+              
+              <div className="space-y-4 text-left">
+                <p className="text-gray-700 font-semibold text-lg mb-3 text-center">
+                  कृपया निम्न चरणों का पालन करें:
+                </p>
+                
+                <div className="flex items-start gap-3 bg-white rounded-lg p-3">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">अपना UPI ऐप खोलें</p>
+                    <p className="text-sm text-gray-600">Google Pay, PhonePe, Paytm, BHIM</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3 bg-white rounded-lg p-3">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">Pending Requests देखें</p>
+                    <p className="text-sm text-gray-600">Notification या Pending section में</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3 bg-white rounded-lg p-3">
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center flex-shrink-0 font-bold">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">भुगतान स्वीकार करें</p>
+                    <p className="text-sm text-gray-600">UPI PIN दर्ज करके confirm करें</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+              <p className="text-sm text-yellow-800 font-semibold">
+                💡 यदि notification नहीं मिला, तो अपने UPI ऐप में "Pending Requests" section manually check करें
+              </p>
+            </div>
+          </div>
+        )}
+
+        {paymentStatus === 'success' && (
+          <div className="text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+              <CheckCircle className="w-12 h-12 text-green-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-green-600 mb-3">
+              ✓ भुगतान सफल!
+            </h3>
+            <p className="text-gray-600 mb-6 text-lg">
+              आपकी सदस्यता सक्रिय हो गई है
+            </p>
+            <div className="bg-green-50 border border-green-300 rounded-lg p-4 mb-4">
+              <p className="text-sm text-green-800">
+                आपको success page पर redirect किया जा रहा है...
+              </p>
+            </div>
+            <div className="animate-pulse">
+              <Loader2 className="w-8 h-8 text-green-600 animate-spin mx-auto" />
+            </div>
+          </div>
+        )}
+
+        {paymentStatus === 'failed' && (
+          <div className="text-center">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <X className="w-12 h-12 text-red-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-red-600 mb-3">
+              ✗ भुगतान विफल
+            </h3>
+            <p className="text-gray-600 mb-6">
+              भुगतान पूरा नहीं हो सका
+            </p>
+            <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
+              <p className="text-sm text-red-800">
+                कृपया पुनः प्रयास करें या customer support से संपर्क करें
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-all shadow-lg"
+            >
+              बंद करें
+            </button>
+          </div>
+        )}
+
+        {paymentStatus === 'timeout' && (
+          <div className="text-center">
+            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock className="w-12 h-12 text-orange-600" />
+            </div>
+            <h3 className="text-2xl font-bold text-orange-600 mb-3">
+              समय समाप्त
+            </h3>
+            <p className="text-gray-600 mb-6">
+              भुगतान की समय सीमा (5 मिनट) समाप्त हो गई है
+            </p>
+            <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 mb-6">
+              <p className="text-sm text-orange-800">
+                कृपया पुनः प्रयास करें और 5 मिनट के अंदर भुगतान complete करें
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-all shadow-lg"
+            >
+              बंद करें और पुनः प्रयास करें
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function MagazineMembership() {
   const [formData, setFormData] = useState({
     name: "",
@@ -63,42 +213,90 @@ export default function MagazineMembership() {
     state: "",
     pincode: "",
     membershipType: "",
-    vpa: "" // For web users
+    vpa: ""
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState({ type: "web", os: "WEB" });
-  const [paymentStatus, setPaymentStatus] = useState(null); // 'pending', 'polling', 'success', 'failed'
+  const [paymentStatus, setPaymentStatus] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
-  const [pollingInterval, setPollingInterval] = useState(null);
-  const [showVpaInput, setShowVpaInput] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [errors, setErrors] = useState({});
   const formRef = useRef(null);
-
-  // Detect device type
-  useEffect(() => {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    const isAndroid = /android/i.test(userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-    const isMobile = /Mobile|Android|iPhone|iPad|iPod/i.test(userAgent);
-
-    let deviceType = "web";
-    let deviceOS = "WEB";
-
-    if (isAndroid) {
-      deviceType = "android";
-      deviceOS = "ANDROID";
-    } else if (isIOS) {
-      deviceType = "ios";
-      deviceOS = "IOS";
-    }
-
-    setDeviceInfo({ type: deviceType, os: deviceOS, isMobile });
-  }, []);
+  const pollingIntervalRef = useRef(null);
+  const timerIntervalRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+ const handleValidateVPA = async () => {
+  if (!validateUPI(formData.vpa)) {
+    setErrors(prev => ({ ...prev, vpa: "वैध UPI ID दर्ज करें (जैसे: name@paytm)" }));
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+    const res = await fetch("/api/membership/validate-vpa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vpa: formData.vpa }),
+    });
+    const data = await res.json();
+
+    if (data.success && data.valid) {
+      alert(`VPA Verified: ${data.name}`);
+    } else {
+      alert("UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("VPA सत्यापन में समस्या आई।");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+  const validateForm = () => {
+    const newErrors = {};
+
+
+    if (!formData.name.trim()) newErrors.name = "नाम आवश्यक है";
+    if (!formData.email.trim()) {
+      newErrors.email = "ईमेल आवश्यक है";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "वैध ईमेल दर्ज करें";
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = "मोबाइल नंबर आवश्यक है";
+    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
+      newErrors.phone = "10 अंकों का मोबाइल नंबर दर्ज करें";
+    }
+    if (!formData.address.trim()) newErrors.address = "पता आवश्यक है";
+    if (!formData.city.trim()) newErrors.city = "शहर आवश्यक है";
+    if (!formData.state.trim()) newErrors.state = "राज्य आवश्यक है";
+    if (!formData.pincode.trim()) {
+      newErrors.pincode = "पिनकोड आवश्यक है";
+    } else if (!/^[0-9]{6}$/.test(formData.pincode)) {
+      newErrors.pincode = "6 अंकों का पिनकोड दर्ज करें";
+    }
+    if (formData.membershipType === "annual") {
+  if (!formData.vpa.trim()) {
+    newErrors.vpa = "UPI ID आवश्यक है";
+  } else if (!validateUPI(formData.vpa)) {
+    newErrors.vpa = "वैध UPI ID दर्ज करें (जैसे: name@paytm)";
+  }
+}
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handlePlanSelect = (planType) => {
@@ -112,131 +310,146 @@ export default function MagazineMembership() {
 
   const selectedPlan = membershipPlans.find(plan => plan.type === formData.membershipType);
 
-  // Poll for payment status
+  useEffect(() => {
+    if (showPaymentModal && paymentStatus === 'polling') {
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timerIntervalRef.current);
+            if (pollingIntervalRef.current) {
+              clearInterval(pollingIntervalRef.current);
+            }
+            setPaymentStatus('timeout');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, [showPaymentModal, paymentStatus]);
+
   const startPolling = (merchantOrderId) => {
     setPaymentStatus('polling');
+    setShowPaymentModal(true);
+    setTimeLeft(300);
     
-    const interval = setInterval(async () => {
+    pollingIntervalRef.current = setInterval(async () => {
       try {
-        const response = await API.get(`/membership/callback/${merchantOrderId}`);
-        console.log(response)
-        if (response.data.success) {
-          const state = response.data.data.state;
-          const amountp=parseInt(response.data.data.amount);
-          const orderID=response.data.data.orderId;
-          const amount=amountp/100;
+        // Replace with your actual API endpoint
+        // const response = await fetch(`/api/membership/callback/${merchantOrderId}`);
+        // const data = await response.json();
+        
+        // Simulated response for demo
+        const data = {
+          success: true,
+          data: {
+            state: 'PENDING', // Will be 'COMPLETED' or 'FAILED'
+            amount: selectedPlan.price * 100,
+            orderId: merchantOrderId
+          }
+        };
+        
+        if (data.success) {
+          const state = data.data.state;
+          const amount = parseInt(data.data.amount) / 100;
+          const orderID = data.data.orderId;
+          
           if (state === 'COMPLETED') {
-            clearInterval(interval);
+            clearInterval(pollingIntervalRef.current);
+            clearInterval(timerIntervalRef.current);
             setPaymentStatus('success');
-            setPollingInterval(null);
             
-            // Redirect to success page after 2 seconds
-            
+            setTimeout(() => {
               window.location.href = `/magazine-status?status=${state}&txn=${orderID}&amount=${amount}`;
-            
+            }, 2000);
           } else if (state === 'FAILED') {
-            clearInterval(interval);
+            clearInterval(pollingIntervalRef.current);
+            clearInterval(timerIntervalRef.current);
             setPaymentStatus('failed');
-            setPollingInterval(null);
-             
-              window.location.href = `/magazine-status?status=${state}&txn=${orderID}&amount=${amount}`;
-         
           }
         }
       } catch (error) {
         console.error('Polling error:', error);
       }
-    }, 3000); // Poll every 3 seconds
-    
-    setPollingInterval(interval);
-    
-    // Stop polling after 5 minutes
-    setTimeout(() => {
-      if (interval) {
-        clearInterval(interval);
-        setPaymentStatus('timeout');
-      }
-    }, 5 * 60 * 1000);
+    }, 3000);
   };
 
-  const handlePhonePePayment = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validate form
-    if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode) {
-      alert('कृपया सभी आवश्यक फ़ील्ड भरें।');
-      return;
-    }
+  if (!validateForm()) return;
 
-    // For web, require VPA
-    if (deviceInfo.type === 'web' && !formData.vpa) {
-      setShowVpaInput(true);
-      alert('कृपया अपना UPI ID दर्ज करें (जैसे: yourname@paytm)');
-      return;
-    }
+  try {
+    setIsSubmitting(true);
 
-    try {
-      setIsSubmitting(true);
-      setPaymentStatus('pending');
+    const payload = {
+      ...formData,
+      amount: selectedPlan.price,
+      membershipType: formData.membershipType,
+    };
 
-      // Create subscription payload
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        pincode: formData.pincode,
-        membershipType: formData.membershipType,
-        amount: selectedPlan.price,
-        frequency: "MONTHLY",
-        vpa: formData.vpa || undefined,
-        paymentMode: deviceInfo.type === 'web' ? 'UPI_COLLECT' : 'UPI_INTENT'
-      };
-
-      const response = await API.post('/membership/create-order', payload);
-
-      const result = response.data;
-
+    if (formData.membershipType === "lifetime") {
+      // Lifetime: Direct redirect
+      const response = await fetch("/api/membership/lifetime-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (result.success && result.redirectUrl) {
+        window.location.href = result.redirectUrl; // 🔁 Redirect to payment page
+      } else {
+        alert("भुगतान लिंक प्राप्त करने में समस्या आई।");
+      }
+    } else {
+      // Annual: Collect flow (requires VPA)
+      const response = await fetch("/api/membership/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, paymentMode: "UPI_COLLECT" }),
+      });
+      const result = await response.json();
       if (result.success) {
         setOrderDetails(result.data);
-
-        // Handle based on payment mode
-        if (result.data.paymentMode === 'UPI_INTENT' && result.data.intentUrl) {
-          // Mobile: Redirect to PhonePe app
-          window.location.href = result.data.intentUrl;
-        } else if (result.data.paymentMode === 'UPI_COLLECT' && result.data.pollRequired) {
-          // Web: Start polling for payment status
-          startPolling(result.data.merchantOrderId);
-        }
+        startPolling(result.data.merchantOrderId);
       } else {
-        // Handle error
-        if (result.requiresVPA) {
-          setShowVpaInput(true);
-          alert(result.message);
-        } else {
-          alert(result.message || 'भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
-        }
-        setIsSubmitting(false);
-        setPaymentStatus(null);
+        alert("भुगतान शुरू करने में त्रुटि।");
       }
-    } catch (error) {
-      console.error('Payment error:', error);
-      alert('भुगतान शुरू करने में त्रुटि। कृपया पुनः प्रयास करें।');
-      setIsSubmitting(false);
-      setPaymentStatus(null);
     }
+  } catch (error) {
+    console.error(error);
+    alert("भुगतान प्रक्रिया में समस्या आई।");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+  const closeModal = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    setShowPaymentModal(false);
+    setPaymentStatus(null);
+    setIsSubmitting(false);
+    setTimeLeft(300);
   };
 
-  // Cleanup polling on unmount
   useEffect(() => {
     return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [pollingInterval]);
+  }, []);
 
   return (
     <>
@@ -251,14 +464,14 @@ export default function MagazineMembership() {
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6 backdrop-blur-sm">
               <BookOpen className="w-10 h-10" />
             </div>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 drop-shadow-lg">
               मासिक पत्रिका सदस्यता
             </h1>
-            <p className="text-lg md:text-xl mb-8 leading-relaxed">
-              श्री गोपाल परिवार संघ की मासिक पत्रिका के सदस्य बनें और आध्यात्मिक ज्ञान से जुड़े रहें।
+            <p className="text-lg md:text-xl mb-8 leading-relaxed drop-shadow">
+              श्री गोपाल परिवार संघ की मासिक पत्रिका के सदस्य बनें और आध्यात्मिक ज्ञान से जुड़े रहें
             </p>
           </div>
         </div>
@@ -293,27 +506,15 @@ export default function MagazineMembership() {
             </div>
           </div>
 
-          {/* Device Info Badge */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold">
-              <Smartphone className="w-4 h-4" />
-              <span>
-                {deviceInfo.type === 'android' && 'Android Device - PhonePe App में खुलेगा'}
-                {deviceInfo.type === 'ios' && 'iOS Device - PhonePe App में खुलेगा'}
-                {deviceInfo.type === 'web' && 'Web Browser - UPI ID से भुगतान करें'}
-              </span>
-            </div>
-          </div>
-
           {/* Membership Plans */}
           <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-4">
-            सदस्यता योजनाएं
+            सदस्यता योजनाएं चुनें
           </h2>
           <p className="text-center text-gray-600 mb-12 text-lg">
             अपनी पसंद की योजना चुनें और सदस्यता फॉर्म भरें
           </p>
           
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
             {membershipPlans.map((plan, idx) => {
               const IconComponent = plan.icon;
               const isSelected = formData.membershipType === plan.type;
@@ -328,7 +529,7 @@ export default function MagazineMembership() {
                 >
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                      <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
                         सबसे लोकप्रिय
                       </span>
                     </div>
@@ -336,19 +537,19 @@ export default function MagazineMembership() {
 
                   {isSelected && (
                     <div className="absolute -top-4 right-4">
-                      <div className="bg-purple-500 text-white rounded-full p-2">
+                      <div className="bg-purple-500 text-white rounded-full p-2 shadow-lg">
                         <Check className="w-5 h-5" />
                       </div>
                     </div>
                   )}
                   
                   <div className="text-center mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                       <IconComponent className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-2xl font-bold text-gray-800 mb-2">{plan.name}</h3>
                     <div className="text-4xl font-bold text-orange-600 mb-1">{plan.priceDisplay}</div>
-                    <p className="text-gray-600">{plan.duration}</p>
+                    <p className="text-gray-600 font-medium">{plan.duration}</p>
                   </div>
                   
                   <ul className="space-y-3 mb-8">
@@ -365,10 +566,10 @@ export default function MagazineMembership() {
                       e.stopPropagation();
                       handlePlanSelect(plan.type);
                     }}
-                    className={`w-full py-3 rounded-lg font-semibold transition-all transform hover:scale-105 ${
+                    className={`w-full py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg ${
                       isSelected
-                        ? 'bg-purple-600 text-white shadow-lg'
-                        : 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:shadow-lg'
+                        ? 'bg-purple-600 text-white hover:bg-purple-700'
+                        : 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600'
                     }`}
                   >
                     {isSelected ? '✓ चयनित - फॉर्म भरें' : 'इस योजना को चुनें'}
@@ -378,46 +579,9 @@ export default function MagazineMembership() {
             })}
           </div>
 
-          {/* Form and Payment Section */}
+          {/* Registration Form */}
           {showForm && selectedPlan && (
             <div ref={formRef} className="max-w-2xl mx-auto scroll-mt-20">
-              {/* Payment Status Alert */}
-              {paymentStatus === 'polling' && (
-                <div className="bg-blue-100 border border-blue-400 text-blue-800 rounded-xl p-6 mb-8 animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    <div>
-                      <h3 className="font-bold text-lg mb-1">भुगतान अनुरोध भेजा गया</h3>
-                      <p className="text-sm">कृपया अपने UPI ऐप में भुगतान अनुरोध स्वीकार करें। हम स्थिति की जांच कर रहे हैं...</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {paymentStatus === 'success' && (
-                <div className="bg-green-100 border border-green-400 text-green-800 rounded-xl p-6 mb-8">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6" />
-                    <div>
-                      <h3 className="font-bold text-lg mb-1">✓ भुगतान सफल!</h3>
-                      <p className="text-sm">आपकी सदस्यता सक्रिय हो गई है। आपको जल्द ही redirect किया जाएगा...</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {paymentStatus === 'failed' && (
-                <div className="bg-red-100 border border-red-400 text-red-800 rounded-xl p-6 mb-8">
-                  <div className="flex items-center gap-3">
-                    <AlertCircle className="w-6 h-6" />
-                    <div>
-                      <h3 className="font-bold text-lg mb-1">✗ भुगतान विफल</h3>
-                      <p className="text-sm">कृपया पुनः प्रयास करें या अन्य भुगतान विधि का उपयोग करें।</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Selected Plan Summary */}
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-6 mb-8 shadow-xl">
                 <div className="flex items-center justify-between">
@@ -432,7 +596,6 @@ export default function MagazineMembership() {
                       onClick={() => {
                         setShowForm(false);
                         setFormData(prev => ({ ...prev, membershipType: "" }));
-                        setPaymentStatus(null);
                       }}
                       className="text-sm underline mt-2 hover:text-purple-200 transition"
                     >
@@ -442,149 +605,223 @@ export default function MagazineMembership() {
                 </div>
               </div>
 
-              {/* Registration Form */}
+              {/* Form */}
               <div className="bg-white rounded-2xl p-8 shadow-lg mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">सदस्यता फॉर्म</h2>
-                  <div className="flex items-center gap-2 text-purple-600">
-                    <Smartphone className="w-5 h-5" />
-                    <span className="text-sm font-semibold">PhonePe से भुगतान</span>
-                  </div>
-                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">सदस्यता फॉर्म</h2>
                 
-                <form onSubmit={handlePhonePePayment} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name */}
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">पूरा नाम *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      पूरा नाम <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      required
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                      className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+                        errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                       placeholder="अपना नाम दर्ज करें"
                     />
+                    {errors.name && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.name}
+                      </p>
+                    )}
                   </div>
 
+                  {/* Email */}
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">ईमेल *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      ईमेल <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      required
                       disabled={isSubmitting}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                      className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+                        errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                       placeholder="example@email.com"
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
 
+                  {/* Phone */}
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">मोबाइल नंबर *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      मोबाइल नंबर <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      required
                       disabled={isSubmitting}
-                      pattern="[0-9]{10}"
                       maxLength="10"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                      className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+                        errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                       placeholder="10 अंकों का मोबाइल नंबर"
                     />
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.phone}
+                      </p>
+                    )}
                   </div>
 
+                  {/* Address */}
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">पूरा पता *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      पूरा पता <span className="text-red-500">*</span>
+                    </label>
                     <textarea
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
-                      required
                       disabled={isSubmitting}
                       rows="3"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition resize-none disabled:bg-gray-100"
+                      className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition resize-none text-gray-900 ${
+                        errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                       placeholder="अपना पूरा पता दर्ज करें"
                     />
+                    {errors.address && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.address}
+                      </p>
+                    )}
                   </div>
 
+                  {/* City and State */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2">शहर *</label>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        शहर <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         name="city"
                         value={formData.city}
                         onChange={handleInputChange}
-                        required
                         disabled={isSubmitting}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+                          errors.city ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                         placeholder="शहर"
                       />
+                      {errors.city && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.city}
+                        </p>
+                      )}
                     </div>
                     
                     <div>
-                      <label className="block text-gray-700 font-semibold mb-2">राज्य *</label>
+                      <label className="block text-gray-700 font-semibold mb-2">
+                        राज्य <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         name="state"
                         value={formData.state}
                         onChange={handleInputChange}
-                        required
                         disabled={isSubmitting}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+                          errors.state ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                        } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                         placeholder="राज्य"
                       />
+                      {errors.state && (
+                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.state}
+                        </p>
+                      )}
                     </div>
                   </div>
 
+                  {/* Pincode */}
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">पिनकोड *</label>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      पिनकोड <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       name="pincode"
                       value={formData.pincode}
                       onChange={handleInputChange}
-                      required
                       disabled={isSubmitting}
-                      pattern="[0-9]{6}"
                       maxLength="6"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
+                      className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+                        errors.pincode ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
                       placeholder="6 अंकों का पिनकोड"
                     />
+                    {errors.pincode && (
+                      <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.pincode}
+                      </p>
+                    )}
                   </div>
 
-                  {/* VPA Input for Web Users */}
-                  {(deviceInfo.type === 'web' || showVpaInput) && (
-                    <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        UPI ID (VPA) * <span className="text-sm font-normal text-gray-600">(जैसे: yourname@paytm)</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="vpa"
-                        value={formData.vpa}
-                        onChange={handleInputChange}
-                        required={deviceInfo.type === 'web'}
-                        disabled={isSubmitting}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition disabled:bg-gray-100"
-                        placeholder="yourname@paytm"
-                      />
-                      <p className="text-xs text-gray-600 mt-2">
-                        💡 आपके UPI ऐप में भुगतान अनुरोध भेजा जाएगा
-                      </p>
-                    </div>
-                  )}
-
+                  {/* UPI ID */}
+                 {formData.membershipType === "annual" && (
+  <div>
+    <label className="block text-gray-700 font-semibold mb-2">
+      UPI ID <span className="text-red-500">*</span>
+    </label>
+    <div className="flex items-center gap-2">
+      <input
+        type="text"
+        name="vpa"
+        value={formData.vpa}
+        onChange={handleInputChange}
+        disabled={isSubmitting}
+        className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition text-gray-900 ${
+          errors.vpa ? 'border-red-500 bg-red-50' : 'border-gray-300'
+        } disabled:bg-gray-100 disabled:cursor-not-allowed placeholder:text-gray-400`}
+        placeholder="name@upi"
+      />
+      <button
+        type="button"
+        onClick={handleValidateVPA}
+        disabled={!formData.vpa || isSubmitting}
+        className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 transition disabled:opacity-50"
+      >
+        Validate
+      </button>
+    </div>
+    {errors.vpa && (
+      <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+        <AlertCircle className="w-4 h-4" />
+        {errors.vpa}
+      </p>
+    )}
+  </div>
+)}
                   {/* Order Summary */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 mt-6">
-                    <h3 className="font-bold text-gray-800 mb-4">ऑर्डर सारांश</h3>
-                    <div className="space-y-2">
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200">
+                    <h3 className="font-bold text-gray-800 mb-4 text-lg">📋 ऑर्डर सारांश</h3>
+                    <div className="space-y-3">
                       <div className="flex justify-between text-gray-700">
-                        <span>चयनित योजना:</span>
+                        <span>योजना:</span>
                         <span className="font-semibold">{selectedPlan.name}</span>
                       </div>
                       <div className="flex justify-between text-gray-700">
@@ -593,12 +830,10 @@ export default function MagazineMembership() {
                       </div>
                       <div className="flex justify-between text-gray-700">
                         <span>भुगतान विधि:</span>
-                        <span className="font-semibold">
-                          {deviceInfo.type === 'web' ? 'UPI (Collect)' : 'PhonePe App'}
-                        </span>
+                        <span className="font-semibold">UPI (Collect Request)</span>
                       </div>
-                      <div className="border-t border-gray-300 my-2"></div>
-                      <div className="flex justify-between text-lg font-bold text-purple-600">
+                      <div className="border-t-2 border-purple-300 my-2"></div>
+                      <div className="flex justify-between text-xl font-bold text-purple-700">
                         <span>कुल राशि:</span>
                         <span>{selectedPlan.priceDisplay}</span>
                       </div>
@@ -608,133 +843,164 @@ export default function MagazineMembership() {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={isSubmitting || paymentStatus === 'polling'}
-                    className={`w-full py-4 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 ${
-                      isSubmitting || paymentStatus === 'polling'
+                    disabled={isSubmitting}
+                    className={`w-full py-4 rounded-xl font-bold text-white text-lg transition-all flex items-center justify-center gap-3 shadow-lg ${
+                      isSubmitting
                         ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 shadow-lg'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 active:scale-95'
                     }`}
                   >
-                    {isSubmitting || paymentStatus === 'polling' ? (
+                    {isSubmitting ? (
                       <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {paymentStatus === 'polling' ? 'भुगतान की प्रतीक्षा में...' : 'भुगतान प्रोसेस हो रहा है...'}
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        प्रोसेस हो रहा है...
                       </>
                     ) : (
                       <>
-                        <Smartphone className="w-5 h-5" />
-                        {deviceInfo.type === 'web' 
-                          ? `UPI से ${selectedPlan.priceDisplay} का भुगतान करें`
-                          : `PhonePe App में ${selectedPlan.priceDisplay} का भुगतान करें`
-                        }
-                        <ArrowRight className="w-5 h-5" />
+                        <Shield className="w-6 h-6" />
+                        UPI से {selectedPlan.priceDisplay} का भुगतान करें
+                        <ArrowRight className="w-6 h-6" />
                       </>
                     )}
                   </button>
 
                   {/* Security Badge */}
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 mt-4">
-                    <Shield className="w-4 h-4 text-green-600" />
-                    <span>100% सुरक्षित और एन्क्रिप्टेड भुगतान</span>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-600 bg-green-50 border border-green-200 rounded-lg p-3">
+                    <Shield className="w-5 h-5 text-green-600" />
+                    <span className="font-semibold">100% सुरक्षित और एन्क्रिप्टेड भुगतान</span>
                   </div>
                 </form>
               </div>
 
               {/* Information Cards */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                  <h3 className="font-bold text-blue-900 mb-3 flex items-center">
-                    <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm mr-2">i</span>
-                    भुगतान प्रक्रिया
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                  <h3 className="font-bold text-blue-900 mb-4 flex items-center text-lg">
+                    <span className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm mr-3">i</span>
+                    भुगतान कैसे करें
                   </h3>
-                  <ul className="space-y-2 text-sm text-blue-800">
+                  <ul className="space-y-3 text-sm text-blue-800">
                     <li className="flex items-start">
-                      <span className="mr-2">1.</span>
-                      <span>फॉर्म भरें और Submit करें</span>
+                      <span className="font-bold mr-2 text-blue-600">1.</span>
+                      <span>UPI ID दर्ज करें और Submit करें</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2">2.</span>
-                      <span>
-                        {deviceInfo.type === 'web' 
-                          ? 'UPI ऐप में भुगतान अनुरोध स्वीकार करें'
-                          : 'PhonePe App में redirect होंगे'
-                        }
-                      </span>
+                      <span className="font-bold mr-2 text-blue-600">2.</span>
+                      <span>अपने UPI ऐप में notification देखें</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2">3.</span>
-                      <span>सुरक्षित भुगतान करें</span>
+                      <span className="font-bold mr-2 text-blue-600">3.</span>
+                      <span>भुगतान अनुरोध स्वीकार करें</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2">4.</span>
-                      <span>भुगतान पूर्ण होने पर confirmation मिलेगा</span>
+                      <span className="font-bold mr-2 text-blue-600">4.</span>
+                      <span>UPI PIN दर्ज करें</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="font-bold mr-2 text-blue-600">5.</span>
+                      <span>Confirmation प्राप्त करें</span>
                     </li>
                   </ul>
                 </div>
 
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                  <h3 className="font-bold text-green-900 mb-3 flex items-center">
-                    <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm mr-2">✓</span>
-                    सदस्यता लाभ
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
+                  <h3 className="font-bold text-red-900 mb-4 flex items-center text-lg">
+                    <span className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm mr-3">⚠</span>
+                    महत्वपूर्ण सूचना
                   </h3>
-                  <ul className="space-y-2 text-sm text-green-800">
+                  <ul className="space-y-3 text-sm text-red-800">
                     <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>तुरंत सदस्यता सक्रिय होगी</span>
+                      <span className="mr-2">⚠️</span>
+                      <span className="font-semibold">भुगतान के समय पेज refresh न करें</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>Email पर confirmation भेजा जाएगा</span>
+                      <span className="mr-2">⚠️</span>
+                      <span className="font-semibold">Back button न दबाएं</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>पहली पत्रिका अगले माह से</span>
+                      <span className="mr-2">⏱️</span>
+                      <span>5 मिनट में भुगतान पूरा करें</span>
                     </li>
                     <li className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>डिजिटल सदस्यता कार्ड मिलेगा</span>
+                      <span className="mr-2">📧</span>
+                      <span>Email confirmation मिलेगा</span>
                     </li>
                   </ul>
                 </div>
               </div>
 
-              {/* Device-Specific Instructions */}
-              <div className="mt-6 bg-purple-50 border border-purple-200 rounded-xl p-6">
-                <h3 className="font-bold text-purple-900 mb-3">
-                  📱 आपके डिवाइस के लिए विशेष जानकारी
-                </h3>
-                {deviceInfo.type === 'android' && (
-                  <div className="text-sm text-purple-800 space-y-2">
-                    <p>• आप Android device पर हैं</p>
-                    <p>• भुगतान के लिए PhonePe App में redirect होंगे</p>
-                    <p>• अगर PhonePe installed नहीं है, तो पहले install करें</p>
-                    <p>• भुगतान पूरा होने के बाद automatically वापस आ जाएंगे</p>
+              {/* UPI App Instructions */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-6">
+                <h3 className="font-bold text-purple-900 mb-4 text-lg">📱 UPI ऐप में भुगतान कैसे देखें</h3>
+                <div className="space-y-3 text-sm text-purple-800">
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="font-bold text-purple-900 mb-1">Google Pay:</p>
+                    <p>होम स्क्रीन पर "Pending" या notification देखें</p>
                   </div>
-                )}
-                {deviceInfo.type === 'ios' && (
-                  <div className="text-sm text-purple-800 space-y-2">
-                    <p>• आप iOS device पर हैं</p>
-                    <p>• भुगतान के लिए PhonePe App में redirect होंगे</p>
-                    <p>• अगर PhonePe installed नहीं है, तो पहले install करें</p>
-                    <p>• भुगतान पूरा होने के बाद automatically वापस आ जाएंगे</p>
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="font-bold text-purple-900 mb-1">PhonePe:</p>
+                    <p>होम पर "Pending Requests" या notification check करें</p>
                   </div>
-                )}
-                {deviceInfo.type === 'web' && (
-                  <div className="text-sm text-purple-800 space-y-2">
-                    <p>• आप Web Browser पर हैं</p>
-                    <p>• कृपया अपना UPI ID दर्ज करें (जैसे: yourname@paytm)</p>
-                    <p>• आपके UPI ऐप में भुगतान अनुरोध भेजा जाएगा</p>
-                    <p>• अपने UPI ऐप में notification देखें और approve करें</p>
-                    <p>• हम automatically भुगतान status check करेंगे</p>
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="font-bold text-purple-900 mb-1">Paytm:</p>
+                    <p>"Passbook" में "Pending" section देखें</p>
                   </div>
-                )}
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="font-bold text-purple-900 mb-1">BHIM / Other UPI Apps:</p>
+                    <p>होम स्क्रीन पर "Collect Request" या "Pending" देखें</p>
+                  </div>
+                  <div className="mt-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg p-4">
+                    <p className="font-bold text-yellow-900 mb-2">💡 यदि notification नहीं मिला:</p>
+                    <p className="text-yellow-800">अपने UPI ऐप को manually खोलें और "Pending Requests" या "Collect Requests" section में देखें</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={closeModal}
+        orderDetails={orderDetails}
+        paymentStatus={paymentStatus}
+        timeLeft={timeLeft}
+      />
+
+      {/* Styles */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-slideUp {
+          animation: slideUp 0.4s ease-out;
+        }
+      `}</style>
     </div>
-    <Footer/>
+<Footer/>
     </>
   );
 }

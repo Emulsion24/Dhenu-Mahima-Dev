@@ -350,8 +350,8 @@ export default function AudioPlayer() {
 
           <div className="backdrop-blur-xl bg-white/50 rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10 border border-white/60">
             <div className="flex items-center justify-between mb-6 sm:mb-8 gap-2">
-              <Heart className="text-red-500 flex-shrink-0" size={20} />
-              <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 text-center flex-1">Most Loved Bhajans</h3>
+              
+         
               <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 sm:p-3 rounded-full flex-shrink-0">
                 <Music2 className="text-white" size={20} />
               </div>
@@ -406,7 +406,7 @@ export default function AudioPlayer() {
               <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-orange-500 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
               <Music2 size={20} className="relative z-10 group-hover:rotate-12 transition-transform duration-300 sm:w-6 sm:h-6" strokeWidth={2} />
-              <span className="relative z-10">View All Bhajans</span>
+              <span className="relative z-10">View All Jevansutra</span>
               <svg className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>

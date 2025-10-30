@@ -53,6 +53,8 @@ export default function FoundationAdminPanel() {
   const normalizeFoundation = useCallback((f) => ({
     ...f,
     logo: f.logoUrl || "",
+    order: f.order !== undefined && f.order !== null ? String(f.order) : '',
+
     established: f.establishedYear || "",
     keyActivities: f.activities?.map(a => a.activityText) || [],
     objectives: f.objectives
@@ -67,7 +69,8 @@ export default function FoundationAdminPanel() {
       { label: "", value: "" },
       { label: "", value: "" }
     ],
-    contact: f.contact || { email: "", phone: "", address: "" }
+    contact: f.contact || { email: "", phone: "", address: "" },
+
   }), []);
 
   // Prepare data for API submission
@@ -87,6 +90,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
 
   formData.append("stats", JSON.stringify(foundation.stats || []));
   formData.append("activities", JSON.stringify(foundation.keyActivities || []));
+    formData.append("order", foundation.order||'');
 
   const objectives = [
     ...foundation.objectives.map(o => ({
@@ -600,6 +604,24 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                       placeholder="Foundation name in Hindi"
                     />
+{selectedFoundation.isNew ? (
+  <p className="text-gray-500 italic">Order will be assigned automatically after saving.</p>
+) : (
+ <div>
+    <label className="block text-gray-700 font-semibold mb-2">
+      Order <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      value={selectedFoundation.order||"no order"}
+      onChange={(e) => updateFoundation("order", e.target.value)}
+      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+      style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
+      placeholder="Order (e.g., 1, 2, 3...)"
+    />
+  </div>
+)}
+
                   </div>
 
                   <div>
