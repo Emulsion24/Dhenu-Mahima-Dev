@@ -2,7 +2,7 @@
 import toast from "react-hot-toast";
 import Link from "next/link";
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock, Tag, CheckCircle, ZoomIn, ZoomOut } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, X, Loader2, Lock, Tag, CheckCircle, AlertCircle } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Headers from '@/components/Header';
 import Image from 'next/image';
@@ -10,6 +10,10 @@ import API from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
 export default function PDFBookViewer() {
+
+
+
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedBook, setSelectedBook] = useState(null);
@@ -268,14 +272,26 @@ export default function PDFBookViewer() {
   // Modified Stream PDF - Embedded Viewer with Protection
   const handleStreamPDF = async (book) => {
     try {
-      if (!isBookPurchased(book.id)) {
-        alert('Please purchase this book first to view it.');
-        return;
-      }
-
+      setError(null);
       setPdfLoading(true);
+      setLoadingProgress(0);
+
+      // Optional: Check access first (faster feedback)
+      // await API.get(`/books/${book.id}/check-access`);
+
+      // Stream with progress tracking
       const response = await API.get(`/books/${book.id}/stream`, {
-        responseType: 'blob'
+        responseType: 'blob',
+        onDownloadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setLoadingProgress(percentCompleted);
+          }
+        },
+        // Enable range requests for faster initial load
+        headers: {
+          'Range': 'bytes=0-' // Request from start, let browser handle chunking
+        }
       });
 
       const file = new Blob([response.data], { type: 'application/pdf' });
@@ -283,10 +299,20 @@ export default function PDFBookViewer() {
       
       setPdfUrl(fileURL);
       setIsViewingPDF(true);
+      setLoadingProgress(100);
 
     } catch (err) {
       console.error('Stream error:', err);
-      alert(err.response?.data?.message || 'Failed to stream PDF. Please try again.');
+      
+      if (err.response?.status === 403) {
+        setError('You do not have access to this book. Please purchase it first.');
+      } else if (err.response?.status === 404) {
+        setError('Book file not found. Please contact support.');
+      } else if (err.code === 'ERR_NETWORK') {
+        setError('Network error. Please check your connection and try again.');
+      } else {
+        setError('Failed to load PDF. Please try again.');
+      }
     } finally {
       setPdfLoading(false);
     }
@@ -298,6 +324,8 @@ export default function PDFBookViewer() {
       URL.revokeObjectURL(pdfUrl);
       setPdfUrl('');
     }
+    setError(null);
+    setLoadingProgress(0);
   };
 
   const itemsPerPage = 8;
@@ -323,138 +351,176 @@ export default function PDFBookViewer() {
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
+
+  useEffect(() => {
+    if (isViewingPDF) {
+      const handleContextMenu = (e) => {
+        e.preventDefault();
+        return false;
+      };
+
+      const handleKeyDown = (e) => {
+        if (
+          (e.ctrlKey && (e.key === 'p' || e.key === 's')) ||
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))
+        ) {
+          e.preventDefault();
+          return false;
+        }
+      };
+
+      document.addEventListener('contextmenu', handleContextMenu);
+      document.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        document.removeEventListener('contextmenu', handleContextMenu);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isViewingPDF]);
+
+
   // PDF Viewer Component
  if (isViewingPDF) {
     return (
-      <>
-        <Headers />
-        <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none', WebkitUserSelect: 'none', touchAction: 'pan-y' }}>
-          {/* Header Bar */}
-          <div className="bg-gray-800 border-b border-gray-700 px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <button
-                onClick={closePDFViewer}
-                className="flex items-center gap-1 sm:gap-2 text-white hover:text-orange-400 transition-colors flex-shrink-0"
-              >
-                <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
-                <span className="font-semibold text-sm sm:text-base hidden xs:inline">Back to Book</span>
-                <span className="font-semibold text-sm xs:hidden">Back</span>
-              </button>
-              <div className="h-4 sm:h-6 w-px bg-gray-600 flex-shrink-0"></div>
-              <h2 className="text-white font-semibold text-sm sm:text-base truncate">{selectedBook?.title}</h2>
-            </div>
-            
-            <div className="flex items-center gap-1 sm:gap-2 text-red-400 text-xs sm:text-sm flex-shrink-0 ml-2">
-              <Lock size={14} className="sm:w-4 sm:h-4" />
-              <span className="hidden md:inline">Protected Content - No Download/Print</span>
-              <span className="md:hidden">Protected</span>
-            </div>
+      <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+        {/* Header */}
+        <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={closePDFViewer}
+              className="flex items-center gap-2 text-white hover:text-orange-400 transition-colors"
+            >
+              <ChevronLeft size={20} />
+              <span className="font-semibold">Back</span>
+            </button>
+            <div className="h-6 w-px bg-gray-600"></div>
+            <h2 className="text-white font-semibold truncate max-w-md">{selectedBook?.title}</h2>
           </div>
-
-          {/* PDF Viewer */}
-          <div className="h-[calc(100vh-48px)] sm:h-[calc(100vh-60px)] relative overflow-hidden">
-            {pdfLoading ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                <div className="text-center px-4">
-                  <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 text-orange-500 animate-spin mx-auto mb-3 sm:mb-4" />
-                  <p className="text-white text-sm sm:text-base">Loading PDF...</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Desktop/Tablet iframe viewer */}
-                <iframe
-                  src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-                  className="w-full h-full border-0 hidden sm:block"
-                  title={selectedBook?.title}
-                  onContextMenu={(e) => e.preventDefault()}
-                  style={{ 
-                    pointerEvents: 'auto',
-                    WebkitOverflowScrolling: 'touch'
-                  }}
-                  allow="autoplay"
-                />
-                
-                {/* Mobile embed viewer */}
-                <div className="block sm:hidden w-full h-full overflow-auto bg-gray-900">
-                  <object
-                    data={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-                    type="application/pdf"
-                    className="w-full h-full min-h-screen"
-                    onContextMenu={(e) => e.preventDefault()}
-                    style={{ 
-                      touchAction: 'pan-y pinch-zoom',
-                      WebkitOverflowScrolling: 'touch'
-                    }}
-                  >
-                    {/* Fallback for browsers that don't support PDF embedding */}
-                    <div className="p-4 text-center">
-                      <div className="bg-gray-800 rounded-lg p-6 max-w-md mx-auto">
-                        <svg className="w-16 h-16 text-orange-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-white mb-4 font-semibold">Unable to display PDF</p>
-                        <p className="text-gray-400 text-sm mb-4">Your browser doesn&apos;t support PDF viewing. Please use the button below to view in a new tab.</p>
-                        <a
-                          href={pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                          Open in New Tab
-                        </a>
-                        <div className="mt-4 flex items-center justify-center gap-2 text-red-400 text-xs">
-                          <Lock size={12} />
-                          <span>Download and print are disabled</span>
-                        </div>
-                      </div>
-                    </div>
-                  </object>
-                </div>
-              </>
-            )}
-            
-            {/* Transparent overlay to prevent some interactions - lighter on mobile */}
-            <div 
-              className="absolute inset-0 pointer-events-none"
-              style={{ mixBlendMode: 'multiply', opacity: 0.005 }}
-            ></div>
-          </div>
-
-          {/* Warning overlay - responsive */}
-          <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 max-w-[90vw] sm:max-w-none">
-            <Lock size={12} className="sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-            <span className="hidden sm:inline">This content is protected. Screenshot and screen recording are monitored.</span>
-            <span className="sm:hidden text-center">Protected content - Screenshots monitored</span>
+          
+          <div className="flex items-center gap-2 text-red-400 text-sm">
+            <Lock size={16} />
+            <span className="hidden md:inline">Protected Content</span>
           </div>
         </div>
-        
-        {/* Additional CSS to prevent copying and enhance security */}
+
+        {/* PDF Viewer */}
+        <div className="h-[calc(100vh-60px)] relative">
+          {pdfLoading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+              <div className="text-center max-w-md px-4">
+                <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
+                <p className="text-white text-lg font-semibold mb-2">Loading PDF...</p>
+                
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-700 rounded-full h-2 mb-2 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-orange-500 to-red-500 h-full transition-all duration-300 ease-out"
+                    style={{ width: `${loadingProgress}%` }}
+                  />
+                </div>
+                <p className="text-gray-400 text-sm">{loadingProgress}%</p>
+                
+                <p className="text-gray-400 text-sm mt-4">
+                  This may take a moment for large files...
+                </p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+              <div className="text-center max-w-md px-4">
+                <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                <p className="text-white text-lg font-semibold mb-2">Unable to Load PDF</p>
+                <p className="text-gray-400 mb-6">{error}</p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => handleStreamPDF(selectedBook)}
+                    className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                  <button
+                    onClick={closePDFViewer}
+                    className="bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
+                  >
+                    Go Back
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Desktop/Tablet - iframe with lazy loading */}
+              <iframe
+                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+                className="w-full h-full border-0 hidden sm:block"
+                title={selectedBook?.title}
+                loading="lazy"
+                onContextMenu={(e) => e.preventDefault()}
+                style={{ 
+                  pointerEvents: 'auto',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              />
+              
+              {/* Mobile - optimized embed */}
+              <div className="block sm:hidden w-full h-full overflow-auto bg-gray-900">
+                <object
+                  data={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-width`}
+                  type="application/pdf"
+                  className="w-full h-full min-h-screen"
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  {/* Mobile fallback */}
+                  <div className="p-4 text-center">
+                    <div className="bg-gray-800 rounded-lg p-6 max-w-md mx-auto">
+                      <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+                      <p className="text-white mb-4 font-semibold">PDF Viewer Not Supported</p>
+                      <p className="text-gray-400 text-sm mb-4">
+                        Your browser doesn't support embedded PDF viewing.
+                      </p>
+                      <a
+                        href={pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                      >
+                        Open in New Tab
+                      </a>
+                      <div className="mt-4 flex items-center justify-center gap-2 text-red-400 text-xs">
+                        <Lock size={12} />
+                        <span>Download disabled</span>
+                      </div>
+                    </div>
+                  </div>
+                </object>
+              </div>
+            </>
+          )}
+          
+          {/* Protective overlay */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{ mixBlendMode: 'multiply', opacity: 0.005 }}
+          />
+        </div>
+
+        {/* Warning */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+          <Lock size={14} />
+          <span className="hidden sm:inline">Protected content - Screenshots monitored</span>
+          <span className="sm:hidden">Protected content</span>
+        </div>
+
         <style jsx>{`
           iframe, object, embed {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
           }
-          
-          /* Prevent text selection on mobile */
-          * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-          }
-          
-          /* Disable pinch zoom on the viewer container only */
-          .pdf-viewer-container {
-            touch-action: pan-y;
-          }
         `}</style>
-      </>
+      </div>
     );
   }
 
