@@ -423,8 +423,9 @@ if (data.success) {
 
     if (formData.membershipType === "lifetime") {
       // Lifetime: Direct redirect
-     try{   const { data: orderData }  = await API.post("/membership/create-order-onetime",payload);
-  
+     try {  
+       const { data: orderData }  = await API.post("/membership/create-order-onetime",payload);
+       console.log(orderData)
       if (orderData?.redirectUrl) {
       window.location.href = orderData.redirectUrl;
     } else {
@@ -441,8 +442,9 @@ if (data.success) {
   const newpay = { ...payload, paymentMode: "UPI_COLLECT" };
       // Annual: Collect flow (requires VPA)
       const response = await API.post("/membership/create-order",newpay)
-
-      const result =  response.data; ;
+       console.log(response);
+      const result =  response.data; 
+      console.log(result);
       if (result.success) {
         setOrderDetails(result.data);
         startPolling(result.data.merchantOrderId);
