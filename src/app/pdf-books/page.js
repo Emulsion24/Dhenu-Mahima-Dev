@@ -11,7 +11,8 @@ import { useAuthStore } from '@/store/authStore';
 
 export default function PDFBookViewer() {
 
-
+const [pdfBlobUrl, setPdfBlobUrl] = useState(null);
+const [streamingMethod, setStreamingMethod] = useState(null);
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
@@ -270,63 +271,189 @@ export default function PDFBookViewer() {
   }, [books, user]);
 
   // Modified Stream PDF - Embedded Viewer with Protection
-  const handleStreamPDF = async (book) => {
+ const handleStreamPDF = async (book) => {
+  try {
+    setError(null);
+    setPdfLoading(true);
+    setLoadingProgress(0);
+
+    // Force UI update
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Detect device capabilities
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    // Get file size to determine strategy
+    let fileSize = 0;
     try {
-      setError(null);
-      setPdfLoading(true);
-      setLoadingProgress(0);
+      const headResponse = await API.head(`/books/${book.id}/stream`);
+      fileSize = parseInt(headResponse.headers['content-length'] || '0');
+      console.log('PDF Size:', (fileSize / (1024 * 1024)).toFixed(2), 'MB');
+    } catch (err) {
+      console.log('Could not get file size, using fallback method');
+    }
 
-      // Optional: Check access first (faster feedback)
-      // await API.get(`/books/${book.id}/check-access`);
+    // STRATEGY DECISION:
+    // - iOS: Must use blob (doesn't support auth in iframe src)
+    // - Small files (<5MB): Use blob for better compatibility
+    // - Large files on desktop: Use blob with chunked loading
+    
+    const shouldUseBlob = isIOS || fileSize < 10 * 1024 * 1024; // 10MB threshold
 
-      // Stream with progress tracking
-      const response = await API.get(`/books/${book.id}/stream`, {
-        responseType: 'blob',
-        onDownloadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setLoadingProgress(percentCompleted);
-          }
-        },
-        // Enable range requests for faster initial load
-        headers: {
-          'Range': 'bytes=0-' // Request from start, let browser handle chunking
+    if (shouldUseBlob && fileSize < 10 * 1024 * 1024) {
+      // STRATEGY 1: Download entire file (for small-medium files)
+      console.log('Using blob strategy (small/medium file or iOS)');
+      await streamWithBlob(book);
+    } else {
+      // STRATEGY 2: Progressive chunked loading (for large files)
+      console.log('Using progressive chunked loading');
+      await streamWithChunks(book, fileSize);
+    }
+
+  } catch (err) {
+    console.error('Stream error:', err);
+    handleStreamError(err);
+  }
+};
+
+// STRATEGY 1: Secure Blob Method (works everywhere)
+const streamWithBlob = async (book) => {
+  try {
+    setStreamingMethod('blob');
+    
+    const response = await API.get(`/books/${book.id}/stream`, {
+      responseType: 'blob',
+      onDownloadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setLoadingProgress(percentCompleted);
         }
+      },
+      timeout: 120000, // 2 minutes timeout
+    });
+
+    // Create secure blob URL
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const blobUrl = URL.createObjectURL(blob);
+    
+    setPdfBlobUrl(blobUrl);
+    setPdfUrl(blobUrl);
+    setIsViewingPDF(true);
+    setLoadingProgress(100);
+
+    // Smooth transition
+    setTimeout(() => setPdfLoading(false), 300);
+
+  } catch (err) {
+    throw err;
+  }
+};
+
+// STRATEGY 2: Progressive Chunked Loading (for large files)
+const streamWithChunks = async (book, totalSize) => {
+  try {
+    setStreamingMethod('chunked');
+    
+    const chunkSize = 512 * 1024; // 512KB chunks (good for mobile too)
+    const chunks = [];
+    let loaded = 0;
+    let currentBlobUrl = null;
+
+    // Calculate number of chunks
+    const numChunks = Math.ceil(totalSize / chunkSize);
+    console.log(`Loading ${numChunks} chunks...`);
+
+    // Load and display progressively
+    for (let i = 0; i < numChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize - 1, totalSize - 1);
+
+      // Fetch chunk
+      const response = await API.get(`/books/${book.id}/stream`, {
+        responseType: 'arraybuffer',
+        headers: {
+          'Range': `bytes=${start}-${end}`
+        },
+        timeout: 30000, // 30s per chunk
       });
 
-      const file = new Blob([response.data], { type: 'application/pdf' });
-      const fileURL = URL.createObjectURL(file);
-      
-      setPdfUrl(fileURL);
-      setIsViewingPDF(true);
-      setLoadingProgress(100);
+      chunks.push(response.data);
+      loaded += response.data.byteLength;
 
-    } catch (err) {
-      console.error('Stream error:', err);
-      
-      if (err.response?.status === 403) {
-        setError('You do not have access to this book. Please purchase it first.');
-      } else if (err.response?.status === 404) {
-        setError('Book file not found. Please contact support.');
-      } else if (err.code === 'ERR_NETWORK') {
-        setError('Network error. Please check your connection and try again.');
-      } else {
-        setError('Failed to load PDF. Please try again.');
+      // Update progress
+      const progress = Math.round((loaded / totalSize) * 100);
+      setLoadingProgress(progress);
+
+      // Display first chunk immediately, then update every 1MB or at end
+      if (i === 0 || chunks.length % 2 === 0 || i === numChunks - 1) {
+        // Revoke old URL to prevent memory leak
+        if (currentBlobUrl) {
+          URL.revokeObjectURL(currentBlobUrl);
+        }
+
+        // Create new blob with accumulated chunks
+        const blob = new Blob(chunks, { type: 'application/pdf' });
+        currentBlobUrl = URL.createObjectURL(blob);
+        
+        setPdfBlobUrl(currentBlobUrl);
+        setPdfUrl(currentBlobUrl);
+
+        // Show viewer after first chunk
+        if (i === 0) {
+          setIsViewingPDF(true);
+        }
+
+        console.log(`Updated display: ${progress}% (${chunks.length}/${numChunks} chunks)`);
       }
-    } finally {
-      setPdfLoading(false);
     }
-  };
 
-  const closePDFViewer = () => {
-    setIsViewingPDF(false);
-    if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
-      setPdfUrl('');
-    }
-    setError(null);
-    setLoadingProgress(0);
-  };
+    setLoadingProgress(100);
+    setTimeout(() => setPdfLoading(false), 300);
+    console.log('Full PDF loaded successfully');
+
+  } catch (err) {
+    throw err;
+  }
+};
+
+// Enhanced error handling
+const handleStreamError = (err) => {
+  setPdfLoading(false);
+  setLoadingProgress(0);
+
+  if (err.response?.status === 403) {
+    setError('You do not have access to this book. Please purchase it first.');
+  } else if (err.response?.status === 404) {
+    setError('Book file not found. Please contact support.');
+  } else if (err.code === 'ECONNABORTED') {
+    setError('Download timeout. Please check your connection and try again.');
+  } else if (err.code === 'ERR_NETWORK') {
+    setError('Network error. Please check your connection and try again.');
+  } else {
+    setError('Failed to load PDF. Please try again.');
+  }
+};
+
+// IMPORTANT: Update your closePDFViewer to properly cleanup
+const closePDFViewer = () => {
+  setIsViewingPDF(false);
+  
+  // Cleanup blob URLs to prevent memory leaks
+  if (pdfBlobUrl) {
+    URL.revokeObjectURL(pdfBlobUrl);
+    setPdfBlobUrl(null);
+  }
+  if (pdfUrl && pdfUrl !== pdfBlobUrl) {
+    URL.revokeObjectURL(pdfUrl);
+  }
+  
+  setPdfUrl('');
+  setError(null);
+  setLoadingProgress(0);
+  setPdfLoading(false);
+  setStreamingMethod(null);
+};
 
   const itemsPerPage = 8;
   const filteredBooks = books.filter(book =>
@@ -383,147 +510,190 @@ export default function PDFBookViewer() {
 
   // PDF Viewer Component
  if (isViewingPDF) {
-    return (
-      <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
-        {/* Header */}
-        <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={closePDFViewer}
-              className="flex items-center gap-2 text-white hover:text-orange-400 transition-colors"
-            >
-              <ChevronLeft size={20} />
-              <span className="font-semibold">Back</span>
-            </button>
-            <div className="h-6 w-px bg-gray-600"></div>
-            <h2 className="text-white font-semibold truncate max-w-md">{selectedBook?.title}</h2>
-          </div>
-          
-          <div className="flex items-center gap-2 text-red-400 text-sm">
-            <Lock size={16} />
-            <span className="hidden md:inline">Protected Content</span>
-          </div>
+  return (
+    <div className="fixed inset-0 z-50 bg-gray-900" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+      {/* Header */}
+      <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={closePDFViewer}
+            className="flex items-center gap-2 text-white hover:text-orange-400 transition-colors"
+          >
+            <ChevronLeft size={20} />
+            <span className="font-semibold">Back</span>
+          </button>
+          <div className="h-6 w-px bg-gray-600"></div>
+          <h2 className="text-white font-semibold truncate max-w-md">{selectedBook?.title}</h2>
         </div>
+        
+        <div className="flex items-center gap-2 text-red-400 text-sm">
+          <Lock size={16} />
+          <span className="hidden md:inline">Protected Content</span>
+        </div>
+      </div>
 
-        {/* PDF Viewer */}
-        <div className="h-[calc(100vh-60px)] relative">
-          {pdfLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-              <div className="text-center max-w-md px-4">
-                <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
-                <p className="text-white text-lg font-semibold mb-2">Loading PDF...</p>
-                
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-700 rounded-full h-2 mb-2 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-orange-500 to-red-500 h-full transition-all duration-300 ease-out"
-                    style={{ width: `${loadingProgress}%` }}
-                  />
-                </div>
-                <p className="text-gray-400 text-sm">{loadingProgress}%</p>
-                
-                <p className="text-gray-400 text-sm mt-4">
-                  This may take a moment for large files...
-                </p>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-              <div className="text-center max-w-md px-4">
-                <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                <p className="text-white text-lg font-semibold mb-2">Unable to Load PDF</p>
-                <p className="text-gray-400 mb-6">{error}</p>
-                <div className="flex gap-3 justify-center">
-                  <button
-                    onClick={() => handleStreamPDF(selectedBook)}
-                    className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                  <button
-                    onClick={closePDFViewer}
-                    className="bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
-                  >
-                    Go Back
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Desktop/Tablet - iframe with lazy loading */}
-              <iframe
-                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-                className="w-full h-full border-0 hidden sm:block"
-                title={selectedBook?.title}
-                loading="lazy"
-                onContextMenu={(e) => e.preventDefault()}
-                style={{ 
-                  pointerEvents: 'auto',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              />
+      {/* PDF Viewer */}
+      <div className="h-[calc(100vh-60px)] relative">
+        {pdfLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="text-center max-w-md px-4">
+              <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
               
-              {/* Mobile - optimized embed */}
-              <div className="block sm:hidden w-full h-full overflow-auto bg-gray-900">
-                <object
-                  data={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-width`}
-                  type="application/pdf"
-                  className="w-full h-full min-h-screen"
-                  onContextMenu={(e) => e.preventDefault()}
+              {/* Dynamic status message */}
+              <p className="text-white text-lg font-semibold mb-2">
+                {loadingProgress === 0 && "Initializing..."}
+                {loadingProgress > 0 && loadingProgress < 20 && "Connecting to server..."}
+                {loadingProgress >= 20 && loadingProgress < 50 && "Loading PDF..."}
+                {loadingProgress >= 50 && loadingProgress < 90 && "Almost ready..."}
+                {loadingProgress >= 90 && "Preparing viewer..."}
+              </p>
+              
+              {/* Enhanced Progress Bar */}
+              <div className="w-full bg-gray-700 rounded-full h-3 mb-2 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-orange-500 via-red-500 to-orange-500 h-full transition-all duration-300 ease-out relative"
+                  style={{ width: `${loadingProgress}%` }}
                 >
-                  {/* Mobile fallback */}
-                  <div className="p-4 text-center">
-                    <div className="bg-gray-800 rounded-lg p-6 max-w-md mx-auto">
-                      <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-                      <p className="text-white mb-4 font-semibold">PDF Viewer Not Supported</p>
-                      <p className="text-gray-400 text-sm mb-4">
-                        Your browser doesn&apos;t support embedded PDF viewing.
-                      </p>
-                      <a
-                        href={pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-                      >
-                        Open in New Tab
-                      </a>
-                      <div className="mt-4 flex items-center justify-center gap-2 text-red-400 text-xs">
-                        <Lock size={12} />
-                        <span>Download disabled</span>
-                      </div>
+                  {/* Animated shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between text-gray-400 text-sm mb-4">
+                <span className="font-mono">{loadingProgress}%</span>
+                <span className="text-xs">{selectedBook?.fileSize}</span>
+              </div>
+
+              {/* Estimated time hint */}
+              {loadingProgress > 0 && loadingProgress < 100 && (
+                <p className="text-gray-500 text-xs">
+                  {streamingMethod === 'chunked' && loadingProgress < 30 && "First page loading..."}
+                  {streamingMethod === 'chunked' && loadingProgress >= 30 && "Loading remaining pages in background..."}
+                  {streamingMethod === 'blob' && "This may take a moment for large files..."}
+                </p>
+              )}
+            </div>
+          </div>
+        ) : error ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="text-center max-w-md px-4">
+              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+              <p className="text-white text-lg font-semibold mb-2">Unable to Load PDF</p>
+              <p className="text-gray-400 mb-6">{error}</p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => handleStreamPDF(selectedBook)}
+                  className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={closePDFViewer}
+                  className="bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
+                >
+                  Go Back
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Desktop/Tablet - iframe */}
+            <iframe
+              src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+              className="w-full h-full border-0 hidden sm:block"
+              title={selectedBook?.title}
+              loading="eager"
+              onLoad={() => {
+                console.log('PDF iframe loaded successfully');
+                setPdfLoading(false);
+                setLoadingProgress(100);
+              }}
+              onError={() => {
+                setError('Failed to render PDF in viewer');
+                setPdfLoading(false);
+              }}
+              onContextMenu={(e) => e.preventDefault()}
+              style={{ 
+                pointerEvents: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                opacity: pdfLoading ? 0 : 1,
+                transition: 'opacity 0.3s ease'
+              }}
+            />
+            
+            {/* Mobile - optimized embed */}
+            <div className="block sm:hidden w-full h-full overflow-auto bg-gray-900">
+              <object
+                data={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-width`}
+                type="application/pdf"
+                className="w-full h-full min-h-screen"
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                {/* Mobile fallback */}
+                <div className="p-4 text-center">
+                  <div className="bg-gray-800 rounded-lg p-6 max-w-md mx-auto">
+                    <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+                    <p className="text-white mb-4 font-semibold">PDF Viewer Not Supported</p>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Your browser doesn&apos;t support embedded PDF viewing.
+                    </p>
+                    <a
+                      href={pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                      onClick={(e) => {
+                        // Prevent download, only allow viewing
+                        e.preventDefault();
+                        window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                    >
+                      Open in New Tab
+                    </a>
+                    <div className="mt-4 flex items-center justify-center gap-2 text-red-400 text-xs">
+                      <Lock size={12} />
+                      <span>View only - Download disabled</span>
                     </div>
                   </div>
-                </object>
-              </div>
-            </>
-          )}
-          
-          {/* Protective overlay */}
-          <div 
-            className="absolute inset-0 pointer-events-none"
-            style={{ mixBlendMode: 'multiply', opacity: 0.005 }}
-          />
-        </div>
-
-        {/* Warning */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-          <Lock size={14} />
-          <span className="hidden sm:inline">Protected content - Screenshots monitored</span>
-          <span className="sm:hidden">Protected content</span>
-        </div>
-
-        <style jsx>{`
-          iframe, object, embed {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-          }
-        `}</style>
+                </div>
+              </object>
+            </div>
+          </>
+        )}
+        
+        {/* Protective overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{ mixBlendMode: 'multiply', opacity: 0.005 }}
+        />
       </div>
-    );
-  }
 
+      {/* Security Warning */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 backdrop-blur-sm">
+        <Lock size={14} />
+        <span className="hidden sm:inline">Protected content - Screenshots monitored</span>
+        <span className="sm:hidden">Protected content</span>
+      </div>
+
+      {/* Add shimmer animation */}
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+        iframe, object, embed {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          user-select: none;
+        }
+      `}</style>
+    </div>
+  );
+}
   if (loading) {
     return (
       <>
