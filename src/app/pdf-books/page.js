@@ -478,7 +478,7 @@ export default function PDFBookViewer() {
                       <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
                       <p className="text-white mb-4 font-semibold">PDF Viewer Not Supported</p>
                       <p className="text-gray-400 text-sm mb-4">
-                        Your browser doesn't support embedded PDF viewing.
+                        Your browser doesn&apos;t support embedded PDF viewing.
                       </p>
                       <a
                         href={pdfUrl}
