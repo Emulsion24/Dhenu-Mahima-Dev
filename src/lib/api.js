@@ -26,7 +26,8 @@ API.interceptors.response.use(
         if (
           typeof window !== "undefined" &&
           !window.location.pathname.startsWith("/login") &&
-          !window.location.pathname.startsWith("/signup")
+          !window.location.pathname.startsWith("/signup") &&
+          !window.location.pathname.startsWith("/")
         ) {
           toast.error("You are not authorized. Please log in again.");
         }
