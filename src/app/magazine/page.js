@@ -4,6 +4,7 @@ import { Check, BookOpen, Star, Zap, Users, Shield, ArrowRight, Loader2, AlertCi
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import API from "@/lib/api";
+import toast from "react-hot-toast";
 
 const membershipPlans = [
   {
@@ -270,12 +271,12 @@ function validateUPI(vpa) {
 if (data.success) {
   const { valid, name } = data.data;
   if (valid) {
-    alert(`✅ VPA Verified: ${name ? name : "Valid UPI ID"}`);
+    toast(`✅ VPA Verified: ${name ? name : "Valid UPI ID"}`);
   } else {
-    alert("❌ UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
+    toast("❌ UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
   }
 } else {
-  alert("UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
+  toast("UPI ID अमान्य है। कृपया सही ID दर्ज करें।");
 }
 
   } catch (err) {
@@ -370,7 +371,7 @@ if (data.success) {
 
       if (data.success) {
         const state = data.data.state;
-        const amount = parseInt(data.data.amount) / 100;
+        const amount = parseInt(data.data.amount);
         const orderID = data.data.orderId;
 
         if (state === 'COMPLETED') {
@@ -422,19 +423,26 @@ if (data.success) {
 
     if (formData.membershipType === "lifetime") {
       // Lifetime: Direct redirect
-      const response = await API.post("/api/membership/create-order-onetime",payload);
-      const result =  response;
-      if (result.success && result.redirectUrl) {
-        window.location.href = result.redirectUrl; // 🔁 Redirect to payment page
-      } else {
-        alert("भुगतान लिंक प्राप्त करने में समस्या आई।");
-      }
+     try{   const { data: orderData }  = await API.post("/membership/create-order-onetime",payload);
+  
+      if (orderData?.redirectUrl) {
+      window.location.href = orderData.redirectUrl;
+    } else {
+      throw new Error('Payment redirect URL not received');
+    }
+
+  } catch (error) {
+    console.error('Payment initiation failed:', error?.response?.data || error.message);
+   
+  } finally {
+    setIsSubmitting(false);
+  }
     } else {
   const newpay = { ...payload, paymentMode: "UPI_COLLECT" };
       // Annual: Collect flow (requires VPA)
       const response = await API.post("/membership/create-order",newpay)
 
-      const result =  response;
+      const result =  response.data; ;
       if (result.success) {
         setOrderDetails(result.data);
         startPolling(result.data.merchantOrderId);
