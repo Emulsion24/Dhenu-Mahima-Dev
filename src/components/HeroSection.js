@@ -9,13 +9,13 @@ export default function HeroSection() {
   const { getBanners } = useLandingStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [slides, setSlides] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch banners from backend
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const  data  = await getBanners();
-        // Ensure data is an array
+        const data = await getBanners();
         if (Array.isArray(data)) {
           setSlides(data);
         } else {
@@ -23,6 +23,8 @@ export default function HeroSection() {
         }
       } catch (err) {
         console.error("Failed to fetch banners:", err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchBanners();
@@ -50,6 +52,26 @@ export default function HeroSection() {
   const goToSlide = (index) => {
     setCurrentIndex(index);
   };
+
+  // Skeleton loader (placeholder before banners load)
+if (loading) {
+  return (
+    <div className="relative w-full h-[400px] md:h-[600px] bg-gradient-to-r from-orange-500 via-yellow-400 to-orange-600 overflow-hidden">
+      {/* Animated shimmer gradient */}
+      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-orange-600 via-yellow-500 to-orange-400 opacity-80" />
+
+      {/* Centered placeholder text shapes */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-white/80">
+        <div className="w-2/3 h-8 bg-gradient-to-r from-yellow-500 via-orange-400 to-yellow-500 rounded-md mb-4 animate-pulse shadow-lg shadow-yellow-500/30" />
+        <div className="w-1/2 h-6 bg-gradient-to-r from-orange-400 via-yellow-300 to-orange-400 rounded-md animate-pulse shadow-md shadow-orange-400/30" />
+      </div>
+
+      {/* Soft overlay for depth */}
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+    </div>
+  );
+}
+
 
   // Show nothing if no slides
   if (!slides || slides.length === 0) return null;

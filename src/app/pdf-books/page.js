@@ -37,7 +37,17 @@ const [streamingMethod, setStreamingMethod] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
   const [calculatedPrice, setCalculatedPrice] = useState(null);
-
+useEffect(() => {
+  return () => {
+    // Cleanup blob URLs when component unmounts
+    if (pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+    }
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+    }
+  };
+}, [pdfBlobUrl, pdfUrl]);
   useEffect(() => {
     fetchBooks();
     if (user?.id) {

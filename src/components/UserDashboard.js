@@ -154,28 +154,34 @@ export default function UserDashboard() {
   if (!user) return null;
 
   if (loading) {
-    return (
-  <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-400 animate-gradient-move">
-      {/* Glowing ring background */}
+   return (
+
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-400 animate-gradient-move overflow-hidden">
+      {/* Soft glowing backdrop */}
       <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
 
-      {/* Main loader */}
+      {/* Loader container */}
       <div className="relative flex flex-col items-center justify-center z-10">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 blur-md opacity-75 animate-ping"></div>
-          <Loader2 className="w-16 h-16 text-white animate-spin relative z-10 drop-shadow-lg" />
+        <div className="relative flex items-center justify-center">
+          {/* Spinning gradient ring behind logo */}
+          <div className="absolute w-56 h-56 rounded-full border-8 border-t-transparent border-white/70 border-l-orange-300 border-r-yellow-300 animate-spin-slow"></div>
+
+          {/* Static logo image */}
+          <img
+            src="/logo/logo5.webp" // replace with your actual logo path
+            alt="Dhenu Mahima Logo"
+            className="w-40 h-40 rounded-full relative z-10 drop-shadow-2xl"
+          />
         </div>
 
-        <h1 className="text-white text-2xl font-bold mt-6 drop-shadow-lg tracking-wide animate-pulse">
-          Preparing Your Experience...
+        {/* Text */}
+        <h1 className="text-white text-4xl font-bold mt-8 drop-shadow-lg tracking-wide animate-pulse">
+          Dhenu Mahima
         </h1>
-        <p className="text-white/90 mt-2 text-sm font-medium">
-          Please wait a moment ✨
-        </p>
       </div>
     </div>
-    );
-  }
+  );
+}
 
   // PDF Viewer Component
   if (isViewingPDF) {

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 export const metadata = {
   title: "Dhenu Mahima",
-  description: "Admin Dashboard & Landing Page for Dhenu Mahima",
+  description: " Dhenu Mahima",
 };
 
 export default function RootLayout({ children }) {
