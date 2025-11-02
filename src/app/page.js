@@ -49,7 +49,7 @@ export default function LandingPage() {
   }, [user, fetchUser, setUser]);
 
   // Loader while checking auth
-  if (checkingAuth&& loading) {
+  if (checkingAuth && loading) {
  
     return (
 

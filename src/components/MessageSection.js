@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Sun, Sunset } from "lucide-react";
 import { useLandingStore } from "@/store/landingStore";
+import Image from "next/image";
 
 export default function MessageSection() {
   const [date, setDate] = useState("");
@@ -149,7 +150,7 @@ export default function MessageSection() {
   const splitSentences = (text) => {
     if (!text || typeof text !== 'string') return [];
     return text
-      .split(/\./g)
+      .split(/(?<=[.,])/g)
       .map(line => line.trim())
       .filter(line => line);
   };
@@ -161,7 +162,7 @@ export default function MessageSection() {
   };
 
   return (
-    <section id="director-message" className="relative py-24 overflow-hidden bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
+    <section id="director-message" className="relative py-16 sm:py-24 overflow-hidden bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
       <div className="absolute bottom-0 left-0 right-0 rotate-180">
         <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-12 md:h-20">
           <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fffbeb" opacity="0.3"></path>
@@ -172,13 +173,13 @@ export default function MessageSection() {
       </div>
 
       {/* Top Floating Cards */}
-      <div className="mt-5 absolute top-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-nowrap justify-center items-center gap-4 sm:gap-6 px-4 z-20 w-full max-w-4xl">
+      <div className="absolute top-6 sm:top-10 left-1/2 transform -translate-x-1/2 flex flex-wrap md:flex-nowrap justify-center items-center gap-3 sm:gap-6 px-4 z-20 w-full max-w-4xl">
         
         {/* Sunrise Card */}
-        <div className="flex-1 flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-3xl shadow-lg px-4 py-3 border border-orange-200 hover:-translate-y-1 transition-transform duration-300 min-w-[90px] sm:min-w-[120px]">
-          <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
+        <div className="flex-1 flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-3xl shadow-lg px-3 sm:px-4 py-2 sm:py-3 border border-orange-200 hover:-translate-y-1 transition-transform duration-300 min-w-[72px] sm:min-w-[90px] md:min-w-[120px]">
+          <Sun className="w-4 h-4 sm:w-6 sm:h-6 text-orange-500" />
           <div className="text-left">
-            <p className="text-[10px] sm:text-xs font-semibold text-stone-700 uppercase">Sunrise</p>
+            <p className="text-[9px] sm:text-xs font-semibold text-stone-700 uppercase">Sunrise</p>
             <p className="text-sm sm:text-base font-bold text-orange-700">
               {loadingSunData ? "..." : sunData.sunrise}
             </p>
@@ -188,10 +189,10 @@ export default function MessageSection() {
         {/* Date Card - Now Clickable */}
         <div 
           onClick={handleDateClick}
-          className="flex-1 flex flex-col items-center bg-white/75 backdrop-blur-md rounded-3xl shadow-lg px-4 py-3 border border-yellow-300 hover:-translate-y-1 hover:shadow-xl hover:border-yellow-400 transition-all duration-300 min-w-[90px] sm:min-w-[140px] cursor-pointer active:scale-95"
+          className="flex-1 flex flex-col items-center bg-white/75 backdrop-blur-md rounded-3xl shadow-lg px-3 sm:px-4 py-2 sm:py-3 border border-yellow-300 hover:-translate-y-1 hover:shadow-xl hover:border-yellow-400 transition-all duration-300 min-w-[90px] sm:min-w-[140px] cursor-pointer active:scale-95"
         >
-          <p className="text-xs sm:text-sm font-bold text-stone-800">{date}</p>
-          <p className="text-[10px] sm:text-[11px] text-orange-800 font-bold leading-tight text-center" style={{ fontFamily: "Noto Serif Devanagari, serif" }}>
+          <p className="text-[12px] sm:text-sm font-bold text-stone-800 truncate">{date}</p>
+          <p className="text-[10px] sm:text-[11px] text-orange-800 font-bold leading-tight text-center break-words" style={{ fontFamily: "Noto Serif Devanagari, serif" }}>
             {tithi}
           </p>
           <p className="text-[8px] sm:text-[9px] text-orange-600 mt-1 font-medium">
@@ -200,10 +201,10 @@ export default function MessageSection() {
         </div>
 
         {/* Sunset Card */}
-        <div className="flex-1 flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-3xl shadow-lg px-4 py-3 border border-red-200 hover:-translate-y-1 transition-transform duration-300 min-w-[90px] sm:min-w-[120px]">
-          <Sunset className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
+        <div className="flex-1 flex items-center gap-2 bg-white/70 backdrop-blur-md rounded-3xl shadow-lg px-3 sm:px-4 py-2 sm:py-3 border border-red-200 hover:-translate-y-1 transition-transform duration-300 min-w-[72px] sm:min-w-[90px] md:min-w-[120px]">
+          <Sunset className="w-4 h-4 sm:w-6 sm:h-6 text-red-500" />
           <div className="text-left">
-            <p className="text-[10px] sm:text-xs font-semibold text-stone-700 uppercase">Sunset</p>
+            <p className="text-[9px] sm:text-xs font-semibold text-stone-700 uppercase">Sunset</p>
             <p className="text-sm sm:text-base font-bold text-red-700">
               {loadingSunData ? "..." : sunData.sunset}
             </p>
@@ -212,24 +213,28 @@ export default function MessageSection() {
       </div>
 
       {/* Main Scroll Section */}
-      <div className="relative w-full max-w-6xl mx-auto flex justify-center items-center z-10 mt-16">
+      <div className="relative w-full max-w-6xl mx-auto flex justify-center items-center z-10 mt-20 sm:mt-16 px-4">
         
         {/* Abstract Background */}
         <div className="absolute inset-0 flex justify-center items-center z-0 pointer-events-none">
-          <img
+          <Image
             src="/images/abs.png"
             alt="Abstract Background"
+            width={1200}
+            height={800}
             className="object-contain opacity-50 w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] h-auto"
-            onError={(e) => (e.currentTarget.style.display = "none")}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         </div>
 
         {/* Scroll Background */}
-        <div className="relative z-10 w-full sm:w-[90%] md:w-[85%] lg:w-[75%] xl:w-[70%] rounded-2xl overflow-hidden">
-          <img
+        <div className="relative z-10 w-full sm:w-[92%] md:w-[85%] lg:w-[75%] xl:w-[70%] rounded-2xl overflow-hidden px-2 sm:px-0">
+          <Image
             src="/images/scBg.png"
             alt="Ancient Scroll Background"
             className="w-full h-auto object-contain"
+            width={1200}
+            height={800}
             onError={(e) =>
               (e.currentTarget.src =
                 "https://upload.wikimedia.org/wikipedia/commons/d/d1/Parchment_background_02.jpg")
@@ -237,12 +242,12 @@ export default function MessageSection() {
           />
 
           {/* Scroll Text Content */}
-          <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-6 sm:px-10 md:px-16 lg:px-20 py-10 md:py-14">
+          <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 sm:px-10 md:px-16 lg:px-20 py-8 md:py-14">
             
             {/* Title */}
-            <div className="relative mb-6 md:mb-8">
+            <div className="relative mb-6 md:mb-8 w-full">
               <div
-                className="relative inline-block px-6 py-3 bg-cover bg-center rounded-lg shadow-xl border-2 border-amber-800"
+                className="mx-auto inline-block px-4 sm:px-6 py-2 sm:py-3 bg-cover bg-center rounded-lg shadow-xl border-2 border-amber-800 max-w-full"
                 style={{
                   backgroundImage: "url('/images/ancient.jpg')",
                   backgroundBlendMode: "multiply",
@@ -250,7 +255,7 @@ export default function MessageSection() {
                 }}
               >
                 <h2
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-50 tracking-wider drop-shadow-lg"
+                  className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-50 tracking-wider drop-shadow-lg"
                   style={{
                     fontFamily: "Noto Serif Devanagari, Georgia, serif",
                     textShadow: "3px 3px 6px rgba(0,0,0,0.6)",
@@ -260,25 +265,26 @@ export default function MessageSection() {
                 </h2>
               </div>
               <div className="flex justify-center mt-3">
-                <div className="w-28 md:w-40 h-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-full" />
+                <div className="w-20 md:w-40 h-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-full" />
               </div>
             </div>
 
             {/* Quote */}
             <blockquote
-              className="text-base sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md"
+              className="text-sm sm:text-base md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md break-words"
               style={{
                 fontFamily: "Noto Serif Devanagari, Georgia, serif",
                 textShadow: "1px 1px 2px rgba(0,0,0,0.25)",
-                lineHeight: "1.2",
+                lineHeight: "1.15",
+                whiteSpace: "pre-wrap"
               }}
             >
               {isLoading ? (
-                <span className="text-xl animate-pulse">लोड हो रहा है...</span>
+                <span className="text-base animate-pulse">लोड हो रहा है...</span>
               ) : error ? (
-                <div className="text-base sm:text-lg">
+                <div className="text-sm sm:text-base">
                   <p className="text-amber-800 mb-2">⚠️ {error}</p>
-                  <p className="text-sm">{quote}</p>
+                  <p className="text-xs sm:text-sm">{quote}</p>
                 </div>
               ) : quote ? (
                 splitSentences(quote).map((line, idx) => (
@@ -288,15 +294,15 @@ export default function MessageSection() {
                   </span>
                 ))
               ) : (
-                <span className="text-xl">संदेश उपलब्ध नहीं है</span>
+                <span className="text-base">संदेश उपलब्ध नहीं है</span>
               )}
             </blockquote>
 
             {/* Writer */}
-            <div className="w-full mt-8 flex flex-col items-end px-4">
-              <div className="w-32 md:w-48 h-0.5 bg-gradient-to-l from-red-600 to-transparent rounded-full mb-2" />
+            <div className="w-full mt-6 sm:mt-8 flex flex-col items-end px-2 sm:px-4">
+              <div className="w-28 sm:w-32 md:w-48 h-0.5 bg-gradient-to-l from-red-600 to-transparent rounded-full mb-2" />
               <div
-                className="relative inline-block px-5 py-3 bg-cover bg-center rounded-md shadow-xl border-2 border-amber-700"
+                className="relative inline-block px-4 sm:px-5 py-2 bg-cover bg-center rounded-md shadow-xl border-2 border-amber-700"
                 style={{
                   backgroundImage: "url('/images/ancient.jpg')",
                   backgroundBlendMode: "multiply",

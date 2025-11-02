@@ -13,7 +13,13 @@ export default function DirectorMessagePage() {
 
   
   const {getMessage,deleteMessage,uploadMessage }=useAdminStore(); 
-
+  const splitSentences = (text) => {
+    if (!text || typeof text !== 'string') return [];
+    return text
+      .split(/(?<=[.,])/g)
+      .map(line => line.trim())
+      .filter(line => line);
+  };
   // 🟢 Fetch messages on load
   useEffect(() => {
     const fetchMessages = async () => {
@@ -185,9 +191,9 @@ export default function DirectorMessagePage() {
       </div>
 
       {/* Preview & Confirmation Modal */}
-      {showPreviewModal && (
+         {showPreviewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto relative">
+          <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto relative">
             {/* Close Button */}
             <button
               onClick={() => setShowPreviewModal(false)}
@@ -198,17 +204,19 @@ export default function DirectorMessagePage() {
 
             {/* Scroll View */}
             <div className="relative py-16 px-4">
-              <div className="relative w-full max-w-4xl mx-auto flex justify-center items-center">
-                <div className="absolute inset-0 flex justify-center items-center pointer-events-none">
+              <div className="relative w-full max-w-6xl mx-auto flex justify-center items-center">
+                {/* Abstract Background */}
+                <div className="absolute inset-0 flex justify-center items-center z-0 pointer-events-none">
                   <img
                     src="/images/abs.png"
                     alt="Abstract Background"
-                    className="object-contain opacity-50 w-[75%] h-auto"
+                    className="object-contain opacity-50 w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] h-auto"
                     onError={(e) => (e.currentTarget.style.display = "none")}
                   />
                 </div>
 
-                <div className="relative z-10 w-[90%] md:w-[85%] lg:w-[80%] rounded-2xl overflow-hidden">
+                {/* Scroll Background */}
+                <div className="relative z-10 w-full sm:w-[92%] md:w-[85%] lg:w-[75%] xl:w-[70%] rounded-2xl overflow-hidden px-2 sm:px-0">
                   <img
                     src="/images/scBg.png"
                     alt="Ancient Scroll Background"
@@ -218,13 +226,75 @@ export default function DirectorMessagePage() {
                         "https://upload.wikimedia.org/wikipedia/commons/d/d1/Parchment_background_02.jpg")
                     }
                   />
-                  <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-8 sm:px-12 md:px-16 lg:px-20 py-12 md:py-16">
-                    <h2 className="text-4xl font-extrabold text-amber-50 mb-6 drop-shadow-lg">
-                      प्रेरक संदेश
-                    </h2>
-                    <blockquote className="text-lg sm:text-xl font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md leading-relaxed">
-                      {message}
+                  
+                  {/* Scroll Text Content */}
+                  <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 sm:px-10 md:px-16 lg:px-20 py-8 md:py-14">
+                    
+                    {/* Title */}
+                    <div className="relative mb-6 md:mb-8 w-full">
+                      <div
+                        className="mx-auto inline-block px-4 sm:px-6 py-2 sm:py-3 bg-cover bg-center rounded-lg shadow-xl border-2 border-amber-800 max-w-full"
+                        style={{
+                          backgroundImage: "url('/images/ancient.jpg')",
+                          backgroundBlendMode: "multiply",
+                          backgroundColor: "rgba(120, 70, 40, 0.85)",
+                        }}
+                      >
+                        <h2
+                          className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-amber-50 tracking-wider drop-shadow-lg"
+                          style={{
+                            fontFamily: "Noto Serif Devanagari, Georgia, serif",
+                            textShadow: "3px 3px 6px rgba(0,0,0,0.6)",
+                          }}
+                        >
+                          प्रेरक संदेश
+                        </h2>
+                      </div>
+                      <div className="flex justify-center mt-3">
+                        <div className="w-20 md:w-40 h-1 bg-gradient-to-r from-orange-600 to-red-600 rounded-full" />
+                      </div>
+                    </div>
+
+                    {/* Quote */}
+                    <blockquote
+                      className="text-sm sm:text-base md:text-2xl lg:text-3xl xl:text-4xl leading-relaxed font-semibold text-red-900 max-w-3xl mx-auto drop-shadow-md break-words"
+                      style={{
+                        fontFamily: "Noto Serif Devanagari, Georgia, serif",
+                        textShadow: "1px 1px 2px rgba(0,0,0,0.25)",
+                        lineHeight: "1.15",
+                        whiteSpace: "pre-wrap"
+                      }}
+                    >
+                      {splitSentences(message).map((line, idx) => (
+                        <span key={idx}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </blockquote>
+
+                    {/* Writer */}
+                    <div className="w-full mt-6 sm:mt-8 flex flex-col items-end px-2 sm:px-4">
+                      <div className="w-28 sm:w-32 md:w-48 h-0.5 bg-gradient-to-l from-red-600 to-transparent rounded-full mb-2" />
+                      <div
+                        className="relative inline-block px-4 sm:px-5 py-2 bg-cover bg-center rounded-md shadow-xl border-2 border-amber-700"
+                        style={{
+                          backgroundImage: "url('/images/ancient.jpg')",
+                          backgroundBlendMode: "multiply",
+                          backgroundColor: "rgba(100, 60, 30, 0.8)",
+                        }}
+                      >
+                        <p
+                          className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-amber-50 italic drop-shadow-md"
+                          style={{
+                            fontFamily: "Noto Serif Devanagari, Georgia, serif",
+                            textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
+                          }}
+                        >
+                          ~ परम पूज्य ग्वाल संत श्री
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

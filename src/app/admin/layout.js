@@ -226,7 +226,7 @@ if (!user) {
           </div>
 
           {/* Mobile Slogans */}
-          {/* Mobile Slogans */}
+
 
 
         </header>
