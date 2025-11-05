@@ -46,7 +46,7 @@ export default function AudioPlayer() {
           artist: bhajan.artist,
           album: bhajan.album || 'Unknown Album',
           duration: bhajan.duration || '0:00',
-          imgSrc: bhajan.imageUrl || '/images/Heading.png',
+          imgSrc: '/Dhenu.jpg',
           audioUrl: bhajan.audioUrl,
           date: new Date(bhajan.createdAt).toLocaleDateString('en-GB')
         }));
@@ -59,7 +59,7 @@ export default function AudioPlayer() {
             artist: "परम पूज्य ग्वाल संत श्री", 
             date: "13/07/2025", 
             duration: "3:50",
-            imgSrc: "/images/Heading.png",
+            imgSrc: "/Dhenu.jpg",
             audioUrl: "/uploads/audio/sample.mp3"
           }
         ]);
@@ -72,7 +72,7 @@ export default function AudioPlayer() {
           artist: "परम पूज्य ग्वाल संत श्री", 
           date: "13/07/2025", 
           duration: "3:50",
-          imgSrc: "/images/Heading.png",
+          imgSrc: "/Dhenu.jpg",
           audioUrl: "/uploads/audio/sample.mp3"
         }
       ]);

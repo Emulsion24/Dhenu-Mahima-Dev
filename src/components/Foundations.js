@@ -28,9 +28,8 @@ export default function Foundations() {
   }, []);
 
   const handleFoundationClick = (id) => {
-  router.push(`/foundation/${id}`);
-};
-
+    router.push(`/foundation/${id}`);
+  };
 
   const getCircularPosition = (index, total) => {
     const angle = (index * 360) / total - 90; // Start from top
@@ -48,8 +47,8 @@ export default function Foundations() {
     return <div className="text-center py-20 text-xl">No Foundations Found</div>;
   }
 
-  const centralFoundation = foundations[0];
-  const surroundingFoundations = foundations.slice(1);
+  // Use all foundations for surrounding, with predefined central logo
+  const surroundingFoundations = foundations;
 
   return (
     <section
@@ -71,9 +70,9 @@ export default function Foundations() {
 
         {/* Circular Layout */}
         <div className="relative w-full max-w-5xl mx-auto aspect-square">
-          {/* Central Foundation */}
+          {/* Central Foundation - Fixed and Non-clickable */}
           <div
-            className="absolute"
+            className="absolute pointer-events-none"
             style={{
               left: "50%",
               top: "50%",
@@ -82,14 +81,15 @@ export default function Foundations() {
               zIndex: 30,
             }}
           >
-            <FoundationLogo
-              foundation={centralFoundation}
-              isHovered={hoveredId === centralFoundation.id}
-              onHover={() => setHoveredId(centralFoundation.id)}
-              onLeave={() => setHoveredId(null)}
-              onClick={() => handleFoundationClick(centralFoundation.id)}
-              isCentral={true}
-            />
+            <div className="relative w-full aspect-square rounded-full overflow-hidden shadow-2xl border-4 border-orange-400">
+              <Image
+                src="/logo/logo5.webp"
+                alt="Central Foundation Logo"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
 
           {/* Surrounding Foundations */}

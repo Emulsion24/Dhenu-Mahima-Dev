@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { Edit, Trash2, Search, Plus, Mic, Upload, X, Play, Pause, Music, ImageIcon, User, Album, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, Trash2, Search, Plus, Mic, Upload, X, Play, Pause, Music, User, Album, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import API from "@/lib/api";
+import Image from "next/image";
 
 const CURRENT_USER = {
   role: "admin", // change to "user" to test non-admin behavior
@@ -30,7 +31,6 @@ export default function BhajanPage() {
     name: "",
     artist: "",
     album: "",
-    imageFile: null,
     audioFile: null,
     duration: "0:00",
     order:"",
@@ -102,11 +102,6 @@ export default function BhajanPage() {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) setFormData({ ...formData, imageFile: file });
-  };
-
   const handleAudioChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -176,10 +171,9 @@ export default function BhajanPage() {
       formDataToSend.append('artist', formData.artist);
       formDataToSend.append('album', formData.album || '');
       formDataToSend.append('duration', formData.duration);
-         formDataToSend.append('order', formData.order);
+      formDataToSend.append('order', formData.order);
 
       if (formData.audioFile) formDataToSend.append('audio', formData.audioFile);
-      if (formData.imageFile) formDataToSend.append('image', formData.imageFile);
 
       let response;
 
@@ -209,7 +203,7 @@ export default function BhajanPage() {
   };
 
   const resetForm = () => {
-    setFormData({ name:"", artist:"", album:"", imageFile:null, audioFile:null, duration:"0:00" });
+    setFormData({ name:"", artist:"", album:"", audioFile:null, duration:"0:00", order:"" });
     setRecordedAudio(null);
     setEditBhajan(null);
     setShowModal(false);
@@ -222,10 +216,9 @@ export default function BhajanPage() {
       name: bhajan.name,
       artist: bhajan.artist,
       album: bhajan.album || "",
-      imageFile: null,
       audioFile: null,
       duration: bhajan.duration,
-       order: bhajan.order || ""
+      order: bhajan.order || ""
     });
     setModalType("edit");
     setShowModal(true);
@@ -454,17 +447,17 @@ export default function BhajanPage() {
                 className="bg-white rounded-xl sm:rounded-2xl border border-purple-100 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
               >
                 <div className="relative h-36 sm:h-44 md:h-48 bg-gradient-to-br from-purple-200 to-pink-200 overflow-hidden">
-                  {bhajan.imageUrl ? (
-                    <img 
-                      src={bhajan.imageUrl} 
+                  <div className="w-full h-full flex items-center justify-center">
+                   <Image
+                      src="/Dhenu.jpg"
                       alt={bhajan.name} 
-                      className="w-full h-full object-cover"
+                      fill  
+                      className="object-cover w-full h-full"  
+                      onError={(e) => { 
+                        e.target.style.display = 'none';    
+                      }}  
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Music className="w-12 sm:w-14 md:w-16 h-12 sm:h-14 md:h-16 text-purple-400" />
-                    </div>
-                  )}
+                  </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-3 sm:pb-4">
                     <button
                       onClick={() => togglePlay(bhajan)}
@@ -663,39 +656,6 @@ export default function BhajanPage() {
                 </div>
               </div>
 
-              <div className="mb-4 sm:mb-6">
-                <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-2 sm:mb-3">Cover Image</label>
-                <div className="flex items-center gap-3 sm:gap-4">
-                  {(formData.imageFile || editBhajan?.imageUrl) && (
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-pink-200 flex-shrink-0">
-                      <img
-                        src={formData.imageFile ? URL.createObjectURL(formData.imageFile) : editBhajan?.imageUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label
-                      htmlFor="image-upload"
-                      className="flex items-center justify-center gap-2 sm:gap-3 w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-pink-50 border-2 border-dashed border-pink-300 rounded-xl cursor-pointer hover:bg-pink-100 transition-colors"
-                    >
-                      <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-pink-600" />
-                      <span className="text-pink-700 font-medium text-xs sm:text-sm">
-                        {formData.imageFile ? "Change image" : "Upload cover"}
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div>
                   <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">
@@ -722,26 +682,21 @@ export default function BhajanPage() {
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
                   />
                 </div>
-                <div>
-          {editBhajan && (
-  <>
-    <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">
-      Order <span className="text-red-500">*</span>
-    </label>
-    <input
-      type="text"
-      placeholder="e.g. 1, 2"
-      value={formData.order}
-      onChange={(e) => setFormData({ ...formData, order: e.target.value })}
-      className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
-    />
-  </>
-)}
 
-                </div>
-
-
-                
+                {editBhajan && (
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-neutral-700 mb-1.5 sm:mb-2">
+                      Order <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 1, 2"
+                      value={formData.order}
+                      onChange={(e) => setFormData({ ...formData, order: e.target.value })}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-neutral-900 text-sm sm:text-base"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col xs:flex-row gap-2 sm:gap-3">
