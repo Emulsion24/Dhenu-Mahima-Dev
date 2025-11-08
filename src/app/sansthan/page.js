@@ -28,13 +28,8 @@ export default function Sansthan() {
   const [sansthans, setSansthans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    subject: "",
-    message: "",
-  });
-  const [formStatus, setFormStatus] = useState(null);
+ 
+
 
   // Fetch sansthans from backend
   useEffect(() => {
@@ -60,21 +55,10 @@ export default function Sansthan() {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
 
-  // Helper function to parse description and extract address
-  const parseDescription = (description) => {
-    if (!description) return { desc: '', address: '' };
-    const parts = description.split('\n\nAddress: ');
-    return {
-      desc: parts[0] || '',
-      address: parts[1] || ''
-    };
-  };
+
+
 
   return (
     <>
@@ -135,7 +119,7 @@ export default function Sansthan() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 -mt-32">
                   {sansthans.map((sansthan, index) => {
-                    const { desc, address } = parseDescription(sansthan.description);
+                  
                     
                     return (
                       <div
@@ -167,18 +151,23 @@ export default function Sansthan() {
                           </h3>
                           
                           {/* Description */}
-                          {desc && (
+                          {sansthan.description && (
                             <p className="text-sm text-gray-600 mb-4 line-clamp-2 group-hover:text-gray-700 transition-colors duration-300">
-                              {desc}
+                              {sansthan.description}
                             </p>
                           )}
 
                           <div className="space-y-3 text-gray-600">
                             {/* Address */}
-                            {address && (
-                              <InfoRow icon={ICONS.location} text={address} />
-                            )}
-                            
+                          {sansthan.address && (
+  <InfoRow
+    icon={ICONS.location}
+    text={[sansthan.address, sansthan.city, sansthan.state, sansthan.pincode]
+      .filter(Boolean)
+      .join(", ")}
+  />
+)}
+
                             {/* Phone */}
                             {sansthan.phone && (
                               <InfoRow 

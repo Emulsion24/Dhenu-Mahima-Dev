@@ -54,6 +54,7 @@ export default function ContactUsPage() {
       
       if (data.success) {
         setSansthans(data.data);
+       
       } else {
         alert('Failed to fetch sansthans');
       }
@@ -118,24 +119,22 @@ export default function ContactUsPage() {
   const openEditModal = (sansthan) => {
     setEditingSansthan(sansthan);
     
-    // Parse description to extract address if it exists
-    const descParts = sansthan.description?.split('\n\nAddress: ') || ['', ''];
-    const addressParts = descParts[1]?.split(', ') || [];
-    const statePin = addressParts[2]?.split(' - ') || [];
+  
+ 
     
     setFormData({
       name: sansthan.name || "",
       person: sansthan.person || "",
-      address: addressParts[0] || "",
-      city: addressParts[1] || "",
-      state: statePin[0] || "",
-      pincode: statePin[1] || "",
+      address: sansthan.address|| "",
+      city: sansthan.city || "",
+      state: sansthan.state || "",
+      pincode: sansthan.pincode || "",
       phone: sansthan.phone || "",
       altPhone: sansthan.altPhone || "",
       email: sansthan.email || "",
       website: sansthan.website || "",
       timing: sansthan.timing || "",
-      description: descParts[0] || "",
+      description: sansthan.description|| "",
     });
     setImagePreview(sansthan.image || "");
     setImageFile(null);
@@ -275,9 +274,7 @@ export default function ContactUsPage() {
           ) : (
             sansthans.map((sansthan) => {
               // Parse description for display
-              const descParts = sansthan.description?.split('\n\nAddress: ') || [''];
-              const mainDesc = descParts[0];
-              const fullAddress = descParts[1] || '';
+              
               
               return (
                 <div
@@ -321,13 +318,13 @@ export default function ContactUsPage() {
                         {sansthan.name}
                       </h2>
 
-                      {mainDesc && (
-                        <p className="text-slate-600 mb-6">{mainDesc}</p>
+                      {sansthan.description && (
+                        <p className="text-slate-600 mb-6">{sansthan.description}</p>
                       )}
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Address */}
-                        {fullAddress && (
+                        {sansthan.address && (
                           <div className="space-y-3">
                             <div className="flex items-start gap-3">
                               <div className="p-2 bg-red-100 text-red-600 rounded-lg mt-0.5">
@@ -338,7 +335,7 @@ export default function ContactUsPage() {
                                   Address
                                 </p>
                                 <p className="text-sm font-medium text-slate-800">
-                                  {fullAddress}
+                                  {sansthan.address}, {sansthan.city}, {sansthan.state} - {sansthan.pincode}  
                                 </p>
                               </div>
                             </div>

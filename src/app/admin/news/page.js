@@ -393,7 +393,7 @@ export default function AdminNewsPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            onClick={() => window.open(`/news/${news.slug}`, '_blank')}
+                            onClick={() => window.open(`/news-page/${news.slug}?id=${news.id}`, '_blank')}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="देखें"
                           >
