@@ -255,12 +255,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     updateFoundation("contact", updatedContact);
   };
 
-  // Handle stat change
-  const handleStatChange = (index, field, value) => {
-    const newStats = [...selectedFoundation.stats];
-    newStats[index][field] = value;
-    updateFoundation("stats", newStats);
-  };
+  
 
   // Modal functions
   const openModal = (type, index = null) => {
@@ -382,7 +377,6 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
 
   const tabs = [
     { id: "basic", label: "Basic Info" },
-
     { id: "activities", label: "Activities" },
     { id: "objectives", label: "Objectives" },
     { id: "supportive", label: "Supportive" },

@@ -69,7 +69,7 @@ export default function AgamiKatha() {
   return (
     <>
     <Header/>
-    <div className="min-h-screen bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-50">
       {/* Enhanced Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-orange-600 via-red-500 to-pink-600">
         {/* Animated Background Pattern */}
