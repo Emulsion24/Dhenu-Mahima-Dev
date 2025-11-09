@@ -150,21 +150,14 @@ export default function Sansthan() {
                             {sansthan.name}
                           </h3>
                           
-                          {/* Description */}
-                          {sansthan.description && (
-                            <p className="text-sm text-gray-600 mb-4 line-clamp-2 group-hover:text-gray-700 transition-colors duration-300">
-                              {sansthan.description}
-                            </p>
-                          )}
-
+                       
                           <div className="space-y-3 text-gray-600">
                             {/* Address */}
                           {sansthan.address && (
   <InfoRow
     icon={ICONS.location}
-    text={[sansthan.address, sansthan.city, sansthan.state, sansthan.pincode]
-      .filter(Boolean)
-      .join(", ")}
+    text={sansthan.address}
+      
   />
 )}
 
