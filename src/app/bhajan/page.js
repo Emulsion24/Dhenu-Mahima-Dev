@@ -417,18 +417,18 @@ export default function BhajanMusicPlayer() {
           {/* Featured Section */}
           <section className="mb-8 sm:mb-12">
             <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl bg-gradient-to-r from-orange-600 to-red-600">
-              {bhajans[currentSong]?.imageUrl && (
+              
+              {/* --- MODIFIED --- */}
               <Image
-  src="/Dhenu.jpg"
-  alt={bhajans[currentSong].name}
-  fill
-  className="object-cover opacity-50"
-  priority
-  onError={(e) => {
-    e.target.style.display = 'none';
-  }}
-/>
-              )}
+                src="/Dhenu.jpg"
+                alt={bhajans[currentSong]?.name || "Bhajan"}
+                fill
+                className="object-cover opacity-50"
+                priority
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails to load
+                }}
+              />
               
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
 
@@ -503,25 +503,19 @@ export default function BhajanMusicPlayer() {
                       }`}
                     >
                       <div className="relative mb-2 sm:mb-3">
-                        {bhajan.imageUrl ? (
-                
 
-// Add this to your component
-<Image 
-  src="/Dhenu.jpg"
-  alt={bhajan.name} 
-  width={400}
-  height={400}
-  className="w-full aspect-square object-cover rounded-lg"
-  onError={(e) => {
-    e.target.style.display = 'none';
-    e.target.nextElementSibling.style.display = 'flex';
-  }}
-/>
-                        ) : null}
-                        <div className={`w-full aspect-square bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-4xl ${bhajan.imageUrl ? 'hidden' : 'flex'}`}>
-                          🎵
-                        </div>
+                        {/* --- MODIFIED --- */}
+                        <Image 
+                          src="/Dhenu.jpg"
+                          alt={bhajan.name} 
+                          width={400}
+                          height={400}
+                          className="w-full aspect-square object-cover rounded-lg"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails
+                          }}
+                        />
+
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -609,22 +603,19 @@ export default function BhajanMusicPlayer() {
           {/* Mobile Layout */}
           <div className="flex flex-col gap-3 sm:hidden">
             <div className="flex items-center gap-3">
-              {bhajans[currentSong]?.imageUrl ? (
+              
+              {/* --- MODIFIED --- */}
               <Image
-  src="/Dhenu.jpg"
-  alt={bhajans[currentSong].name}
-  width={56}
-  height={56}
-  className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
-  onError={(e) => {
-    e.target.style.display = 'none';
-    e.target.nextElementSibling.style.display = 'flex';
-  }}
-/>
-              ) : null}
-              <div className={`w-14 h-14 rounded-lg shadow-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-2xl flex-shrink-0 ${bhajans[currentSong]?.imageUrl ? 'hidden' : 'flex'}`}>
-                🎵
-              </div>
+                src="/Dhenu.jpg"
+                alt={bhajans[currentSong]?.name || "Bhajan"}
+                width={56}
+                height={56}
+                className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails
+                }}
+              />
+
               <div className="min-w-0 flex-1">
                 <h4 className="font-semibold truncate text-base text-white">
                   {bhajans[currentSong]?.name || 'भजन'}
@@ -708,22 +699,19 @@ export default function BhajanMusicPlayer() {
           {/* Desktop Layout */}
           <div className="hidden sm:flex items-center justify-between gap-6 lg:gap-8">
             <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xs lg:max-w-sm">
-              {bhajans[currentSong]?.imageUrl ? (
-               <Image
-  src="/Dhenu.jpg"
-  alt={bhajans[currentSong].name}
-  width={56}
-  height={56}
-  className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
-  onError={(e) => {
-    e.target.style.display = 'none';
-    e.target.nextElementSibling.style.display = 'flex';
-  }}
-/>
-              ) : null}
-              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-lg shadow-lg flex-shrink-0 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-3xl ${bhajans[currentSong]?.imageUrl ? 'hidden' : 'flex'}`}>
-                🎵
-              </div>
+
+              {/* --- MODIFIED --- */}
+              <Image
+                src="/Dhenu.jpg"
+                alt={bhajans[currentSong]?.name || "Bhajan"}
+                width={56}
+                height={56}
+                className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails
+                }}
+              />
+              
               <div className="min-w-0 flex-1">
                 <h4 className="font-semibold truncate text-base lg:text-lg text-white mb-1">
                   {bhajans[currentSong]?.name || 'भजन'}

@@ -430,7 +430,7 @@ export default function AdminEventsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-800 mb-2">
-                      Number
+                    Days
                     </label>
                     <input
                       type="text"
