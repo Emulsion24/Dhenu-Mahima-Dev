@@ -134,11 +134,13 @@ export default function Footer() {
         </div>
 
         <hr className="mt-12 mb-6 border-white/20" />
-
+        
         <p className="text-sm font-semibold text-gray-300 text-center">
           COPYRIGHT © {currentYear || ''} DHENU MAHIMA - ALL RIGHTS RESERVED
         </p>
+    
       </div>
+      
     </footer>
   );
 }

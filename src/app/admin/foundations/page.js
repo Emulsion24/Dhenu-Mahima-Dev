@@ -1,11 +1,17 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { Save, Upload, Plus, Trash2, Edit2, X, Image, ArrowLeft, AlertCircle, CheckCircle, Loader } from "lucide-react";
- import API from "@/lib/api";
-// Mock API for demonstration - replace with your actual API
+import API from "@/lib/api";
+import dynamic from 'next/dynamic';
+import "react-quill-new/dist/quill.snow.css";
 
+// Dynamically import ReactQuill to ensure it only loads on the client
+const ReactQuill = dynamic(() => import("react-quill-new"), { 
+  ssr: false,
+  loading: () => <div className="p-4 border-2 border-gray-300 rounded-lg min-h-[240px]">Loading editor...</div>
+});
 
-// Toast Notification Component
+// Toast Notification Component (Unchanged)
 const Toast = ({ message, type, onClose }) => (
   <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl animate-slideIn ${
     type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600'
@@ -18,7 +24,7 @@ const Toast = ({ message, type, onClose }) => (
   </div>
 );
 
-// Loading Overlay Component
+// Loading Overlay Component (Unchanged)
 const LoadingOverlay = ({ message = "Loading..." }) => (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-xl p-8 flex flex-col items-center gap-4">
@@ -29,6 +35,21 @@ const LoadingOverlay = ({ message = "Loading..." }) => (
 );
 
 export default function FoundationAdminPanel() {
+  
+  // --- UPDATED: Quill Modules ---
+  // We keep the color/background buttons and REMOVE the clipboard module.
+  // This will restore the default paste behavior (keeping colors and styles).
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ color: [] }, { background: [] }],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link", "clean"],
+    ],
+    // NO clipboard module means it will keep formatting on paste.
+  };
+  
   const [foundations, setFoundations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentView, setCurrentView] = useState("list");
@@ -43,23 +64,22 @@ export default function FoundationAdminPanel() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [logoFile, setLogoFile] = useState(null);
 
-  // Show toast notification
+  // Show toast notification (Unchanged)
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   }, []);
 
-  // Normalize API response
+  // Normalize API response (Unchanged)
   const normalizeFoundation = useCallback((f) => ({
     ...f,
     logo: f.logoUrl || "",
     order: f.order !== undefined && f.order !== null ? String(f.order) : '',
-
     established: f.establishedYear || "",
-    keyActivities: f.activities?.map(a => a.activityText) || [],
+    keyActivities: f.activities?.map(a => a.activityText) || [], 
     objectives: f.objectives
       ?.filter(o => o.objectiveType === "main")
-      .map(o => ({ title: o.title, description: o.description })) || [],
+      .map(o => ({ title: o.title || "", description: o.description })) || [],
     supportiveObjectives: f.objectives
       ?.filter(o => o.objectiveType === "supportive")
       .map(o => o.title) || [],
@@ -70,48 +90,39 @@ export default function FoundationAdminPanel() {
       { label: "", value: "" }
     ],
     contact: f.contact || { email: "", phone: "", address: "" },
-
   }), []);
 
-  // Prepare data for API submission
-  // Prepare data for API submission (supports logo file)
-const prepareForAPI = useCallback((foundation, logoFile) => {
-  const formData = new FormData();
-
-  formData.append("name", foundation.name);
-  formData.append("tagline", foundation.tagline);
-  formData.append("description", foundation.description);
-  formData.append("establishedYear", foundation.established);
-
-  // Append logo file if it exists
-  if (logoFile) {
-    formData.append("logo", logoFile);
-  }
-
-  formData.append("stats", JSON.stringify(foundation.stats || []));
-  formData.append("activities", JSON.stringify(foundation.keyActivities || []));
+  // Prepare data for API submission (Unchanged)
+  const prepareForAPI = useCallback((foundation, logoFile) => {
+    const formData = new FormData();
+    formData.append("name", foundation.name);
+    formData.append("tagline", foundation.tagline);
+    formData.append("description", foundation.description);
+    formData.append("establishedYear", foundation.established);
+    if (logoFile) {
+      formData.append("logo", logoFile);
+    }
+    formData.append("stats", JSON.stringify(foundation.stats || []));
+    formData.append("activities", JSON.stringify(foundation.keyActivities || []));
     formData.append("order", foundation.order||'');
+    const objectives = [
+      ...foundation.objectives.map(o => ({
+        objectiveType: "main",
+        title: o.title || "", 
+        description: o.description
+      })),
+      ...foundation.supportiveObjectives.map(title => ({
+        objectiveType: "supportive",
+        title
+      }))
+    ];
+    formData.append("objectives", JSON.stringify(objectives));
+    if (foundation.contact)
+      formData.append("contact", JSON.stringify(foundation.contact));
+    return formData;
+  }, []);
 
-  const objectives = [
-    ...foundation.objectives.map(o => ({
-      objectiveType: "main",
-      title: o.title,
-      description: o.description
-    })),
-    ...foundation.supportiveObjectives.map(title => ({
-      objectiveType: "supportive",
-      title
-    }))
-  ];
-  formData.append("objectives", JSON.stringify(objectives));
-
-  if (foundation.contact)
-    formData.append("contact", JSON.stringify(foundation.contact));
-
-  return formData;
-}, []);
-
-  // Fetch all foundations
+  // Fetch all foundations (Unchanged)
   const fetchFoundations = useCallback(async () => {
     try {
       setLoading(true);
@@ -133,10 +144,13 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
 
   const selectedFoundation = foundations.find(f => f.id === selectedFoundationId);
 
+  // (All functions from createNewFoundation to handleContactChange are unchanged)
+  // ...
+
   // Create new foundation (local only, no API call yet)
   const createNewFoundation = () => {
     const newFoundation = {
-      id: `temp_${Date.now()}`, // Temporary ID for local state
+      id: `temp_${Date.now()}`,
       name: "",
       tagline: "",
       logo: "",
@@ -152,9 +166,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
       objectives: [],
       supportiveObjectives: [],
       contact: { email: "", phone: "", address: "" },
-      isNew: true // Flag to identify unsaved foundations
+      isNew: true
     };
-
     setFoundations([...foundations, newFoundation]);
     setSelectedFoundationId(newFoundation.id);
     setCurrentView("edit");
@@ -166,12 +179,9 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
   // Delete foundation
   const deleteFoundation = async (id) => {
     const foundation = foundations.find(f => f.id === id);
-    
     if (!window.confirm("Are you sure you want to delete this foundation? This action cannot be undone.")) {
       return;
     }
-
-    // If it's a new unsaved foundation, just remove it from state
     if (foundation?.isNew) {
       setFoundations(foundations.filter(f => f.id !== id));
       if (selectedFoundationId === id) {
@@ -181,8 +191,6 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
       showToast("Unsaved foundation removed", 'success');
       return;
     }
-
-    // Otherwise, call API to delete
     try {
       setLoading(true);
       await API.delete(`/admin/foundation/delete/${id}`);
@@ -225,12 +233,10 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
       showToast("Please upload an image file", 'error');
       return;
     }
-
-    setLogoFile(file); // store actual file
-
+    setLogoFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
-      setLogoPreview(reader.result); // preview
+      setLogoPreview(reader.result);
       updateFoundation("logo", reader.result);
     };
     reader.readAsDataURL(file);
@@ -255,9 +261,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     updateFoundation("contact", updatedContact);
   };
 
-  
-
-  // Modal functions
+  // --- UPDATED: Modal functions ---
   const openModal = (type, index = null) => {
     setModalType(type);
     setEditIndex(index);
@@ -265,7 +269,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     if (type === "activity" && index !== null) {
       setTempData({ text: selectedFoundation.keyActivities[index] });
     } else if (type === "objective" && index !== null) {
-      setTempData(selectedFoundation.objectives[index]);
+      // Only set the description for objective
+      setTempData({ description: selectedFoundation.objectives[index].description });
     } else if (type === "supportive" && index !== null) {
       setTempData({ text: selectedFoundation.supportiveObjectives[index] });
     } else {
@@ -281,16 +286,19 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     setEditIndex(null);
   };
 
+  // --- UPDATED: handleModalSave ---
   const handleModalSave = () => {
     // Validation
-    if (modalType === "activity" && !tempData.text?.trim()) {
+    if (modalType === "activity" && (!tempData.text || tempData.text === '<p><br></p>')) {
       showToast("Activity text is required", 'error');
       return;
     }
-    if (modalType === "objective" && (!tempData.title?.trim() || !tempData.description?.trim())) {
-      showToast("Title and description are required", 'error');
+    // Updated objective validation (no title, plain text)
+    if (modalType === "objective" && !tempData.description?.trim()) {
+      showToast("Objective description is required", 'error');
       return;
     }
+    // Updated supportive validation (plain text)
     if (modalType === "supportive" && !tempData.text?.trim()) {
       showToast("Supportive objective text is required", 'error');
       return;
@@ -302,9 +310,11 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
         : [...selectedFoundation.keyActivities, tempData.text];
       updateFoundation("keyActivities", newActivities);
     } else if (modalType === "objective") {
+      // Save objective with an empty title and the plain text description
+      const newObjective = { title: "", description: tempData.description };
       const newObjectives = editIndex !== null
-        ? selectedFoundation.objectives.map((o, i) => i === editIndex ? tempData : o)
-        : [...selectedFoundation.objectives, tempData];
+        ? selectedFoundation.objectives.map((o, i) => i === editIndex ? newObjective : o)
+        : [...selectedFoundation.objectives, newObjective];
       updateFoundation("objectives", newObjectives);
     } else if (modalType === "supportive") {
       const newSupportive = editIndex !== null
@@ -316,11 +326,11 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     showToast(`${modalType === 'activity' ? 'Activity' : modalType === 'objective' ? 'Objective' : 'Supportive objective'} ${editIndex !== null ? 'updated' : 'added'} successfully`, 'success');
   };
 
+  // handleDelete (Unchanged)
   const handleDelete = (type, index) => {
     if (!window.confirm("Are you sure you want to delete this item?")) {
       return;
     }
-
     if (type === "activity") {
       updateFoundation("keyActivities", selectedFoundation.keyActivities.filter((_, i) => i !== index));
     } else if (type === "objective") {
@@ -331,41 +341,32 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     showToast("Item deleted successfully", 'success');
   };
 
-  // Save all changes
+  // Save all changes (Unchanged)
   const handleSaveAll = async () => {
     if (!selectedFoundation) {
       showToast("No foundation selected", 'error');
       return;
     }
-
-    // Validation
     if (!selectedFoundation.name?.trim()) {
       showToast("Foundation name is required", 'error');
       setActiveTab("basic");
       return;
     }
-
     try {
       setLoading(true);
       const apiData = prepareForAPI(selectedFoundation,logoFile);
-      
       if (selectedFoundation.isNew) {
-        // Create new foundation
         const response = await API.post("/admin/foundation/create", apiData);
         const normalized = normalizeFoundation(response.data);
-        
-        // Replace temporary foundation with real one
         setFoundations(foundations.map(f => 
           f.id === selectedFoundationId ? normalized : f
         ));
         setSelectedFoundationId(normalized.id);
         showToast("Foundation created successfully!", 'success');
       } else {
-        // Update existing foundation
         await API.put(`/admin/foundation/update/${selectedFoundationId}`, apiData);
         showToast("Foundation updated successfully!", 'success');
       }
-      
       setHasUnsavedChanges(false);
     } catch (err) {
       console.error("Error saving foundation:", err);
@@ -375,9 +376,10 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
     }
   };
 
+  // tabs (Unchanged)
   const tabs = [
     { id: "basic", label: "Basic Info" },
-    { id: "activities", label: "Activities" },
+    { id: "activities", label: "About Us" },
     { id: "objectives", label: "Objectives" },
     { id: "supportive", label: "Supportive" },
     { id: "contact", label: "Contact" }
@@ -389,7 +391,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Header (Unchanged) */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -439,7 +441,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
           </div>
         </div>
 
-        {/* List View */}
+        {/* List View (Unchanged) */}
         {currentView === "list" && (
           <div>
             <div className="mb-6">
@@ -451,7 +453,6 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                 Add New Foundation
               </button>
             </div>
-
             {foundations.length === 0 ? (
               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
                 <Image size={64} className="mx-auto mb-4 text-gray-400" />
@@ -461,40 +462,28 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {foundations.map((foundation) => (
-                  <div
-                    key={foundation.id}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
-                  >
+                  <div key={foundation.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                     <div className="h-40 bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center p-4">
                       {foundation.logo ? (
-                        <img
-                          src={foundation.logo}
-                          alt={foundation.name}
-                          className="max-h-32 max-w-full object-contain"
-                        />
+                        <img src={foundation.logo} alt={foundation.name} className="max-h-32 max-w-full object-contain" />
                       ) : (
                         <Image size={64} className="text-white opacity-50" />
                       )}
                     </div>
-                    
                     <div className="p-6">
-                      <h3 
-                        className="text-xl font-bold text-orange-900 mb-2 min-h-[56px]"
-                        style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
-                      >
+                      <h3 className="text-xl font-bold text-orange-900 mb-2 min-h-[56px]" style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}>
                         {foundation.name || "Unnamed Foundation"}
                       </h3>
                       <p className="text-gray-600 text-sm mb-4 min-h-[40px]" style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}>
                         {foundation.tagline || "No tagline"}
                       </p>
-                      
                       <div className="text-sm text-gray-500 mb-4 space-y-1">
                         <div className="flex justify-between">
                           <span>Established:</span>
                           <span className="font-semibold">{foundation.established || 'N/A'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Activities:</span>
+                          <span>About Us:</span>
                           <span className="font-semibold">{foundation.keyActivities.length}</span>
                         </div>
                         <div className="flex justify-between">
@@ -502,7 +491,6 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                           <span className="font-semibold">{foundation.objectives.length}</span>
                         </div>
                       </div>
-                      
                       <div className="flex gap-2">
                         <button
                           onClick={() => editFoundation(foundation.id)}
@@ -527,7 +515,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
           </div>
         )}
 
-        {/* Edit View */}
+        {/* Edit View (Unchanged) */}
         {currentView === "edit" && selectedFoundation && (
           <>
             {/* Tabs */}
@@ -555,16 +543,10 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
               {activeTab === "basic" && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-orange-900 mb-6">Basic Information</h2>
-                  
-                  {/* Logo Upload */}
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition">
                     <div className="mb-4">
                       {logoPreview ? (
-                        <img
-                          src={logoPreview}
-                          alt="Logo Preview"
-                          className="w-40 h-40 object-contain mx-auto mb-4 rounded-lg"
-                        />
+                        <img src={logoPreview} alt="Logo Preview" className="w-40 h-40 object-contain mx-auto mb-4 rounded-lg" />
                       ) : (
                         <div className="w-40 h-40 bg-gray-100 rounded-lg mx-auto mb-4 flex items-center justify-center">
                           <Image className="w-16 h-16 text-gray-400" />
@@ -574,22 +556,12 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                     <label className="cursor-pointer inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                       <Upload size={20} />
                       Upload Logo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                      />
+                      <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                     </label>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Recommended: Square image, min 200x200px, max 5MB
-                    </p>
+                    <p className="text-sm text-gray-500 mt-2">Recommended: Square image, min 200x200px, max 5MB</p>
                   </div>
-
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Foundation Name (संस्था का नाम) <span className="text-red-500">*</span>
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Foundation Name (संस्था का नाम) <span className="text-red-500">*</span></label>
                     <input
                       type="text"
                       value={selectedFoundation.name}
@@ -598,30 +570,24 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
                       placeholder="Foundation name in Hindi"
                     />
-{selectedFoundation.isNew ? (
-  <p className="text-gray-500 italic">Order will be assigned automatically after saving.</p>
-) : (
- <div>
-    <label className="block text-gray-700 font-semibold mb-2">
-      Order <span className="text-red-500">*</span>
-    </label>
-    <input
-      type="text"
-      value={selectedFoundation.order}
-      onChange={(e) => updateFoundation("order", e.target.value)}
-      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-      style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
-      placeholder="Order (e.g., 1, 2, 3...)"
-    />
-  </div>
-)}
-
+                    {selectedFoundation.isNew ? (
+                      <p className="text-gray-500 italic">Order will be assigned automatically after saving.</p>
+                    ) : (
+                    <div>
+                        <label className="block text-gray-700 font-semibold mb-2">Order <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          value={selectedFoundation.order}
+                          onChange={(e) => updateFoundation("order", e.target.value)}
+                          className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                          style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
+                          placeholder="Order (e.g., 1, 2, 3...)"
+                        />
+                      </div>
+                    )}
                   </div>
-
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Tagline
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Tagline</label>
                     <input
                       type="text"
                       value={selectedFoundation.tagline}
@@ -631,11 +597,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       placeholder="Tagline"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Established Year
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Established Year</label>
                     <input
                       type="text"
                       value={selectedFoundation.established}
@@ -644,11 +607,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       placeholder="2023"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Description (विवरण)
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Description (विवरण)</label>
                     <textarea
                       value={selectedFoundation.description}
                       onChange={(e) => updateFoundation("description", e.target.value)}
@@ -661,33 +621,39 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                 </div>
               )}
 
-              {/* Statistics Tab */}
+              {/* Statistics Tab (Unchanged) */}
              
-              {/* Key Activities Tab */}
+              {/* --- UPDATED: Key Activities Tab (List) --- */}
               {activeTab === "activities" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-orange-900">Key Activities</h2>
+                    <h2 className="text-2xl font-bold text-orange-900">About Us</h2>
                     <button
                       onClick={() => openModal("activity")}
                       className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
                     >
                       <Plus size={20} />
-                      Add Activity
+                      Add About Us 
                     </button>
                   </div>
                   {selectedFoundation.keyActivities.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-300 rounded-xl">
-                      <p>No activities added yet. Click &quot;Add Activity&quot;to get started.</p>
+                      <p>No About added yet. Click &quot;Add About Us&quot;to get started.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {selectedFoundation.keyActivities.map((activity, index) => (
+                      {selectedFoundation.keyActivities.map((activityHTML, index) => (
                         <div key={index} className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition">
                           <div className="flex justify-between items-start gap-4">
-                            <p className="flex-1 text-gray-700" style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}>
-                              {index + 1}. {activity}
-                            </p>
+                            <div className="flex-1 text-gray-700">
+                              <span className="float-left mr-2 font-semibold">{index + 1}.</span>
+                              {/* This renders the HTML. The 'prose' class styles it. */}
+                              <div 
+                                className="prose prose-sm max-w-none"
+                                style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
+                                dangerouslySetInnerHTML={{ __html: activityHTML }}
+                              />
+                            </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => openModal("activity", index)}
@@ -712,7 +678,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                 </div>
               )}
 
-              {/* Objectives Tab */}
+              {/* --- UPDATED: Objectives Tab (List) --- */}
               {activeTab === "objectives" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-6">
@@ -733,10 +699,11 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                     <div className="space-y-4">
                       {selectedFoundation.objectives.map((objective, index) => (
                         <div key={index} className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 transition">
-                          <div className="flex justify-between items-start gap-4 mb-3">
-                            <h3 className="text-lg font-bold text-orange-900 flex-1" style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}>
-                              {objective.title}
-                            </h3>
+                          <div className="flex justify-between items-start gap-4">
+                            {/* Render the description as PLAIN TEXT, title is gone */}
+                            <p className="flex-1 text-gray-700" style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}>
+                              {index + 1}. {objective.description}
+                            </p>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => openModal("objective", index)}
@@ -754,9 +721,6 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                               </button>
                             </div>
                           </div>
-                          <p className="text-gray-700" style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}>
-                            {objective.description}
-                          </p>
                         </div>
                       ))}
                     </div>
@@ -764,7 +728,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                 </div>
               )}
 
-              {/* Supportive Objectives Tab */}
+              {/* --- UPDATED: Supportive Objectives Tab (List) --- */}
               {activeTab === "supportive" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-6">
@@ -813,15 +777,12 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                 </div>
               )}
 
-              {/* Contact Tab */}
+              {/* Contact Tab (Unchanged) */}
               {activeTab === "contact" && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold text-orange-900 mb-6">Contact Information</h2>
-                  
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Email Address
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Email Address</label>
                     <input
                       type="email"
                       value={selectedFoundation.contact.email}
@@ -830,11 +791,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       placeholder="email@example.com"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Phone Number
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Phone Number</label>
                     <input
                       type="tel"
                       value={selectedFoundation.contact.phone}
@@ -843,11 +801,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       placeholder="+91 98765 43210"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Address
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Address</label>
                     <textarea
                       value={selectedFoundation.contact.address}
                       onChange={(e) => handleContactChange("address", e.target.value)}
@@ -857,9 +812,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Website
-                    </label>
+                    <label className="block text-gray-700 font-semibold mb-2">Website</label>
                     <textarea
                       value={selectedFoundation.contact.website }
                       onChange={(e) => handleContactChange("website", e.target.value)}
@@ -875,7 +828,8 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
         )}
       </div>
 
-      {/* Modal */}
+      {/* --- UPDATED: Modal --- */}
+      {/* This logic now correctly separates all 3 modal types */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fadeIn">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slideUp">
@@ -883,7 +837,7 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">
                   {editIndex !== null ? "Edit" : "Add"}{" "}
-                  {modalType === "activity" ? "Activity" : modalType === "objective" ? "Objective" : "Supportive Objective"}
+                  {modalType === "activity" ? "About Us" : modalType === "objective" ? "Objective" : "Supportive Objective"}
                 </h2>
                 <button
                   onClick={closeModal}
@@ -897,39 +851,50 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
 
             <div className="p-6">
               <div className="space-y-6">
-                {modalType === "objective" ? (
-                  <>
-                    <div>
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        Title (शीर्षक) <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={tempData.title || ""}
-                        onChange={(e) => setTempData({ ...tempData, title: e.target.value })}
-                        className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-                        style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
-                        placeholder="Objective title"
+
+                {/* --- Block 1: Activity (Uses Rich Text) --- */}
+                {modalType === "activity" && (
+                  <div className="space-y-3">
+                    <label className="block text-gray-700 font-semibold mb-2">
+                     About Us Text <span className="text-red-500">*</span>
+                    </label>
+                    <div className="quill-editor-container rounded-lg overflow-hidden border-2 border-gray-300 focus-within:border-orange-500">
+                      <ReactQuill
+                        theme="snow"
+                        modules={quillModules}
+                        value={tempData.text || ""}
+                        onChange={(content) => {
+                          setTempData((prev) => ({ ...prev, text: content }));
+                        }}
+                        placeholder="Write activity details here..."
+                        className="bg-white"
                       />
                     </div>
-                    <div>
-                      <label className="block text-gray-700 font-semibold mb-2">
-                        Description (विवरण) <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={tempData.description || ""}
-                        onChange={(e) => setTempData({ ...tempData, description: e.target.value })}
-                        rows="6"
-                        className="w-full px-4 text-gray-800 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
-                        style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
-                        placeholder="Objective description"
-                      />
-                    </div>
-                  </>
-                ) : (
+                  </div>
+                )}
+
+                {/* --- Block 2: Objective (Uses Normal Text Area) --- */}
+                {modalType === "objective" && (
+                  <div className="space-y-3">
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Objective Description (विवरण) <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={tempData.description || ""}
+                      onChange={(e) => setTempData({ ...tempData, description: e.target.value })}
+                      rows="6"
+                      className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
+                      style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
+                      placeholder="Objective description"
+                    />
+                  </div>
+                )}
+
+                {/* --- Block 3: Supportive (Uses Normal Text Area) --- */}
+                {modalType === "supportive" && (
                   <div>
                     <label className="block text-gray-700 font-semibold mb-2">
-                      {modalType === "activity" ? "Activity" : "Supportive Objective"} Text <span className="text-red-500">*</span>
+                      Supportive Objective Text <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       value={tempData.text || ""}
@@ -937,10 +902,11 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
                       rows="6"
                       className="w-full text-gray-800 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-500 focus:outline-none"
                       style={{ fontFamily: 'Noto Serif Devanagari, Georgia, serif' }}
-                      placeholder={`Enter ${modalType === "activity" ? "activity" : "supportive objective"} text`}
+                      placeholder="Enter supportive objective text"
                     />
                   </div>
                 )}
+
               </div>
 
               <div className="flex gap-4 mt-8">
@@ -963,44 +929,60 @@ const prepareForAPI = useCallback((foundation, logoFile) => {
         </div>
       )}
 
+      {/* --- NEW: Global styles for ReactQuill & Prose --- */}
+      <style jsx global>{`
+        /* This styles the rendered HTML in your list */
+        .prose {
+          font-family: 'Noto Serif Devanagari', Georgia, serif;
+          line-height: 1.6;
+        }
+        .prose p { margin: 0; }
+        .prose h1 { font-size: 2.25rem; font-weight: 700; }
+        .prose h2 { font-size: 1.875rem; font-weight: 600; }
+        .prose h3 { font-size: 1.5rem; font-weight: 600; }
+        .prose ul, .prose ol { padding-left: 1.5rem; margin: 0.5rem 0; }
+        .prose a { color: #ea580c; } /* text-orange-600 */
+        .prose strong { font-weight: 700; }
+        .prose em { font-style: italic; }
+
+        /* This styles the editor in the modal */
+        .quill-editor-container .ql-toolbar {
+          border-top-left-radius: 0.5rem;
+          border-top-right-radius: 0.5rem;
+          border: none;
+          background-color: #f9fafb; /* bg-gray-50 */
+        }
+        .quill-editor-container .ql-container {
+          border-bottom-left-radius: 0.5rem;
+          border-bottom-right-radius: 0.5rem;
+          border: none;
+          min-height: 240px;
+          font-family: 'Noto Serif Devanagari', Georgia, serif;
+          font-size: 1rem;
+        }
+        /* Fix for quill color picker text */
+        .ql-snow .ql-picker-label {
+          color: #1f2937 !important; /* text-gray-900 */
+        }
+      `}</style>
+
+      {/* Animation styles (Unchanged) */}
       <style jsx>{`
         @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
         }
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes slideUp {
-          from {
-            transform: translateY(20px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
         }
-        .animate-slideIn {
-          animation: slideIn 0.3s ease-out;
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
-        }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
+        .animate-slideIn { animation: slideIn 0.3s ease-out; }
+        .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+        .animate-slideUp { animation: slideUp 0.3s ease-out; }
       `}</style>
     </div>
   );

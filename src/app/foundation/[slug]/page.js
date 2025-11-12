@@ -1,17 +1,18 @@
 "use client"
 import { useParams } from 'next/navigation';
 import React, { useEffect,useState } from 'react';
-import { ArrowLeft, Target, Heart, Users, TrendingUp, Mail, Phone, MapPin, ExternalLink, Calendar, Award } from 'lucide-react';
+import { ArrowLeft, Info,Target, Heart, Users, TrendingUp, Mail, Phone, MapPin, ExternalLink, Calendar, Award, DessertIcon } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import API from '@/lib/api';
 import { Loader2 } from "lucide-react";
+import { FaGlobeAsia, FaInfoCircle } from 'react-icons/fa';
 
 
 export default function FoundationPage({ slug }) {
   const [foundation, setFoundation] = useState(null);
   const [loading, setLoading] = useState(true);
-const params = useParams(); // Next.js hook to get URL params
+  const params = useParams(); // Next.js hook to get URL params
   const currentSlug = params.slug; 
   useEffect(() => {
     async function fetchFoundation() {
@@ -44,6 +45,10 @@ const params = useParams(); // Next.js hook to get URL params
       </div>
     </div>);
   if (!foundation) return <div className="text-center py-20">Foundation not found</div>;
+
+  // Filter objectives based on type
+  const mainObjectives = foundation.objectives.filter(obj => obj.objectiveType === 'main');
+  const supportiveObjectives = foundation.objectives.filter(obj => obj.objectiveType === 'supportive');
 
   return (
     <>
@@ -92,46 +97,118 @@ const params = useParams(); // Next.js hook to get URL params
                   </div>
                   <h2 className="text-3xl font-bold">परिचय</h2>
                 </div>
-                <p className="leading-relaxed text-lg text-blue-50">{foundation.description}</p>
+                <p className="leading-relaxed text-lg font-bold text-blue-50">{foundation.description}</p>
               </section>
 
               {/* Key Activities */}
-              <section className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl shadow-lg p-8 text-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-white bg-opacity-20 p-3 rounded-xl">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h2 className="text-3xl font-bold">मुख्य गतिविधियां</h2>
-                </div>
-                <div className="space-y-4">
-                  {foundation.activities.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3 p-4 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition">
-                      <div className="bg-white text-green-600 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 mt-1 font-bold">
-                        {index + 1}
-                      </div>
-                      <p className="flex-1 text-green-600">{activity.activityText}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
+<section className="bg-white rounded-2xl shadow-lg p-8">
+  {/* Section Title */}
+  <div className="flex items-center gap-3 mb-8 justify-center">
+    {/* Switched to orange theme and Info icon */}
+    <div className="bg-orange-100 p-3 rounded-xl">
+      <FaGlobeAsia className="w-6 h-6 text-orange-600" />
+    </div>
+    <h2 className="text-3xl font-extrabold text-orange-900">फाउंडेशन के बारे में</h2>
+  </div>
+  
+  {/* --- Redesigned Content Area ---
+    We no longer map a list. This is a single block
+    designed for one long paragraph.
+  */}
+  <div className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-6 shadow-inner">
+    {/* - Use 'leading-relaxed' for better line spacing in a long paragraph.
+      - Use 'text-lg' for better readability.
+      - Assuming your text is in 'foundation.about' or 
+        'foundation.activities[0].activityText'
+    */}
+{foundation.activities.length > 0 ? (
+  <div
+    className="text-2xl font-extrabold text-gray-700 leading-relaxed prose"
+    dangerouslySetInnerHTML={{ __html: foundation.activities[0].activityText }}
+  />
+) : (
+  <p className="text-gray-500 text-center">About information is not available.</p>
+)}
+  </div>
+  
+</section>
 
-              {/* Objectives */}
-              <section className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-white bg-opacity-20 p-3 rounded-xl">
-                    <Target className="w-6 h-6 text-purple-500" />
-                  </div>
-                  <h2 className="text-3xl font-bold">मुख्य उद्देश्य</h2>
-                </div>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {foundation.objectives.map((objective, index) => (
-                    <div key={index} className="bg-white bg-opacity-20 rounded-xl p-6 hover:bg-opacity-30 transition">
-                      <h3 className="text-xl text-purple-500 font-semibold mb-3">{objective.title}</h3>
-                      <p className="text-sm leading-relaxed text-purple-950">{objective.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              {/* --- MODIFIED: Objectives Section --- */}
+<section className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-8">
+  {/* Section Title (Styled like reference) */}
+  <div className="flex items-center gap-4 mb-10">
+    <div className="flex-shrink-0 bg-white bg-opacity-20 p-3 rounded-xl backdrop-blur-sm border border-white border-opacity-30">
+      <Target className="w-8 h-8 text-yellow-400" />
+    </div>
+    <h2 className="text-4xl font-bold text-white">मुख्य उद्देश्य</h2>
+  </div>
+
+  {/* --- Main Objectives Section --- */}
+  <div className="mb-12">
+    
+    <div className="space-y-4">
+      {mainObjectives.map((objective, index) => (
+        <div 
+          key={index} 
+          className="flex items-start gap-4 p-4 bg-white bg-opacity-10 rounded-xl hover:bg-opacity-20 transition duration-300 backdrop-blur-sm border border-white border-opacity-20"
+        >
+          {/* Styled Number (Glassmorphism version) */}
+       
+          
+          {/* Content (Title + Description) */}
+          <div className="flex-1">
+            {/* Text is white/light for contrast against the orange background */}
+            <h4 className="font-semibold text-lg  text-orange-950 ">{objective.description}</h4>
+     
+          </div>
+        </div>
+      ))}
+      
+      {mainObjectives.length === 0 && (
+        <div className="p-4 bg-white bg-opacity-10 rounded-xl text-center text-orange-950">
+          No main objectives listed.
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* --- Supportive Objectives Section --- */}
+  
+</section>
+                <div className="bg-white rounded-2xl shadow-lg p-8">
+  <div className="text-center mb-10">
+    <h2 className="text-4xl font-bold text-orange-600">सहायक उद्देश्य</h2>
+  </div>
+ 
+  <div className="space-y-6">
+    {supportiveObjectives.map((objective, index) => (
+      <div key={index} className="flex items-start gap-4">
+        {/* Styled Number */}
+        <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-orange-100 text-orange-600 font-bold rounded-full border-2 border-orange-300 mt-1">
+          {index + 1}
+        </div>
+        {/* Content (Title + Description) */}
+        <div className="flex-1 text-gray-700">
+          
+          {/* --- KEY CHANGE HERE --- */}
+          <h4 
+            className={`
+              font-semibold text-lg 
+              ${index % 2 === 0 ? 'text-teal-800' : 'text-orange-600'}
+            `}
+          >
+            {objective.title}
+          </h4>
+          
+          <p className="text-base">{objective.description}</p>
+        </div>
+      </div>
+    ))}
+    {supportiveObjectives.length === 0 && <p className="text-gray-500 text-center">No supportive objectives listed.</p>}
+  </div>
+</div>
+              {/* --- END OF MODIFIED SECTION --- */}
+
             </div>
 
             {/* Right Column - Contact */}
@@ -148,8 +225,8 @@ const params = useParams(); // Next.js hook to get URL params
                   <div className="flex items-start gap-3 p-3 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition">
                     <Mail className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
                     <div>
-                      <div className="text-xs text-teal-500 mb-1">Email</div>
-                      <a href={`mailto:${foundation.contact.email}`} className="hover:text-teal-500 text-black text-sm">
+                      <div className="text-sm  text-teal-500 mb-1 font-extrabold">Email</div>
+                      <a href={`mailto:${foundation.contact.email}`} className="hover:text-teal-500 font-extrabold text-orange-900 text-sm">
                         {foundation.contact.email}
                       </a>
                     </div>
@@ -158,8 +235,8 @@ const params = useParams(); // Next.js hook to get URL params
                   <div className="flex items-start gap-3 p-3 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition">
                     <Phone className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
                     <div>
-                      <div className="text-xs text-teal-500 mb-1">Phone</div>
-                      <a href={`tel:${foundation.contact.phone}`} className="hover:text-teal-500 text-black text-sm">
+                      <div className="text-sm text-teal-500 font-extrabold mb-1">Phone</div>
+                      <a href={`tel:${foundation.contact.phone}`} className="hover:text-teal-500 font-extrabold text-orange-900 text-sm">
                         {foundation.contact.phone}
                       </a>
                     </div>
@@ -168,8 +245,8 @@ const params = useParams(); // Next.js hook to get URL params
                   <div className="flex items-start gap-3 p-3 bg-white bg-opacity-20 rounded-xl hover:bg-opacity-30 transition">
                     <MapPin className="w-5 h-5 text-teal-500 mt-1 flex-shrink-0" />
                     <div>
-                      <div className="text-xs text-teal-500 mb-1">Address</div>
-                      <p className="text-sm text-teal-500">{foundation.contact.address}</p>
+                      <div className="text-sm text-teal-500 mb-1 font-extrabold">Address</div>
+                      <p className="text-sm text-orange-900 font-extrabold">{foundation.contact.address}</p>
                     </div>
                   </div>
                 </div>
