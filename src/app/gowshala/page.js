@@ -117,7 +117,7 @@ export default function Gowshala() {
               तो हमसे संपर्क करें।
             </p>
             <a
-              href="/contact"
+              href="/message"
               className="inline-block bg-white text-orange-600 font-semibold px-6 py-3 rounded-full hover:bg-yellow-50 transition-all duration-300"
             >
               संपर्क करें

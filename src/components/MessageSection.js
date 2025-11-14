@@ -157,7 +157,7 @@ export default function MessageSection() {
 
   const handleDateClick = () => {
 
-    window.location.href = "/calendar";
+    window.location.href = "/";
 
   };
 
