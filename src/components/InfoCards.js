@@ -125,35 +125,52 @@ export default function InfoCards() {
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Artistic Heading */}
-        <div className="relative text-center mb-20 md:mb-24">
-          <div className="relative inline-block">
-            {/* Background Arch Art */}
-            <TempleArchIcon className="absolute -inset-x-8 -top-8 w-[115%] h-auto text-orange-800 drop-shadow-2xl" />
-            
-            <div className="relative pt-6 pb-8 px-8">
-              <h2 
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3"
-                style={{ 
-                  fontFamily: 'Noto Serif Devanagari, Georgia, serif',
-                  textShadow: '2px 2px 5px rgba(0,0,0,0.5)'
-                }}
-              >
-                अधिक जानकारी हेतु
-              </h2>
-              
-              <p 
-                className="text-lg sm:text-xl md:text-2xl text-amber-200 font-bold"
-                style={{ 
-                  fontFamily: 'Noto Serif Devanagari, serif',
-                  textShadow: '1px 1px 3px rgba(0,0,0,0.4)'
-                }}
-              >
-                नीचे दिये बॉक्स पर क्लिक करें
-              </p>
-            </div>
-          </div>
-        </div>
+     <div className="relative text-center mb-20 md:mb-24 px-4">
+  {/* Main Card - This is the positioning parent */}
+  <div className="relative inline-block p-1 rounded-lg bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 shadow-2xl">
+   
+    {/* Top Icon: Added z-10 */}
+    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-white px-2 text-amber-700 text-2xl z-10">
+      ❖
+    </div>
+    
+    {/* Inner Content Box */}
+    <div className="bg-red-950 rounded-md py-8 px-8 md:px-12 relative overflow-hidden">
+      
+      {/* Subtle corner patterns */}
+      <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-yellow-500/30 rounded-tl-3xl"></div>
+      <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-yellow-500/30 rounded-tr-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-yellow-500/30 rounded-bl-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-yellow-500/30 rounded-br-3xl"></div>
 
+      {/* Heading */}
+      <h2 
+        className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-amber-100 mb-3 tracking-wider"
+        style={{ 
+          fontFamily: 'Noto Serif Devanagari, serif',
+          textShadow: '0 4px 10px rgba(251, 191, 36, 0.3)' // Gold glow shadow
+        }}
+      >
+        अधिक जानकारी हेतु
+      </h2>
+      
+      {/* Subtitle */}
+      <p 
+        className="text-lg sm:text-xl md:text-2xl text-amber-400 font-medium"
+        style={{ fontFamily: 'Noto Serif Devanagari, serif' }}
+      >
+        ~ नीचे दिये बॉक्स पर क्लिक करें ~
+      </p>
+    </div>
+    
+    {/* Bottom Icon: MOVED HERE and added z-10 */}
+    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white px-2 text-amber-700 text-2xl z-10">
+      ❖
+    </div>
+
+  </div>
+  {/* The icon was here, which was incorrect */}
+</div>
         {/* Cards Grid with Staggered Animation */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
           {cards.map((card, i) => (

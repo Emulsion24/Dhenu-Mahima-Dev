@@ -1,6 +1,9 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, Youtube, ChevronDown, Sparkles } from 'lucide-react';
+// --- START: ADDED IMPORTS ---
+import { FaWhatsapp, FaFacebook, FaInstagram, FaShareAlt } from 'react-icons/fa';
+// --- END: ADDED IMPORTS ---
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 
@@ -11,9 +14,16 @@ export default function AgamiKatha() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // --- START: ADDED STATE ---
+  const [currentPageUrl, setCurrentPageUrl] = useState('');
+  // --- END: ADDED STATE ---
 
   useEffect(() => {
     fetchEvents();
+    // --- START: ADDED CODE ---
+    // Get the current window URL after component mounts
+    setCurrentPageUrl(window.location.href);
+    // --- END: ADDED CODE ---
   }, []);
 
   const fetchEvents = async () => {
@@ -53,18 +63,94 @@ export default function AgamiKatha() {
     }
   };
 
-  const getChannelName = (url, index) => {
-    // Extract channel name from URL or use default names
-    if (typeof url === 'string' && url.includes('youtube.com')) {
-      if (url.includes('dhenutv') || index === 0) {
-        return 'Dhenu TV';
-      } else if (url.includes('jevansutra') || index === 1) {
-        return 'Jevansutra';
+  const getChannelName = (link) => {
+    if (!link || typeof link !== 'string') return 'YouTube Channel';
+    
+    // Check for exact matches first
+    if (link === '@dhenutv' || link.includes('dhenutv')) {
+      return 'Dhenu TV';
+    }
+    if (link === '@jevansutra' || link.includes('jevansutra')) {
+      return 'Jevansutra';
+    }
+    
+    // For other links, try to extract channel name from URL
+    try {
+      const url = new URL(link.startsWith('http') ? link : `https://` + link);
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      
+      // Handle @username format
+      if (link.includes('@')) {
+        const match = link.match(/@([\w-]+)/);
+        return match ? match[1] : 'YouTube Channel';
+      }
+      
+      // Handle /c/ or /channel/ format
+      if (pathParts[0] === 'c' || pathParts[0] === 'channel') {
+        return pathParts[1] || 'YouTube Channel';
+      }
+      
+      return 'YouTube Channel';
+    } catch {
+      return link.includes('@') ? link : 'YouTube Channel';
+    }
+  };
+
+  // --- START: ADDED SHARE HANDLERS ---
+  const pageTitle = 'परम पूज्य ग्वाल संत श्री के आगामी कथा एवं आयोजन';
+  
+  const handleNativeShare = async () => {
+    const shareData = {
+      title: pageTitle,
+      text: 'श्री गौ कृपा कथा और सत्संग कार्यक्रम',
+      url: currentPageUrl,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback for desktop
+        await navigator.clipboard.writeText(currentPageUrl);
+        alert('लिंक क्लिपबोर्ड पर कॉपी हो गया है। (Link copied to clipboard.)');
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+      // Fallback if share fails
+      try {
+        await navigator.clipboard.writeText(currentPageUrl);
+        alert('लिंक क्लिपबोर्ड पर कॉपी हो गया है। (Link copied to clipboard.)');
+      } catch (copyErr) {
+        console.error('Error copying to clipboard:', copyErr);
+        alert('Sharing failed. Please copy the link from your browser bar.');
       }
     }
-    // Default names based on index
-    return index === 0 ? 'Dhenu TV' : 'Jevansutra';
   };
+
+  const handleWhatsAppShare = () => {
+    const encodedUrl = encodeURIComponent(currentPageUrl);
+    const encodedTitle = encodeURIComponent(pageTitle);
+    const url = `https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleFacebookShare = () => {
+    const encodedUrl = encodeURIComponent(currentPageUrl);
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleInstagramShare = async () => {
+    // Instagram doesn't support direct URL sharing.
+    // The best practice is to copy the link and instruct the user.
+    try {
+      await navigator.clipboard.writeText(currentPageUrl);
+      alert('लिंक क्लिपबोर्ड पर कॉपी हो गया है। कृपया इसे अपने इंस्टाग्राम पर पेस्ट करें। (Link copied to clipboard. Please paste it on your Instagram.)');
+    } catch (err) {
+      console.error('Error copying to clipboard:', err);
+      alert('Unable to copy link. Please copy the URL from your browser bar.');
+    }
+  };
+  // --- END: ADDED SHARE HANDLERS ---
 
   return (
     <>
@@ -121,6 +207,43 @@ export default function AgamiKatha() {
                 <ChevronDown className="w-5 h-5" />
               </button>
             </div>
+
+            {/* --- START: ADDED SHARE ICONS --- */}
+            <div className="mt-10 text-center">
+              <p className="text-sm font-semibold text-white/80 mb-4 tracking-wider">इस पेज को शेयर करें</p>
+              <div className="flex justify-center items-center gap-6">
+                <button 
+                  onClick={handleWhatsAppShare} 
+                  aria-label="Share on WhatsApp"
+                  className="text-green-600 hover:text-white hover:scale-110 transition-all duration-200"
+                >
+                  <FaWhatsapp size={30} />
+                </button>
+                <button 
+                  onClick={handleFacebookShare} 
+                  aria-label="Share on Facebook"
+                  className="text-blue-700 hover:text-white hover:scale-110 transition-all duration-200"
+                >
+                  <FaFacebook size={30} />
+                </button>
+                <button 
+                  onClick={handleInstagramShare} 
+                  aria-label="Share on Instagram"
+                  className="text-white/80 hover:text-white hover:scale-110 transition-all duration-200"
+                >
+                  <FaInstagram size={30} />
+                </button>
+                <button 
+                  onClick={handleNativeShare} 
+                  aria-label="Share"
+                  className="text-white/80 hover:text-white hover:scale-110 transition-all duration-200"
+                >
+                  <FaShareAlt size={26} />
+                </button>
+              </div>
+            </div>
+            {/* --- END: ADDED SHARE ICONS --- */}
+
           </div>
         </div>
         
@@ -164,10 +287,10 @@ export default function AgamiKatha() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div className="bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-2xl p-6 shadow-xl text-center transform hover:scale-105 transition-transform">
               <div className="text-4xl font-bold mb-2">{events.length}+</div>
-              <div className="font-medium opacity-90">कुल आयोजन</div>
+              <div className="font-medium opacity-90">कुल आगामी आयोजन</div>
             </div>
             <div className="bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-2xl p-6 shadow-xl text-center transform hover:scale-105 transition-transform">
-              <div className="text-4xl font-bold mb-2">12+</div>
+              <div className="text-4xl font-bold mb-2">28+</div>
               <div className="font-medium opacity-90">राज्य</div>
             </div>
             <div className="bg-gradient-to-br from-yellow-500 to-amber-500 text-white rounded-2xl p-6 shadow-xl text-center transform hover:scale-105 transition-transform">
@@ -298,7 +421,7 @@ export default function AgamiKatha() {
                                     stroke="currentColor" 
                                     viewBox="0 0 24 24"
                                   >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002 2v-4M14 4h6m0 0v6m0-6L10 14" />
                                   </svg>
                                 </button>
                               ))}
@@ -374,7 +497,7 @@ export default function AgamiKatha() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
             <button 
-              onClick={() => handleYouTubeClick('https://youtube.com/@dhenutv', 0)}
+              onClick={() => handleYouTubeClick('https://www.youtube.com/@DhenuTV', 0)}
               className="group flex items-center justify-center gap-3 px-8 py-5 bg-white text-gray-800 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all shadow-2xl hover:shadow-3xl transform hover:scale-105"
             >
               <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -385,7 +508,7 @@ export default function AgamiKatha() {
               <span>Dhenu TV</span>
             </button>
             <button 
-              onClick={() => handleYouTubeClick('https://youtube.com/@jevansutra', 1)}
+              onClick={() => handleYouTubeClick('https://www.youtube.com/@JeevanSutra-e5n', 1)}
               className="group flex items-center justify-center gap-3 px-8 py-5 bg-white text-gray-800 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all shadow-2xl hover:shadow-3xl transform hover:scale-105"
             >
               <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-red-700 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">

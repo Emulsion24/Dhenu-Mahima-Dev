@@ -15,7 +15,6 @@ import {
   RefreshCw
 } from "lucide-react";
 
-
 const colorOptions = [
   { value: "from-orange-500 to-red-500", label: "Orange to Red" },
   { value: "from-amber-500 to-orange-500", label: "Amber to Orange" },
@@ -29,6 +28,14 @@ const colorOptions = [
   { value: "from-red-500 to-orange-500", label: "Red to Orange" },
 ];
 
+const eventTitleOptions = [
+  "3 दिवसीय गोकृपा कथा",
+  "5 दिवसीय गोकृपा कथा",
+  "7 दिवसीय गोकृपा कथा",
+  "9 दिवसीय गो महिमा सत्संग",
+  "गो सेवा कार्य हेतु प्रवास"
+];
+
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,20 +43,36 @@ export default function AdminEventsPage() {
   const [editingEvent, setEditingEvent] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    title: "",
+    title: eventTitleOptions[0],
     startDate: "",
     endDate: "",
     time: "",
     location: "",
     duration: "",
     color: "from-orange-500 to-red-500",
-    liveLinks: [""],
+    youtubeChannels: {
+      dhenutv: false,
+      jevansutra: false,
+      other: false
+    },
+    otherYoutubeLink: "",
     description: ""
   });
 
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  // Calculate days automatically when dates change
+  useEffect(() => {
+    if (formData.startDate && formData.endDate) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.endDate);
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      setFormData(prev => ({ ...prev, duration: diffDays.toString() }));
+    }
+  }, [formData.startDate, formData.endDate]);
 
   const fetchEvents = async () => {
     try {
@@ -73,7 +96,7 @@ export default function AdminEventsPage() {
     
     try {
       const response = await API.get(`/events/cleanup`);
-      const data=response.data
+      const data = response.data;
       if (data.success) {
         alert(data.message);
         fetchEvents();
@@ -89,30 +112,32 @@ export default function AdminEventsPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLiveLinkChange = (index, value) => {
-  const newLinks = [...formData.liveLinks];
-  
-  // Ensure array has at least 2 elements
-  while (newLinks.length < 2) {
-    newLinks.push('');
-  }
-  
-  newLinks[index] = value;
-  setFormData({ ...formData, liveLinks: newLinks });
-};
-  
-  
+  const handleCheckboxChange = (channel) => {
+    setFormData(prev => ({
+      ...prev,
+      youtubeChannels: {
+        ...prev.youtubeChannels,
+        [channel]: !prev.youtubeChannels[channel]
+      }
+    }));
+  };
+
   const openAddModal = () => {
     setEditingEvent(null);
     setFormData({
-      title: "",
+      title: eventTitleOptions[0],
       startDate: "",
       endDate: "",
       time: "",
       location: "",
       duration: "",
       color: "from-orange-500 to-red-500",
-      liveLinks: [""],
+      youtubeChannels: {
+        dhenutv: false,
+        jevansutra: false,
+        other: false
+      },
+      otherYoutubeLink: "",
       description: ""
     });
     setShowModal(true);
@@ -120,6 +145,26 @@ export default function AdminEventsPage() {
 
   const openEditModal = (event) => {
     setEditingEvent(event);
+    
+    // Parse liveLinks to determine which checkboxes should be checked
+    const liveLinks = Array.isArray(event.liveLinks) ? event.liveLinks : [];
+    const youtubeChannels = {
+      dhenutv: liveLinks.includes("@dhenutv") || liveLinks.some(link => link.includes("dhenutv")),
+      jevansutra: liveLinks.includes("@jevansutra") || liveLinks.some(link => link.includes("jevansutra")),
+      other: false
+    };
+    
+    let otherYoutubeLink = "";
+    const otherLinks = liveLinks.filter(link => 
+      !link.includes("dhenutv") && !link.includes("jevansutra") && 
+      link !== "@dhenutv" && link !== "@jevansutra"
+    );
+    
+    if (otherLinks.length > 0) {
+      youtubeChannels.other = true;
+      otherYoutubeLink = otherLinks[0];
+    }
+
     setFormData({
       title: event.title,
       startDate: event.startDate.split('T')[0],
@@ -128,7 +173,8 @@ export default function AdminEventsPage() {
       location: event.location,
       duration: event.duration,
       color: event.color,
-      liveLinks: event.liveLinks.length > 0 ? event.liveLinks : [""],
+      youtubeChannels: youtubeChannels,
+      otherYoutubeLink: otherYoutubeLink,
       description: event.description || ""
     });
     setShowModal(true);
@@ -144,18 +190,39 @@ export default function AdminEventsPage() {
     setSubmitting(true);
 
     try {
+      // Build liveLinks array based on checked channels
+      const liveLinks = [];
+      if (formData.youtubeChannels.dhenutv) {
+        liveLinks.push("https://www.youtube.com/@DhenuTV");
+      }
+      if (formData.youtubeChannels.jevansutra) {
+        liveLinks.push("https://www.youtube.com/@JeevanSutra-e5n");
+      }
+      if (formData.youtubeChannels.other && formData.otherYoutubeLink.trim()) {
+        liveLinks.push(formData.otherYoutubeLink.trim());
+      }
+
       const submitData = {
-        ...formData,
-        liveLinks: formData.liveLinks.filter(link => link.trim() !== "")
+        title: formData.title,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        time: formData.time,
+        location: formData.location,
+        duration: formData.duration,
+        color: formData.color,
+        liveLinks: liveLinks,
+        description: formData.description
       };
 
       const url = editingEvent 
         ? `/events/${editingEvent.id}`
-        : `/events`
+        : `/events`;
       
-          const response = editingEvent ? await API.put(url,submitData) : await API.post(url,submitData)
+      const response = editingEvent 
+        ? await API.put(url, submitData) 
+        : await API.post(url, submitData);
  
-      const data=response.data;
+      const data = response.data;
       if (data.success) {
         alert(data.message);
         fetchEvents();
@@ -176,7 +243,7 @@ export default function AdminEventsPage() {
 
     try {
       const response = await API.delete(`/events/${id}`);
-      const data=response.data
+      const data = response.data;
       if (data.success) {
         alert(data.message);
         fetchEvents();
@@ -215,7 +282,7 @@ export default function AdminEventsPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent mb-2">
-                आगामी कथा प्रबंधन
+                आगामी कथा और अन्य आयोजन
               </h1>
               <p className="text-gray-600 font-medium">
                 Manage upcoming events and programs
@@ -271,7 +338,7 @@ export default function AdminEventsPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div>
                           <div className="inline-block px-4 py-1 bg-white/30 backdrop-blur-md text-white rounded-full font-bold text-sm mb-2">
-                            {event.duration}
+                            {event.duration} दिन
                           </div>
                           <h3 className="text-2xl font-bold text-white drop-shadow-lg">
                             {event.title}
@@ -310,7 +377,7 @@ export default function AdminEventsPage() {
                           <MapPin size={16} className="mt-0.5" />
                           <span className="text-sm">{event.location}</span>
                         </div>
-                        {event.liveLinks.length > 0 && (
+                        {event.liveLinks && event.liveLinks.length > 0 && (
                           <div className="flex items-center gap-2 flex-wrap">
                             <Youtube size={16} />
                             <span className="text-sm">
@@ -349,20 +416,24 @@ export default function AdminEventsPage() {
                 onSubmit={handleSubmit}
                 className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto"
               >
-                {/* Title */}
+                {/* Title - Dropdown */}
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-2">
                     Event Title *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="title"
                     value={formData.title}
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-                    placeholder="e.g., 5 दिवसीय गौ कृपा कथा"
-                  />
+                  >
+                    {eventTitleOptions.map((title, index) => (
+                      <option key={index} value={title}>
+                        {title}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Dates */}
@@ -393,6 +464,21 @@ export default function AdminEventsPage() {
                       className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
                     />
                   </div>
+                </div>
+
+                {/* Auto-calculated Days */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">
+                    Days (Auto-calculated)
+                  </label>
+                  <input
+                    type="text"
+                    name="duration"
+                    value={formData.duration}
+                    readOnly
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-gray-100 text-gray-800 font-medium cursor-not-allowed"
+                    placeholder="Will be calculated automatically"
+                  />
                 </div>
 
                 {/* Time */}
@@ -426,94 +512,111 @@ export default function AdminEventsPage() {
                   />
                 </div>
 
-                {/* Duration and Color */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                    Days
-                    </label>
-                    <input
-                      type="text"
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-                      placeholder="1,2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-800 mb-2">
-                      Color Theme
-                    </label>
-                    <select
-                      name="color"
-                      value={formData.color}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-                    >
-                      {colorOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Color Theme */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">
+                    Color Theme
+                  </label>
+                  <select
+                    name="color"
+                    value={formData.color}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
+                  >
+                    {colorOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                {/* Live Links */}
+                {/* YouTube Channels - Checkboxes */}
                 <div>
-  <label className="block text-sm font-bold text-gray-800 mb-3">
-    YouTube Live Links
-  </label>
-  
-  {/* Dhenu TV Link */}
-  <div className="mb-4">
-    <label className="block text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
-      <div className="w-6 h-6 bg-red-600 rounded-lg flex items-center justify-center">
-        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
-      </div>
-      Dhenu TV YouTube Link
-    </label>
-    <input
-      type="url"
-      value={formData.liveLinks[0] || ''}
-      onChange={(e) => handleLiveLinkChange(0, e.target.value)}
-      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-      placeholder="https://youtube.com/@dhenutv"
-    />
-  </div>
+                  <label className="block text-sm font-bold text-gray-800 mb-3">
+                    YouTube Live Channels
+                  </label>
+                  
+                  <div className="space-y-3">
+                    {/* Dhenu TV */}
+                    <label className="flex items-center gap-3 p-4 border-2 border-gray-300 rounded-xl hover:border-orange-400 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.youtubeChannels.dhenutv}
+                        onChange={() => handleCheckboxChange('dhenutv')}
+                        className="w-5 h-5 text-orange-600 rounded focus:ring-2 focus:ring-orange-500"
+                      />
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                        </div>
+                        <span className="font-semibold text-gray-800">Dhenu TV (@dhenutv)</span>
+                      </div>
+                    </label>
 
-  {/* Jevansutra Link */}
-  <div>
-    <label className="block text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
-      <div className="w-6 h-6 bg-red-600 rounded-lg flex items-center justify-center">
-        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
-      </div>
-      Jevansutra YouTube Link
-    </label>
-    <input
-      type="url"
-      value={formData.liveLinks[1] || ''}
-      onChange={(e) => handleLiveLinkChange(1, e.target.value)}
-      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-      placeholder="https://youtube.com/@jevansutra"
-    />
-  </div>
+                    {/* Jevansutra */}
+                    <label className="flex items-center gap-3 p-4 border-2 border-gray-300 rounded-xl hover:border-orange-400 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.youtubeChannels.jevansutra}
+                        onChange={() => handleCheckboxChange('jevansutra')}
+                        className="w-5 h-5 text-orange-600 rounded focus:ring-2 focus:ring-orange-500"
+                      />
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                          </svg>
+                        </div>
+                        <span className="font-semibold text-gray-800">Jevansutra (@jevansutra)</span>
+                      </div>
+                    </label>
 
-  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-    <p className="text-xs text-blue-700 flex items-start gap-2">
-      <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-      </svg>
-      <span>Enter the full YouTube channel or live stream URLs for both channels.</span>
-    </p>
-  </div>
-</div>
+                    {/* Other */}
+                    <div>
+                      <label className="flex items-center gap-3 p-4 border-2 border-gray-300 rounded-xl hover:border-orange-400 cursor-pointer transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={formData.youtubeChannels.other}
+                          onChange={() => handleCheckboxChange('other')}
+                          className="w-5 h-5 text-orange-600 rounded focus:ring-2 focus:ring-orange-500"
+                        />
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                          </div>
+                          <span className="font-semibold text-gray-800">Other YouTube Channel</span>
+                        </div>
+                      </label>
+                      
+                      {formData.youtubeChannels.other && (
+                        <div className="mt-3 ml-12">
+                          <input
+                            type="url"
+                            name="otherYoutubeLink"
+                            value={formData.otherYoutubeLink}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
+                            placeholder="Enter YouTube channel URL or @handle"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs text-blue-700 flex items-start gap-2">
+                      <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span>Select one or more YouTube channels where the event will be streamed live.</span>
+                    </p>
+                  </div>
+                </div>
 
                 {/* Description */}
                 <div>
