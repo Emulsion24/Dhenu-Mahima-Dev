@@ -316,7 +316,7 @@ export default function MessageSection() {
                     textShadow: "2px 2px 4px rgba(0,0,0,0.5)",
                   }}
                 >
-                  ~ ग्वाल संत श्री
+                  ~ ग्वाल संत 
                 </p>
               </div>
             </div>

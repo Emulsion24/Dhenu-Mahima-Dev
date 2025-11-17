@@ -28,13 +28,19 @@ const colorOptions = [
   { value: "from-red-500 to-orange-500", label: "Red to Orange" },
 ];
 
+// --- MODIFICATION: Added "Other" option ---
+const OTHER_TITLE_OPTION = "अन्य (Other)";
+
 const eventTitleOptions = [
+  "1 दिवसीय गोकृपा कथा",
   "3 दिवसीय गोकृपा कथा",
   "5 दिवसीय गोकृपा कथा",
   "7 दिवसीय गोकृपा कथा",
-  "9 दिवसीय गो महिमा सत्संग",
-  "गो सेवा कार्य हेतु प्रवास"
+  "9 दिवसीय गोकृपा कथा",
+  "गो सेवा कार्य हेतु प्रवास",
+  OTHER_TITLE_OPTION // Added "Other" option
 ];
+// --- END MODIFICATION ---
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([]);
@@ -42,6 +48,11 @@ export default function AdminEventsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  
+  // --- MODIFICATION: Added new state for the dropdown ---
+  const [selectedTitleOption, setSelectedTitleOption] = useState(eventTitleOptions[0]);
+  // --- END MODIFICATION ---
+
   const [formData, setFormData] = useState({
     title: eventTitleOptions[0],
     startDate: "",
@@ -112,6 +123,21 @@ export default function AdminEventsPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // --- MODIFICATION: Added new handler for title dropdown ---
+  const handleTitleChange = (e) => {
+    const selectedValue = e.target.value;
+    setSelectedTitleOption(selectedValue);
+
+    if (selectedValue === OTHER_TITLE_OPTION) {
+      // If "Other" is selected, clear the title for user input
+      setFormData(prev => ({ ...prev, title: "" }));
+    } else {
+      // Otherwise, set the title from the dropdown
+      setFormData(prev => ({ ...prev, title: selectedValue }));
+    }
+  };
+  // --- END MODIFICATION ---
+
   const handleCheckboxChange = (channel) => {
     setFormData(prev => ({
       ...prev,
@@ -124,8 +150,12 @@ export default function AdminEventsPage() {
 
   const openAddModal = () => {
     setEditingEvent(null);
+    
+    // --- MODIFICATION: Reset both title states ---
+    setSelectedTitleOption(eventTitleOptions[0]);
     setFormData({
       title: eventTitleOptions[0],
+      // --- END MODIFICATION ---
       startDate: "",
       endDate: "",
       time: "",
@@ -165,8 +195,20 @@ export default function AdminEventsPage() {
       otherYoutubeLink = otherLinks[0];
     }
 
+    // --- MODIFICATION: Logic to set dropdown correctly for custom titles ---
+    // Check if the event's title is one of the predefined options
+    const isPredefinedTitle = eventTitleOptions.includes(event.title);
+    
+    if (isPredefinedTitle) {
+      setSelectedTitleOption(event.title);
+    } else {
+      // If not, it must be a custom "Other" title
+      setSelectedTitleOption(OTHER_TITLE_OPTION);
+    }
+    // --- END MODIFICATION ---
+
     setFormData({
-      title: event.title,
+      title: event.title, // This always holds the actual title string
       startDate: event.startDate.split('T')[0],
       endDate: event.endDate.split('T')[0],
       time: event.time || "",
@@ -202,6 +244,8 @@ export default function AdminEventsPage() {
         liveLinks.push(formData.otherYoutubeLink.trim());
       }
 
+      // This part remains unchanged. formData.title will have
+      // either the dropdown value or the custom typed value.
       const submitData = {
         title: formData.title,
         startDate: formData.startDate,
@@ -416,16 +460,15 @@ export default function AdminEventsPage() {
                 onSubmit={handleSubmit}
                 className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto"
               >
-                {/* Title - Dropdown */}
+                
+                {/* --- MODIFICATION: Title Dropdown --- */}
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-2">
                     Event Title *
                   </label>
                   <select
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    required
+                    value={selectedTitleOption}
+                    onChange={handleTitleChange}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
                   >
                     {eventTitleOptions.map((title, index) => (
@@ -435,6 +478,28 @@ export default function AdminEventsPage() {
                     ))}
                   </select>
                 </div>
+                {/* --- END MODIFICATION --- */}
+
+
+                {/* --- MODIFICATION: Conditional "Other" Title Input --- */}
+                {selectedTitleOption === OTHER_TITLE_OPTION && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-2">
+                      Custom Event Title *
+                    </label>
+                    <input
+                      type="text"
+                      name="title" 
+                      value={formData.title}
+                      onChange={handleInputChange} 
+                      required
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
+                      placeholder="Enter custom event title"
+                    />
+                  </div>
+                )}
+                {/* --- END MODIFICATION --- */}
+
 
                 {/* Dates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
