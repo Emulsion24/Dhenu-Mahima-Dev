@@ -10,7 +10,7 @@ export default function MessageSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sunData, setSunData] = useState({ sunrise: "6:18 AM", sunset: "5:15 PM" });
-  const [tithi, setTithi] = useState("आश्विन शुक्ल पक्ष चतुर्थी");
+  const [tithi, setTithi] = useState("");
   const [loadingSunData, setLoadingSunData] = useState(true);
 
   const { getMessage } = useLandingStore();
@@ -195,9 +195,8 @@ export default function MessageSection() {
           <p className="text-[10px] sm:text-[11px] text-orange-800 font-bold leading-tight text-center break-words" style={{ fontFamily: "Noto Serif Devanagari, serif" }}>
             {tithi}
           </p>
-          <p className="text-[8px] sm:text-[9px] text-orange-600 mt-1 font-medium">
-            (पंचांग देखें)
-          </p>
+          
+        
         </div>
 
         {/* Sunset Card */}

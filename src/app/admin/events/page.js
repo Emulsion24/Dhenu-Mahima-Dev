@@ -32,7 +32,7 @@ const colorOptions = [
 const OTHER_TITLE_OPTION = "अन्य (Other)";
 
 const eventTitleOptions = [
-  "1 दिवसीय गोकृपा कथा",
+  "एक दिवसीय गो महिमा सत्संग",
   "3 दिवसीय गोकृपा कथा",
   "5 दिवसीय गोकृपा कथा",
   "7 दिवसीय गोकृपा कथा",
@@ -666,7 +666,7 @@ export default function AdminEventsPage() {
                             value={formData.otherYoutubeLink}
                             onChange={handleInputChange}
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-800 font-medium"
-                            placeholder="Enter YouTube channel URL or @handle"
+                            placeholder="Enter YouTube channel URL"
                           />
                         </div>
                       )}
