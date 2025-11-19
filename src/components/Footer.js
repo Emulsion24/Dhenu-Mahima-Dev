@@ -30,7 +30,7 @@ export default function Footer() {
     { 
       name: "YouTube", 
       icon: "/icons/youtube.png", 
-      href: "https://www.youtube.com/@DhenuTV", 
+      href: "https://www.youtube.com/@JeevanSutra-e5n", 
     },
     { 
       name: "WhatsApp", 
