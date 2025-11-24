@@ -160,6 +160,8 @@ export default function MessageSection() {
     window.location.href = "/";
 
   };
+  const today = new Date();
+const day = today.toLocaleDateString("en-US", { weekday: "long" });
 
   return (
     <section id="director-message" className="relative py-16 sm:py-24 overflow-hidden bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600">
@@ -193,7 +195,7 @@ export default function MessageSection() {
         >
           <p className="text-[12px] sm:text-sm font-bold text-stone-800 truncate">{date}</p>
           <p className="text-[10px] sm:text-[11px] text-orange-800 font-bold leading-tight text-center break-words" style={{ fontFamily: "Noto Serif Devanagari, serif" }}>
-            {tithi}
+            {day}
           </p>
           
         

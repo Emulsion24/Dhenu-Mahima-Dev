@@ -190,7 +190,7 @@ export default function InfoCards() {
                     src={card.image || "/images/1.png"}
                     alt={card.titleEn || card.title || "Card image"}
                     fill
-                    className="object-cover blur-xs brightness-95"
+                    className="object-cover blur-[2px] brightness-85"
                     onError={(e) => {
                       e.target.src = "https://placehold.co/800x400/FF9933/fff?text=Logo";
                     }}

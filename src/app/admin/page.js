@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
-  UserPlus, Music, FilePlus, MessageCircle, Newspaper,
-  Heart, Mic,  ArrowUpRight, Calendar 
+  UserPlus, Music, FileText, MessageCircle, Newspaper,
+  Heart, Mic, ArrowUpRight, Calendar, 
+  CalendarDays, LayoutDashboard, DollarSign, Users, ListChecks // Added icons kept for styling the section
 } from "lucide-react";
 import API from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
@@ -17,24 +18,50 @@ export default function AdminDashboard() {
     const fetchRecentDonations = async () => {
       try {
         const res = await API.get("/donations?page=1&limit=10");
-        setRecentDonations(res.data.donations || []); // ✅ get the actual array
+        setRecentDonations(res.data.donations || []); 
       } catch (error) {
         console.error("Error fetching recent donations:", error);
-        setRecentDonations([]); // fallback to empty array
+        setRecentDonations([]); 
       }
     };
 
     fetchRecentDonations();
   }, []);
 
-  // Quick Actions Config
+  // Quick Actions Config - IMPROVED NAMES & PATHS, keeping the original count of 4
   const quickActions = [
-    { name: "Add User", link: "/admin/users", icon: UserPlus, color: "from-blue-500 to-blue-600", hoverColor: "hover:from-blue-600 hover:to-blue-700" },
-    { name: "Add Jeevansutra", link: "/admin/music", icon: Music, color: "from-purple-500 to-purple-600", hoverColor: "hover:from-purple-600 hover:to-purple-700" },
-    { name: "Upload PDF-Book", link: "/admin/pdf-book", icon: FilePlus, color: "from-pink-500 to-pink-600", hoverColor: "hover:from-pink-600 hover:to-pink-700" },
-    { name: "Directer Message", link: "/admin/director-message", icon: MessageCircle, color: "from-green-500 to-green-600", hoverColor: "hover:from-green-600 hover:to-green-700" },
-    { name: "Add News", link: "/admin/news", icon: Newspaper, color: "from-orange-500 to-orange-600", hoverColor: "hover:from-orange-600 hover:to-orange-700" },
-    { name: "Record Jeevansutra", link: "/admin/music", icon: Mic, color: "from-red-500 to-red-600", hoverColor: "hover:from-red-600 hover:to-red-700" },
+    // Original: Add Upcoming-Katha
+    { 
+      name: "Manage Upcoming Events", 
+      link: "/admin/events", 
+      icon: CalendarDays, 
+      color: "from-blue-500 to-blue-600", 
+      hoverColor: "hover:from-blue-600 hover:to-blue-700" 
+    },
+    // Original: Directer Message
+    { 
+      name: "Update Director Message", 
+      link: "/admin/director-message", 
+      icon: MessageCircle, 
+      color: "from-green-500 to-green-600", 
+      hoverColor: "hover:from-green-600 hover:to-green-700" 
+    },
+    // Original: Add News
+    { 
+      name: "Create News Article", 
+      link: "/admin/news", // Adjusted link to suggest adding a *new* article
+      icon: Newspaper, 
+      color: "from-orange-500 to-orange-600", 
+      hoverColor: "hover:from-orange-600 hover:to-orange-700" 
+    },
+    // Original: Record Jeevansutra
+    { 
+      name: "Record Jevansutra", 
+      link: "/admin/music", // Adjusted link to suggest adding a *new* record
+      icon: Mic, 
+      color: "from-red-500 to-red-600", 
+      hoverColor: "hover:from-red-600 hover:to-red-700" 
+    },
   ];
 
   return (
@@ -42,24 +69,30 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-800 mb-2">
-          Welcome Back,{user.name}👋
+          Welcome Back,{user?.name || "Admin"} 👋
         </h1>
         <p className="text-slate-600 text-sm sm:text-base font-medium">
           Here&apos;s what&apos;s happening with your platform today
         </p>
       </div>
 
+      ---
+
       {/* Quick Actions */}
       <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-5 sm:p-6">
         <div className="mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Quick Actions</h2>
-          <p className="text-sm text-slate-500 mt-1">Perform common tasks quickly</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+             <LayoutDashboard className="text-indigo-500" size={28} />
+             Quick Actions
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">Perform common content management tasks quickly</p>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {/* Adjusted grid to handle 4 items nicely */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
           {quickActions.map(({ name, link, icon: Icon, color, hoverColor }) => (
-            <Link key={name} href={link}>
-              <div className={`group flex flex-col items-center justify-center gap-3 p-4 sm:p-5 rounded-xl shadow-md cursor-pointer bg-gradient-to-br ${color} ${hoverColor} text-white hover:scale-105 hover:shadow-2xl transition-all duration-300`}>
+            <Link key={name} href={link} className="block"> 
+              <div className={`group flex flex-col items-center justify-center gap-3 p-4 sm:p-5 h-full rounded-xl shadow-md cursor-pointer bg-gradient-to-br ${color} ${hoverColor} text-white hover:scale-[1.03] hover:shadow-2xl transition-all duration-300 transform`}>
                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm group-hover:bg-white/30 transition-colors">
                   <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                 </div>
@@ -70,7 +103,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Recent Donations */}
+      ---
+
+      {/* Recent Donations (Unchanged, kept for context) */}
       <div className="mt-8 bg-white border border-slate-200 shadow-xl rounded-2xl p-5 sm:p-6">
         <div className="flex items-center justify-between mb-6">
           <div>

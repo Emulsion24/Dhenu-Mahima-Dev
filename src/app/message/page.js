@@ -173,7 +173,7 @@ export default function SendMessage() {
                 ग्वाल संत श्री तक
               </span>
               <br />
-              <span className="inline-block bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-500 bg-clip-text text-transparent">
+              <span className="inline-block bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-500 bg-clip-text text-transparent pb-1.5">
                 अपना संदेश पहुंचाए
               </span>
             </h1>
@@ -403,37 +403,52 @@ export default function SendMessage() {
 
           {/* Info Cards */}
           <div className="max-w-3xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">Email Us</h3>
-              <p className="text-sm text-gray-600">shreegopalparivarsang@gmail.com</p>
-            </div>
+  
+  {/* Email Card */}
+  <a
+    href="mailto:shreegopalparivarsang@gmail.com"
+    className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-all duration-300 block cursor-pointer"
+  >
+    <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+      </svg>
+    </div>
+    <h3 className="font-bold text-gray-800 mb-2">Email Us</h3>
+    <p className="text-sm text-gray-600">shreegopalparivarsang@gmail.com</p>
+  </a>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">Call Us</h3>
-              <p className="text-sm text-gray-600">+91 9414174880</p>
-            </div>
+  {/* Phone Card */}
+  <a
+    href="tel:+919414174880"
+    className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-all duration-300 block cursor-pointer"
+  >
+    <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+      </svg>
+    </div>
+    <h3 className="font-bold text-gray-800 mb-2">Call Us</h3>
+    <p className="text-sm text-gray-600">+91 9414174880</p>
+  </a>
 
-            <div className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-shadow duration-300">
-              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">Response Time</h3>
-              <p className="text-sm text-gray-600">Within 24 hours</p>
-            </div>
-          </div>
+  {/* Response Time Card (example redirect) */}
+  <div
+     // <-- Change this to any URL
+    className="bg-white rounded-2xl p-6 shadow-lg text-center hover:shadow-xl transition-all duration-300 block "
+  >
+    <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+      </svg>
+    </div>
+    <h3 className="font-bold text-gray-800 mb-2">Response Time</h3>
+    <p className="text-sm text-gray-600">Within 24 hours</p>
+  </div>
+
+</div>
+
         </div>
       </div>
       <Footer/>
