@@ -14,12 +14,14 @@ export default function DirectorMessagePage() {
   
   const {getMessage,deleteMessage,uploadMessage }=useAdminStore(); 
   const splitSentences = (text) => {
-    if (!text || typeof text !== 'string') return [];
-    return text
-      .split(/(?<=[.,])/g)
-      .map(line => line.trim())
-      .filter(line => line);
-  };
+  if (!text || typeof text !== "string") return [];
+
+  return text
+    .split("@")                   // split at '@'
+    .map(line => line.trim())     // remove spaces
+    .filter(line => line.length); // remove empty lines
+};
+
   // 🟢 Fetch messages on load
   useEffect(() => {
     const fetchMessages = async () => {

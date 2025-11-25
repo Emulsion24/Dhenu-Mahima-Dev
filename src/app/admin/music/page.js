@@ -29,7 +29,7 @@ export default function BhajanPage() {
   
   const [formData, setFormData] = useState({
     name: "",
-    artist: "",
+    artist: "ग्वाल संत श्री",
     album: "",
     audioFile: null,
     duration: "0:00",
@@ -187,13 +187,14 @@ export default function BhajanPage() {
         });
       }
 
-      if (response.data && (response.data.id || response.data._id || response.data.data)) {
-        await fetchBhajans();
-        resetForm();
-        alert(editBhajan ? "Jeevansutra updated successfully!" : "Jeevansutra added successfully!");
-      } else {
-        alert(response.data.message || "Failed to save bhajan");
-      }
+   if (response?.data?.success !== false) {
+    await fetchBhajans();
+    resetForm();
+    alert(editBhajan ? "Jeevansutra updated successfully!" : "Jeevansutra added successfully!");
+} else {
+    alert(response.data.message || "Failed to save bhajan");
+}
+
     } catch (error) {
       console.error("Error saving bhajan:", error);
       alert(error.response?.data?.message || "Failed to save bhajan");

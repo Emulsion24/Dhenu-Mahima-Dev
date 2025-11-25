@@ -147,13 +147,16 @@ export default function MessageSection() {
     fetchQuote();
   }, [getMessage]);
 
+
   const splitSentences = (text) => {
-    if (!text || typeof text !== 'string') return [];
-    return text
-      .split(/(?<=[.,])/g)
-      .map(line => line.trim())
-      .filter(line => line);
-  };
+  if (!text || typeof text !== "string") return [];
+
+  return text
+    .split("@")          // split at @
+    .map(line => line.trim()) 
+    .filter(line => line.length > 0); // remove empty lines
+};
+
 
   const handleDateClick = () => {
 

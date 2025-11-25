@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
 export const metadata = {
-  title: "Dhenu Mahima – Nurturing the Sacred Bond with Cows",
+  title: "Dhenu Mahima - Shree Gopal Pariwar Sangh",
   description:
-    "Dhenu Mahima is dedicated to promoting the spiritual, cultural, and environmental significance of cows in Indian tradition. Learn, contribute, and join our mission to protect and serve Gau Mata.",
+    "Dhenu Mahima is dedicated to promoting the spiritual, cultural, and environmental significance of Indian Desi Gau Mata Ji (cows) in Bhartiya Tradition. Learn, contribute, and join our mission to protect and serve Gau Mata.",
   keywords: [
     "Dhenu Mahima",
     "Gau Seva",
