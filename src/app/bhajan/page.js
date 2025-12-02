@@ -542,33 +542,41 @@ export default function BhajanMusicPlayer() {
                 </div>
 
                 {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="mt-8 flex items-center justify-center gap-4">
-                    <button
-                      onClick={handlePrevPage}
-                      disabled={!hasPrevPage || isLoadingMore}
-                      className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-full flex items-center gap-2 transition"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                      <span className="hidden sm:inline">पिछला</span>
-                    </button>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold bg-white bg-opacity-20 px-4 py-2 rounded-full">
-                        पृष्ठ {currentPage} / {totalPages}
-                      </span>
-                    </div>
-                    
-                    <button
-                      onClick={handleNextPage}
-                      disabled={!hasNextPage || isLoadingMore}
-                      className="bg-white bg-opacity-20 hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 rounded-full flex items-center gap-2 transition"
-                    >
-                      <span className="hidden sm:inline">अगला</span>
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
-                )}
+               {totalPages > 1 && (
+  <div className="mt-10 flex justify-center">
+    <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white/20 p-1.5 rounded-full flex items-center gap-2 shadow-xl">
+      
+      {/* Previous Button */}
+      <button
+        onClick={handlePrevPage}
+        disabled={!hasPrevPage || isLoadingMore}
+        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
+        title="Previous Page"
+      >
+        <ChevronLeft className="w-6 h-6 transform group-hover:-translate-x-0.5 transition-transform" />
+      </button>
+
+      {/* Page Indicator */}
+      <div className="px-4 py-1 flex flex-col items-center">
+        <span className="text-xs text-white/70 font-medium uppercase tracking-wider">Page</span>
+        <span className="text-sm font-bold text-white leading-none">
+          {currentPage} <span className="text-white/40 font-normal mx-1">/</span> {totalPages}
+        </span>
+      </div>
+
+      {/* Next Button */}
+      <button
+        onClick={handleNextPage}
+        disabled={!hasNextPage || isLoadingMore}
+        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
+        title="Next Page"
+      >
+        <ChevronRight className="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" />
+      </button>
+
+    </div>
+  </div>
+)}
 
                 {isLoadingMore && (
                   <div className="mt-8 flex justify-center">
