@@ -28,7 +28,8 @@ export default function BhajanMusicPlayer() {
   const [liked, setLiked] = useState([]);
   const [error, setError] = useState(null);
   const [isBuffering, setIsBuffering] = useState(false);
-  const router =useRouter();
+  const router = useRouter();
+  
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -82,7 +83,6 @@ export default function BhajanMusicPlayer() {
         setHasNextPage(data.pagination.hasNextPage);
         setHasPrevPage(data.pagination.hasPrevPage);
         
-        // Reset current song to 0 when loading new page
         if (page !== currentPage) {
           setCurrentSong(0);
           setIsPlaying(false);
@@ -99,20 +99,15 @@ export default function BhajanMusicPlayer() {
     }
   };
 
-  // Search functionality
   const handleSearch = (query) => {
     setSearchQuery(query);
     setCurrentPage(1);
-    
-    // Debounce search
     const timeoutId = setTimeout(() => {
       fetchBhajans(1, query);
     }, 500);
-    
     return () => clearTimeout(timeoutId);
   };
 
-  // Pagination handlers
   const handleNextPage = () => {
     if (hasNextPage) {
       const nextPage = currentPage + 1;
@@ -127,7 +122,6 @@ export default function BhajanMusicPlayer() {
     }
   };
 
-  // Initialize audio element
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
@@ -177,7 +171,6 @@ export default function BhajanMusicPlayer() {
     };
   }, [isRepeat]);
 
-  // Load current song
   useEffect(() => {
     if (bhajans.length > 0 && audioRef.current) {
       const audio = audioRef.current;
@@ -204,7 +197,6 @@ export default function BhajanMusicPlayer() {
     }
   }, [currentSong, bhajans]);
 
-  // Handle play/pause
   useEffect(() => {
     if (audioRef.current && bhajans.length > 0) {
       if (isPlaying) {
@@ -218,7 +210,6 @@ export default function BhajanMusicPlayer() {
     }
   }, [isPlaying]);
 
-  // Handle volume changes
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume / 100;
@@ -243,7 +234,6 @@ export default function BhajanMusicPlayer() {
       setCurrentSong(randomIndex);
     } else {
       if (currentSong === bhajans.length - 1 && hasNextPage) {
-        // Load next page if at end of current page
         handleNextPage();
       } else {
         setCurrentSong((currentSong + 1) % bhajans.length);
@@ -258,7 +248,6 @@ export default function BhajanMusicPlayer() {
       audioRef.current.currentTime = 0;
     } else {
       if (currentSong === 0 && hasPrevPage) {
-        // Load previous page if at start of current page
         handlePrevPage();
       } else {
         setCurrentSong((currentSong - 1 + bhajans.length) % bhajans.length);
@@ -467,7 +456,7 @@ export default function BhajanMusicPlayer() {
             </div>
           </section>
 
-          {/* Bhajan List (Changed to List View) */}
+          {/* Bhajan List (Refined List View) */}
           <section className="mb-8 sm:mb-12">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold">
@@ -492,98 +481,93 @@ export default function BhajanMusicPlayer() {
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {bhajans.map((bhajan, index) => (
                     <div
                       key={bhajan.id}
                       onClick={() => handleSongSelect(index)}
-                      className={`group flex items-center p-2 sm:p-3 rounded-xl transition cursor-pointer ${
+                      className={`group flex items-center p-2 sm:p-3 rounded-xl transition-all duration-300 cursor-pointer border border-white/10 ${
                         currentSong === index 
-                          ? 'bg-white bg-opacity-20 ring-1 ring-white/50' 
-                          : 'bg-black bg-opacity-10 hover:bg-white hover:bg-opacity-10'
+                          ? 'bg-white bg-opacity-30 shadow-lg scale-[1.01] border-white/40' 
+                          : 'bg-white bg-opacity-10 hover:bg-opacity-20 hover:border-white/20'
                       }`}
                     >
                       {/* Song Image & Play Button */}
-                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 mr-4">
+                      <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 mr-4">
                         <Image 
                           src="/Dhenu.jpg"
                           alt={bhajan.name} 
                           fill
-                          className="rounded-lg object-cover shadow-sm"
+                          className="rounded-lg object-cover shadow-md"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                           }}
                         />
-                        <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-lg transition duration-200 ${
+                        <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg transition duration-200 ${
                           currentSong === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                         }`}>
                           {currentSong === index && isPlaying ? (
-                            <Pause className="w-5 h-5 text-white" />
+                            <Pause className="w-6 h-6 text-white" />
                           ) : (
-                            <Play className="w-5 h-5 text-white" />
+                            <Play className="w-6 h-6 text-white" />
                           )}
                         </div>
                       </div>
 
                       {/* Song Info */}
                       <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <h4 className={`font-semibold text-sm sm:text-base truncate ${
-                          currentSong === index ? 'text-white' : 'text-gray-100'
-                        }`} title={bhajan.name}>
+                        <h4 className="font-semibold text-base sm:text-lg text-white mb-0.5 truncate" title={bhajan.name}>
                           {bhajan.name}
                         </h4>
-                        <p className="text-xs sm:text-sm text-gray-300 truncate" title={bhajan.artist}>
+                        <p className="text-sm text-yellow-100/90 truncate" title={bhajan.artist}>
                           {bhajan.artist}
                         </p>
                       </div>
 
                       {/* Duration / Options */}
                       <div className="flex items-center gap-4 ml-4">
-                         <span className="text-xs sm:text-sm text-gray-400 font-medium">
+                         <span className="text-sm font-medium text-white/80 bg-black/10 px-3 py-1 rounded-full">
                            {bhajan.duration}
                          </span>
-                         {/* Optional: Add Like button inside list view here if desired */}
-                         {/* <button className="text-gray-400 hover:text-red-400 hidden sm:block">
-                            <Heart className="w-4 h-4" />
-                         </button> */}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Pagination Controls */}
-               {totalPages > 1 && (
+                {/* Improved Pagination UI */}
+                {totalPages > 1 && (
                   <div className="mt-10 flex justify-center">
-                    <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white/20 p-1.5 rounded-full flex items-center gap-2 shadow-xl">
+                    <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 shadow-2xl">
                       
                       {/* Previous Button */}
                       <button
                         onClick={handlePrevPage}
                         disabled={!hasPrevPage || isLoadingMore}
-                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/30 text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
                         title="Previous Page"
                       >
-                        <ChevronLeft className="w-6 h-6 transform group-hover:-translate-x-0.5 transition-transform" />
+                        <ChevronLeft className="w-6 h-6" />
                       </button>
 
-                      {/* Page Indicator */}
-                      <div className="px-4 py-1 flex flex-col items-center">
-                        <span className="text-xs text-white/70 font-medium uppercase tracking-wider">Page</span>
-                        <span className="text-sm font-bold text-white leading-none">
-                          {currentPage} <span className="text-white/40 font-normal mx-1">/</span> {totalPages}
-                        </span>
+                      {/* Page Indicators */}
+                      <div className="flex flex-col items-center min-w-[80px]">
+                        <span className="text-xs text-yellow-200 uppercase tracking-wider font-semibold">PAGE</span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-bold text-white">{currentPage}</span>
+                          <span className="text-sm text-white/60">/</span>
+                          <span className="text-lg text-white/60">{totalPages}</span>
+                        </div>
                       </div>
 
                       {/* Next Button */}
                       <button
                         onClick={handleNextPage}
                         disabled={!hasNextPage || isLoadingMore}
-                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/30 text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
                         title="Next Page"
                       >
-                        <ChevronRight className="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="w-6 h-6" />
                       </button>
-
                     </div>
                   </div>
                 )}
