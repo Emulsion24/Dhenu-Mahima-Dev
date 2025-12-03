@@ -357,12 +357,12 @@ export default function BhajanMusicPlayer() {
         <div className="flex items-center justify-between px-4 sm:px-6 py-3">
           <div className="flex items-center gap-3 sm:gap-6">
             <button
-  onClick={() => router.push('/')}
-  className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
->
-  <Home className="w-4 h-4 inline-block mr-1" />
-  Dhenu Mahima
-</button>
+              onClick={() => router.push('/')}
+              className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+            >
+              <Home className="w-4 h-4 inline-block mr-1" />
+              Dhenu Mahima
+            </button>
             <h1 className="text-xl sm:text-2xl font-bold">🎵 जीवन सूत्र</h1>
           </div>
 
@@ -384,12 +384,12 @@ export default function BhajanMusicPlayer() {
                 className="bg-white bg-opacity-20 rounded-full pl-9 lg:pl-10 pr-3 lg:pr-4 py-2 w-48 lg:w-80 text-sm lg:text-base focus:outline-none focus:bg-opacity-30 text-black placeholder-gray-700"
               />
               <button
-  onClick={() => fetchBhajans(1, searchQuery)}
-  className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
->
-  <Search className="w-4 h-4 inline-block mr-1" />
-  खोजें
-</button>
+                onClick={() => fetchBhajans(1, searchQuery)}
+                className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+              >
+                <Search className="w-4 h-4 inline-block mr-1" />
+                खोजें
+              </button>
             </div>
           </div>
         </div>
@@ -418,7 +418,6 @@ export default function BhajanMusicPlayer() {
           <section className="mb-8 sm:mb-12">
             <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl bg-gradient-to-r from-orange-600 to-red-600">
               
-              {/* --- MODIFIED --- */}
               <Image
                 src="/Dhenu.jpg"
                 alt={bhajans[currentSong]?.name || "Bhajan"}
@@ -426,7 +425,7 @@ export default function BhajanMusicPlayer() {
                 className="object-cover opacity-50"
                 priority
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails to load
+                  e.currentTarget.style.display = 'none';
                 }}
               />
               
@@ -468,7 +467,7 @@ export default function BhajanMusicPlayer() {
             </div>
           </section>
 
-          {/* Bhajan List */}
+          {/* Bhajan List (Changed to List View) */}
           <section className="mb-8 sm:mb-12">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-xl sm:text-2xl font-bold">
@@ -493,90 +492,101 @@ export default function BhajanMusicPlayer() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div className="flex flex-col gap-2">
                   {bhajans.map((bhajan, index) => (
                     <div
                       key={bhajan.id}
                       onClick={() => handleSongSelect(index)}
-                      className={`bg-red-900 bg-opacity-10 backdrop-blur-sm rounded-lg p-2 sm:p-3 hover:bg-opacity-20 transition cursor-pointer group ${
-                        currentSong === index ? 'ring-2 ring-white bg-opacity-30' : ''
+                      className={`group flex items-center p-2 sm:p-3 rounded-xl transition cursor-pointer ${
+                        currentSong === index 
+                          ? 'bg-white bg-opacity-20 ring-1 ring-white/50' 
+                          : 'bg-black bg-opacity-10 hover:bg-white hover:bg-opacity-10'
                       }`}
                     >
-                      <div className="relative mb-2 sm:mb-3">
-
-                        {/* --- MODIFIED --- */}
+                      {/* Song Image & Play Button */}
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 mr-4">
                         <Image 
                           src="/Dhenu.jpg"
                           alt={bhajan.name} 
-                          width={400}
-                          height={400}
-                          className="w-full aspect-square object-cover rounded-lg"
+                          fill
+                          className="rounded-lg object-cover shadow-sm"
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails
+                            e.currentTarget.style.display = 'none';
                           }}
                         />
-
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSongSelect(index);
-                          }}
-                          className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-500 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-lg"
-                        >
+                        <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-lg transition duration-200 ${
+                          currentSong === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}>
                           {currentSong === index && isPlaying ? (
-                            <Pause className="w-4 h-4 sm:w-5 sm:h-5" fill="white" />
+                            <Pause className="w-5 h-5 text-white" />
                           ) : (
-                            <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" fill="white" />
+                            <Play className="w-5 h-5 text-white" />
                           )}
-                        </button>
+                        </div>
                       </div>
-                      <h4 className="font-semibold text-xs sm:text-sm mb-1 truncate" title={bhajan.name}>
-                        {bhajan.name}
-                      </h4>
-                      <p className="text-xs text-gray-200 truncate" title={bhajan.artist}>
-                        {bhajan.artist}
-                      </p>
-                      <p className="text-xs text-gray-300 mt-1">{bhajan.duration}</p>
+
+                      {/* Song Info */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <h4 className={`font-semibold text-sm sm:text-base truncate ${
+                          currentSong === index ? 'text-white' : 'text-gray-100'
+                        }`} title={bhajan.name}>
+                          {bhajan.name}
+                        </h4>
+                        <p className="text-xs sm:text-sm text-gray-300 truncate" title={bhajan.artist}>
+                          {bhajan.artist}
+                        </p>
+                      </div>
+
+                      {/* Duration / Options */}
+                      <div className="flex items-center gap-4 ml-4">
+                         <span className="text-xs sm:text-sm text-gray-400 font-medium">
+                           {bhajan.duration}
+                         </span>
+                         {/* Optional: Add Like button inside list view here if desired */}
+                         {/* <button className="text-gray-400 hover:text-red-400 hidden sm:block">
+                            <Heart className="w-4 h-4" />
+                         </button> */}
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Pagination Controls */}
                {totalPages > 1 && (
-  <div className="mt-10 flex justify-center">
-    <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white/20 p-1.5 rounded-full flex items-center gap-2 shadow-xl">
-      
-      {/* Previous Button */}
-      <button
-        onClick={handlePrevPage}
-        disabled={!hasPrevPage || isLoadingMore}
-        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
-        title="Previous Page"
-      >
-        <ChevronLeft className="w-6 h-6 transform group-hover:-translate-x-0.5 transition-transform" />
-      </button>
+                  <div className="mt-10 flex justify-center">
+                    <div className="bg-black bg-opacity-10 backdrop-blur-md border border-white/20 p-1.5 rounded-full flex items-center gap-2 shadow-xl">
+                      
+                      {/* Previous Button */}
+                      <button
+                        onClick={handlePrevPage}
+                        disabled={!hasPrevPage || isLoadingMore}
+                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
+                        title="Previous Page"
+                      >
+                        <ChevronLeft className="w-6 h-6 transform group-hover:-translate-x-0.5 transition-transform" />
+                      </button>
 
-      {/* Page Indicator */}
-      <div className="px-4 py-1 flex flex-col items-center">
-        <span className="text-xs text-white/70 font-medium uppercase tracking-wider">Page</span>
-        <span className="text-sm font-bold text-white leading-none">
-          {currentPage} <span className="text-white/40 font-normal mx-1">/</span> {totalPages}
-        </span>
-      </div>
+                      {/* Page Indicator */}
+                      <div className="px-4 py-1 flex flex-col items-center">
+                        <span className="text-xs text-white/70 font-medium uppercase tracking-wider">Page</span>
+                        <span className="text-sm font-bold text-white leading-none">
+                          {currentPage} <span className="text-white/40 font-normal mx-1">/</span> {totalPages}
+                        </span>
+                      </div>
 
-      {/* Next Button */}
-      <button
-        onClick={handleNextPage}
-        disabled={!hasNextPage || isLoadingMore}
-        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
-        title="Next Page"
-      >
-        <ChevronRight className="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" />
-      </button>
+                      {/* Next Button */}
+                      <button
+                        onClick={handleNextPage}
+                        disabled={!hasNextPage || isLoadingMore}
+                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:text-orange-600 text-white group"
+                        title="Next Page"
+                      >
+                        <ChevronRight className="w-6 h-6 transform group-hover:translate-x-0.5 transition-transform" />
+                      </button>
 
-    </div>
-  </div>
-)}
+                    </div>
+                  </div>
+                )}
 
                 {isLoadingMore && (
                   <div className="mt-8 flex justify-center">
@@ -612,7 +622,6 @@ export default function BhajanMusicPlayer() {
           <div className="flex flex-col gap-3 sm:hidden">
             <div className="flex items-center gap-3">
               
-              {/* --- MODIFIED --- */}
               <Image
                 src="/Dhenu.jpg"
                 alt={bhajans[currentSong]?.name || "Bhajan"}
@@ -708,7 +717,6 @@ export default function BhajanMusicPlayer() {
           <div className="hidden sm:flex items-center justify-between gap-6 lg:gap-8">
             <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xs lg:max-w-sm">
 
-              {/* --- MODIFIED --- */}
               <Image
                 src="/Dhenu.jpg"
                 alt={bhajans[currentSong]?.name || "Bhajan"}
