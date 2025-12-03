@@ -4,7 +4,7 @@ import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Repeat, Shuffle, Heart, Search, ChevronLeft, ChevronRight,
   Loader2, RefreshCw,
-  Home
+  Home, Music2, Clock
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -344,15 +344,15 @@ export default function BhajanMusicPlayer() {
       {/* Header */}
       <header className="bg-gradient-to-r from-amber-800 to-orange-600 bg-opacity-95 backdrop-blur-md border-b border-yellow-300 sticky top-0 z-50 shadow-lg">
         <div className="flex items-center justify-between px-4 sm:px-6 py-3">
-          <div className="flex items-center gap-3 sm:gap-6">
+          <div className="flex items-center gap-2 sm:gap-6">
             <button
               onClick={() => router.push('/')}
-              className="ml-2 bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+              className="bg-white text-orange-600 px-3 py-2 rounded-full font-semibold hover:bg-gray-100 transition shadow-sm text-xs sm:text-sm flex items-center"
             >
-              <Home className="w-4 h-4 inline-block mr-1" />
+              <Home className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
               Dhenu Mahima
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold">🎵 जीवन सूत्र</h1>
+            <h1 className="text-lg sm:text-2xl font-bold truncate">🎵 जीवन सूत्र</h1>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -400,181 +400,221 @@ export default function BhajanMusicPlayer() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-32 sm:pb-36">
+      <main className="flex-1 overflow-y-auto pb-48 sm:pb-36 scroll-smooth">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
           
           {/* Featured Section */}
           <section className="mb-8 sm:mb-12">
-            <div className="relative h-48 sm:h-64 lg:h-80 rounded-xl sm:rounded-2xl overflow-hidden shadow-xl bg-gradient-to-r from-orange-600 to-red-600">
+            <div className="relative h-48 sm:h-64 lg:h-80 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-r from-orange-600 to-red-600 border border-white/20">
               
               <Image
                 src="/Dhenu.jpg"
                 alt={bhajans[currentSong]?.name || "Bhajan"}
                 fill
-                className="object-cover opacity-50"
+                className="object-cover opacity-50 transition-transform duration-700 hover:scale-105"
                 priority
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
               />
               
-              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
 
-              <div className="relative h-full flex items-end p-4 sm:p-6 lg:p-8 text-white">
+              <div className="relative h-full flex items-end p-4 sm:p-6 lg:p-10 text-white">
                 <div className="w-full">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs sm:text-sm font-semibold">
-                      {isPlaying ? 'अभी चल रहा है' : 'चुना हुआ'}
+                    <span className="bg-orange-500/80 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-white/20">
+                      {isPlaying ? 'Now Playing' : 'Featured'}
                     </span>
                   </div>
 
-                  <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-2 sm:mb-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] line-clamp-2">
+                  <h2 className="text-2xl sm:text-4xl lg:text-6xl font-extrabold mb-2 sm:mb-4 drop-shadow-lg line-clamp-1 tracking-tight">
                     {bhajans[currentSong]?.name || 'भजन'}
                   </h2>
 
-                  <p className="text-sm sm:text-base lg:text-lg text-gray-100 mb-3 sm:mb-4">
+                  <p className="text-sm sm:text-base lg:text-xl text-gray-200 mb-4 sm:mb-6 flex items-center gap-2">
+                    <Music2 className="w-4 h-4" />
                     {bhajans[currentSong]?.artist} 
-                    {bhajans[currentSong]?.album && ` • ${bhajans[currentSong].album}`}
+                    {bhajans[currentSong]?.album && <span className="hidden sm:inline opacity-70"> • {bhajans[currentSong].album}</span>}
                   </p>
 
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    disabled={isBuffering}
-                    className="bg-white text-orange-600 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition flex items-center gap-2 text-sm sm:text-base shadow-lg disabled:opacity-50"
-                  >
-                    {isBuffering ? (
-                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                    ) : isPlaying ? (
-                      <Pause className="w-4 h-4 sm:w-5 sm:h-5" />
-                    ) : (
-                      <Play className="w-4 h-4 sm:w-5 sm:h-5" />
-                    )}
-                    {isBuffering ? 'लोड हो रहा है...' : isPlaying ? 'पॉज़' : 'प्ले करें'}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        disabled={isBuffering}
+                        className="bg-white text-orange-600 pl-6 pr-8 py-3 rounded-full font-bold hover:bg-gray-100 transition flex items-center gap-3 text-sm sm:text-base shadow-xl disabled:opacity-50 hover:scale-105 active:scale-95"
+                    >
+                        {isBuffering ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : isPlaying ? (
+                        <Pause className="w-5 h-5 fill-current" />
+                        ) : (
+                        <Play className="w-5 h-5 fill-current" />
+                        )}
+                        {isBuffering ? 'Loading...' : isPlaying ? 'Pause' : 'Play Now'}
+                    </button>
+                    
+                    <button 
+                        onClick={() => toggleLike(bhajans[currentSong]?.id)}
+                        className={`p-3 rounded-full backdrop-blur-md border border-white/20 transition hover:scale-110 active:scale-95 ${
+                            liked.includes(bhajans[currentSong]?.id) ? 'bg-red-500/80 text-white' : 'bg-black/20 text-white hover:bg-white/20'
+                        }`}
+                    >
+                        <Heart className={`w-5 h-5 ${liked.includes(bhajans[currentSong]?.id) ? 'fill-current' : ''}`} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Bhajan List (Refined List View) */}
-          <section className="mb-8 sm:mb-12">
+          {/* List View - Refined & Responsive */}
+          <section className="mb-12">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h3 className="text-xl sm:text-2xl font-bold">
-                {searchQuery ? `खोज परिणाम (${totalCount})` : `सभी भजन (${totalCount})`}
+              <h3 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
+                 <span>{searchQuery ? `खोज परिणाम` : `प्लेलिस्ट`}</span>
+                 <span className="text-sm sm:text-base font-normal opacity-70 bg-white/10 px-2 py-0.5 rounded-md">
+                    {totalCount} भजन
+                 </span>
               </h3>
               <button 
                 onClick={() => {
                   setSearchQuery('');
                   fetchBhajans(1, '');
                 }}
-                className="text-xs sm:text-sm text-yellow-100 hover:text-white transition flex items-center gap-2"
+                className="text-xs sm:text-sm bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg backdrop-blur-sm transition flex items-center gap-2 border border-white/10"
               >
-                <RefreshCw className="w-4 h-4" />
-                रीफ्रेश करें
+                <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
 
             {bhajans.length === 0 && searchQuery ? (
-              <div className="text-center py-12 bg-white bg-opacity-10 rounded-2xl">
-                <p className="text-xl mb-2">🔍 कोई परिणाम नहीं मिला</p>
-                <p className="text-sm text-gray-200">कृपया अन्य शब्दों से खोजें</p>
+              <div className="text-center py-16 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl">
+                <Search className="w-12 h-12 mx-auto text-white/30 mb-4" />
+                <p className="text-xl font-medium mb-2">No results found</p>
+                <p className="text-sm text-gray-300">Try searching for a different keyword</p>
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2 sm:gap-3">
                   {bhajans.map((bhajan, index) => (
                     <div
                       key={bhajan.id}
                       onClick={() => handleSongSelect(index)}
-                      className={`group flex items-center p-2 sm:p-3 rounded-xl transition-all duration-300 cursor-pointer border border-white/10 ${
-                        currentSong === index 
-                          ? 'bg-white bg-opacity-30 shadow-lg scale-[1.01] border-white/40' 
-                          : 'bg-white bg-opacity-10 hover:bg-opacity-20 hover:border-white/20'
-                      }`}
+                      className={`group relative flex items-center p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all duration-300 cursor-pointer border
+                        ${currentSong === index 
+                          ? 'bg-gradient-to-r from-orange-500/30 to-red-500/30 border-yellow-200/50 shadow-lg' 
+                          : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/20 hover:shadow-md hover:translate-x-1'
+                        } backdrop-blur-sm`}
                     >
+                      {/* Playing Indicator Bar (Left) */}
+                      {currentSong === index && (
+                        <div className="absolute left-0 top-3 bottom-3 w-1 bg-yellow-400 rounded-r-full shadow-[0_0_10px_rgba(250,204,21,0.6)]"></div>
+                      )}
+
                       {/* Song Image & Play Button */}
-                      <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 mr-4">
+                      <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 mr-3 sm:mr-5 ml-1 sm:ml-2">
                         <Image 
                           src="/Dhenu.jpg"
                           alt={bhajan.name} 
                           fill
-                          className="rounded-lg object-cover shadow-md"
+                          className={`rounded-lg sm:rounded-xl object-cover shadow-md transition-all duration-300 ${currentSong === index ? 'shadow-orange-500/40 ring-2 ring-white/20' : ''}`}
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                           }}
                         />
-                        <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg transition duration-200 ${
+                        <div className={`absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg sm:rounded-xl transition duration-200 ${
                           currentSong === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                         }`}>
                           {currentSong === index && isPlaying ? (
-                            <Pause className="w-6 h-6 text-white" />
+                            <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-md" fill="white" />
                           ) : (
-                            <Play className="w-6 h-6 text-white" />
+                            <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-md" fill="white" />
                           )}
                         </div>
+                        
+                        {/* Mobile Equalizer Animation (Optional visual flair) */}
+                        {currentSong === index && isPlaying && (
+                             <div className="absolute -bottom-1 -right-1 flex gap-0.5 items-end h-3 w-3 sm:hidden">
+                                <span className="w-1 bg-yellow-400 animate-[bounce_1s_infinite] h-2 rounded-full"></span>
+                                <span className="w-1 bg-yellow-400 animate-[bounce_1.2s_infinite] h-3 rounded-full"></span>
+                                <span className="w-1 bg-yellow-400 animate-[bounce_0.8s_infinite] h-1 rounded-full"></span>
+                             </div>
+                        )}
                       </div>
 
                       {/* Song Info */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-center">
-                        <h4 className="font-semibold text-base sm:text-lg text-white mb-0.5 truncate" title={bhajan.name}>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5 sm:gap-1">
+                        <h4 className={`font-bold text-sm sm:text-lg truncate leading-tight ${
+                          currentSong === index ? 'text-white' : 'text-gray-100'
+                        }`} title={bhajan.name}>
                           {bhajan.name}
                         </h4>
-                        <p className="text-sm text-yellow-100/90 truncate" title={bhajan.artist}>
-                          {bhajan.artist}
-                        </p>
+                        <div className="flex items-center text-xs sm:text-sm text-gray-300/90 truncate">
+                           <span className="truncate max-w-[150px] sm:max-w-xs">{bhajan.artist}</span>
+                           <span className="mx-1.5 opacity-40 hidden sm:inline">|</span>
+                           <span className="hidden sm:inline opacity-80">{bhajan.album || 'Single'}</span>
+                        </div>
                       </div>
 
-                      {/* Duration / Options */}
-                      <div className="flex items-center gap-4 ml-4">
-                         <span className="text-sm font-medium text-white/80 bg-black/10 px-3 py-1 rounded-full">
+                      {/* Right Side Actions (Desktop: Duration + Like / Mobile: Heart) */}
+                      <div className="flex items-center gap-3 sm:gap-6 ml-3">
+                         <div className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-300 bg-black/20 px-3 py-1 rounded-full border border-white/5">
+                           <Clock className="w-3 h-3" />
                            {bhajan.duration}
-                         </span>
+                         </div>
+                         
+                         <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleLike(bhajan.id);
+                            }}
+                            className={`p-2 rounded-full transition hover:bg-white/10 active:scale-90 ${liked.includes(bhajan.id) ? 'text-red-400' : 'text-gray-400 hover:text-white'}`}
+                         >
+                            <Heart className="w-5 h-5 sm:w-5 sm:h-5" fill={liked.includes(bhajan.id) ? 'currentColor' : 'none'} />
+                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Improved Pagination UI */}
+                {/* Responsive Pagination Island */}
                 {totalPages > 1 && (
-                  <div className="mt-10 flex justify-center">
-                    <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full border border-white/20 shadow-2xl">
+                  <div className="mt-10 mb-20 flex justify-center sticky bottom-24 z-10 pointer-events-none">
+                    <div className="pointer-events-auto flex items-center gap-2 sm:gap-4 bg-black/60 backdrop-blur-xl px-2 py-1.5 sm:px-6 sm:py-2 rounded-full border border-white/10 shadow-2xl transition-transform hover:scale-105">
                       
-                      {/* Previous Button */}
                       <button
                         onClick={handlePrevPage}
                         disabled={!hasPrevPage || isLoadingMore}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/30 text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
-                        title="Previous Page"
+                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                       >
-                        <ChevronLeft className="w-6 h-6" />
+                        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
                       </button>
 
-                      {/* Page Indicators */}
-                      <div className="flex flex-col items-center min-w-[80px]">
-                        <span className="text-xs text-yellow-200 uppercase tracking-wider font-semibold">PAGE</span>
+                      <div className="flex flex-col items-center px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">
+                        <span className="text-[10px] sm:text-xs text-white/50 font-bold uppercase tracking-wider">Page</span>
                         <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold text-white">{currentPage}</span>
-                          <span className="text-sm text-white/60">/</span>
-                          <span className="text-lg text-white/60">{totalPages}</span>
+                          <span className="text-sm sm:text-xl font-bold text-white">{currentPage}</span>
+                          <span className="text-xs sm:text-sm text-white/40">/</span>
+                          <span className="text-xs sm:text-lg text-white/40">{totalPages}</span>
                         </div>
                       </div>
 
-                      {/* Next Button */}
                       <button
                         onClick={handleNextPage}
                         disabled={!hasNextPage || isLoadingMore}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/30 text-white transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
-                        title="Next Page"
+                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                       >
-                        <ChevronRight className="w-6 h-6" />
+                        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
                       </button>
                     </div>
                   </div>
                 )}
 
                 {isLoadingMore && (
-                  <div className="mt-8 flex justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin" />
+                  <div className="mt-8 mb-20 flex justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-white/70" />
                   </div>
                 )}
               </>
@@ -583,236 +623,202 @@ export default function BhajanMusicPlayer() {
         </div>
       </main>
 
-      {/* Player Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-amber-900 to-orange-700 backdrop-blur-xl border-t border-yellow-300 shadow-2xl">
-        {/* Progress Bar */}
-        <div 
-          ref={progressBarRef}
-          onClick={handleProgressClick}
-          className="relative h-1 sm:h-1.5 bg-yellow-200 cursor-pointer group"
-        >
-          <div
-            className="absolute h-full bg-red-600 transition-all"
-            style={{ width: `${progressPercent}%` }}
-          ></div>
-          <div
-            className="absolute w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full top-1/2 transform -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition shadow-md"
-            style={{ left: `${progressPercent}%` }}
-          ></div>
-        </div>
-
-        <div className="px-3 sm:px-6 py-3 sm:py-4">
-          {/* Mobile Layout */}
-          <div className="flex flex-col gap-3 sm:hidden">
-            <div className="flex items-center gap-3">
-              
-              <Image
-                src="/Dhenu.jpg"
-                alt={bhajans[currentSong]?.name || "Bhajan"}
-                width={56}
-                height={56}
-                className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails
-                }}
-              />
-
-              <div className="min-w-0 flex-1">
-                <h4 className="font-semibold truncate text-base text-white">
-                  {bhajans[currentSong]?.name || 'भजन'}
-                </h4>
-                <p className="text-sm text-gray-200 truncate">
-                  {bhajans[currentSong]?.artist || 'कलाकार'}
-                </p>
-              </div>
-              <button 
-                onClick={() => toggleLike(bhajans[currentSong]?.id)}
-                className={`transition p-2 flex-shrink-0 ${liked.includes(bhajans[currentSong]?.id) ? 'text-red-400' : 'text-white hover:text-red-400'}`}
-              >
-                <Heart className="w-6 h-6" fill={liked.includes(bhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-center gap-6">
-              <button 
-                onClick={handlePrevious}
-                className="hover:text-white transition text-gray-200 p-2"
-                disabled={bhajans.length === 0}
-              >
-                <SkipBack className="w-7 h-7" fill="currentColor" />
-              </button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                disabled={isBuffering || bhajans.length === 0}
-                className="bg-white text-orange-600 w-14 h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl disabled:opacity-50"
-              >
-                {isBuffering ? (
-                  <Loader2 className="w-7 h-7 animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="w-7 h-7" fill="currentColor" />
-                ) : (
-                  <Play className="w-7 h-7 ml-1" fill="currentColor" />
-                )}
-              </button>
-              <button 
-                onClick={handleNext}
-                className="hover:text-white transition text-gray-200 p-2"
-                disabled={bhajans.length === 0}
-              >
-                <SkipForward className="w-7 h-7" fill="currentColor" />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-xs text-gray-200">
-                <span className="font-medium">{formatTime(currentTime)}</span>
-                <div className="w-20 h-1 bg-gray-300 rounded-full">
-                  <div
-                    className="h-full bg-white rounded-full transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  ></div>
-                </div>
-                <span className="font-medium">{formatTime(duration)}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setIsShuffle(!isShuffle)}
-                  className={`transition p-1 ${isShuffle ? 'text-yellow-300' : 'text-gray-200 hover:text-white'}`}
-                >
-                  <Shuffle className="w-5 h-5" />
-                </button>
-                <button 
-                  onClick={() => setIsRepeat(!isRepeat)}
-                  className={`transition p-1 ${isRepeat ? 'text-yellow-300' : 'text-gray-200 hover:text-white'}`}
-                >
-                  <Repeat className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setIsMuted(!isMuted)}
-                  className="hover:text-white transition text-gray-200 p-1"
-                >
-                  {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Layout */}
-          <div className="hidden sm:flex items-center justify-between gap-6 lg:gap-8">
-            <div className="flex items-center gap-4 flex-1 min-w-0 max-w-xs lg:max-w-sm">
-
-              <Image
-                src="/Dhenu.jpg"
-                alt={bhajans[currentSong]?.name || "Bhajan"}
-                width={56}
-                height={56}
-                className="w-14 h-14 rounded-lg shadow-lg object-cover flex-shrink-0"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'; // Hide if Dhenu.jpg fails
-                }}
-              />
-              
-              <div className="min-w-0 flex-1">
-                <h4 className="font-semibold truncate text-base lg:text-lg text-white mb-1">
-                  {bhajans[currentSong]?.name || 'भजन'}
-                </h4>
-                <p className="text-sm lg:text-base text-gray-200 truncate">
-                  {bhajans[currentSong]?.artist || 'कलाकार'}
-                </p>
-              </div>
-              <button 
-                onClick={() => toggleLike(bhajans[currentSong]?.id)}
-                className={`transition p-2 flex-shrink-0 ${liked.includes(bhajans[currentSong]?.id) ? 'text-red-400' : 'text-white hover:text-red-400'}`}
-              >
-                <Heart className="w-6 h-6" fill={liked.includes(bhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
-              </button>
-            </div>
-
-            <div className="flex flex-col items-center gap-3 flex-shrink-0">
-              <div className="flex items-center gap-4 lg:gap-6">
-                <button 
-                  onClick={() => setIsShuffle(!isShuffle)}
-                  className={`transition p-1 ${isShuffle ? 'text-yellow-300' : 'text-white hover:text-red-400'}`}
-                >
-                  <Shuffle className="w-5 h-5 lg:w-6 lg:h-6" />
-                </button>
-                <button 
-                  onClick={handlePrevious}
-                  disabled={bhajans.length === 0}
-                  className="hover:scale-110 transition text-white p-1 disabled:opacity-50"
-                >
-                  <SkipBack className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" />
-                </button>
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  disabled={isBuffering || bhajans.length === 0}
-                  className="bg-white text-orange-600 w-12 h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center hover:scale-105 transition shadow-xl disabled:opacity-50"
-                >
-                  {isBuffering ? (
-                    <Loader2 className="w-6 h-6 lg:w-7 lg:h-7 animate-spin" />
-                  ) : isPlaying ? (
-                    <Pause className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" />
-                  ) : (
-                    <Play className="w-6 h-6 lg:w-7 lg:h-7 ml-0.5" fill="currentColor" />
-                  )}
-                </button>
-                <button 
-                  onClick={handleNext}
-                  disabled={bhajans.length === 0}
-                  className="hover:scale-110 transition text-white p-1 disabled:opacity-50"
-                >
-                  <SkipForward className="w-6 h-6 lg:w-7 lg:h-7" fill="currentColor" />
-                </button>
-                <button 
-                  onClick={() => setIsRepeat(!isRepeat)}
-                  className={`transition p-1 ${isRepeat ? 'text-yellow-300' : 'text-white hover:text-red-400'}`}
-                >
-                  <Repeat className="w-5 h-5 lg:w-6 lg:h-6" />
-                </button>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-200 font-medium">
-                <span>{formatTime(currentTime)}</span>
-                <div 
-                  ref={progressBarRef}
-                  onClick={handleProgressClick}
-                  className="w-64 lg:w-96 h-1.5 bg-gray-300 rounded-full cursor-pointer group relative"
-                >
-                  <div
-                    className="h-full bg-white rounded-full transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  ></div>
-                  <div
-                    className="absolute w-3 h-3 bg-white rounded-full top-1/2 transform -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition shadow-lg"
-                    style={{ left: `${progressPercent}%` }}
-                  ></div>
-                </div>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 flex-1 justify-end max-w-xs">
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="hover:text-red-400 transition text-white p-1"
-              >
-                {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-              </button>
-              <div 
-                ref={volumeBarRef}
-                onClick={handleVolumeChange}
-                className="w-24 lg:w-32 h-1.5 bg-gray-300 rounded-full cursor-pointer group relative"
-              >
+      {/* Responsive Player Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        {/* Gradient overlay to fade content behind player */}
+        <div className="absolute bottom-full left-0 right-0 h-12 bg-gradient-to-t from-orange-900/50 to-transparent pointer-events-none"></div>
+        
+        <div className="bg-black/40 backdrop-blur-2xl border-t border-white/10 shadow-[0_-5px_30px_rgba(0,0,0,0.3)]">
+            {/* Progress Bar - Full Width on Mobile */}
+            <div 
+            ref={progressBarRef}
+            onClick={handleProgressClick}
+            className="relative h-1 cursor-pointer group w-full"
+            >
+                {/* Background Track */}
+                <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/20"></div>
+                {/* Buffered/Loaded (Optional - can add if API supports) */}
+                
+                {/* Progress Fill */}
                 <div
-                  className="h-full bg-white rounded-full transition-all"
-                  style={{ width: `${isMuted ? 0 : volume}%` }}
-                ></div>
-                <div
-                  className="absolute w-3 h-3 bg-white rounded-full top-1/2 transform -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition shadow-md"
-                  style={{ left: `${isMuted ? 0 : volume}%` }}
-                ></div>
-              </div>
+                    className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-100 ease-linear"
+                    style={{ width: `${progressPercent}%` }}
+                >
+                    {/* Glowing Tip */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"></div>
+                </div>
             </div>
-          </div>
+
+            <div className="px-3 sm:px-6 py-2 sm:py-3 max-w-7xl mx-auto">
+            {/* Mobile Layout (Optimized) */}
+            <div className="flex items-center justify-between sm:hidden gap-3">
+                {/* Left: Image & Text */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`relative w-10 h-10 rounded-full overflow-hidden border border-white/20 ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`}>
+                        <Image
+                            src="/Dhenu.jpg"
+                            alt="Cover"
+                            fill
+                            className="object-cover"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                    </div>
+                    <div className="flex flex-col min-w-0 justify-center">
+                        <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-sm text-white truncate max-w-[120px]">
+                            {bhajans[currentSong]?.name || 'Select Song'}
+                            </h4>
+                        </div>
+                        <p className="text-xs text-gray-300 truncate max-w-[120px]">
+                            {bhajans[currentSong]?.artist || 'Artist'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Right: Controls */}
+                <div className="flex items-center gap-3">
+                    <button 
+                        onClick={handlePrevious}
+                        className="text-white/70 hover:text-white"
+                        disabled={bhajans.length === 0}
+                    >
+                        <SkipBack className="w-5 h-5" fill="currentColor" />
+                    </button>
+                    
+                    <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        disabled={isBuffering || bhajans.length === 0}
+                        className="bg-white text-black w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg active:scale-95"
+                    >
+                        {isBuffering ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : isPlaying ? (
+                            <Pause className="w-5 h-5 fill-current" />
+                        ) : (
+                            <Play className="w-5 h-5 ml-0.5 fill-current" />
+                        )}
+                    </button>
+
+                    <button 
+                        onClick={handleNext}
+                        className="text-white/70 hover:text-white"
+                        disabled={bhajans.length === 0}
+                    >
+                        <SkipForward className="w-5 h-5" fill="currentColor" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Desktop Layout (Full Featured) */}
+            <div className="hidden sm:flex items-center justify-between gap-8">
+                {/* Left: Song Info */}
+                <div className="flex items-center gap-4 flex-1 min-w-0 max-w-sm">
+                    <div className="relative group/cover">
+                        <Image
+                            src="/Dhenu.jpg"
+                            alt="Cover"
+                            width={56}
+                            height={56}
+                            className="w-14 h-14 rounded-lg shadow-lg object-cover border border-white/10 group-hover/cover:scale-105 transition-transform"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                    </div>
+                    
+                    <div className="min-w-0 flex-1">
+                        <h4 className="font-bold truncate text-lg text-white mb-0.5">
+                        {bhajans[currentSong]?.name || 'जीवन सूत्र'}
+                        </h4>
+                        <p className="text-sm text-gray-300 truncate hover:text-white transition cursor-pointer">
+                        {bhajans[currentSong]?.artist || 'Select a bhajan to play'}
+                        </p>
+                    </div>
+                    
+                    <button 
+                        onClick={() => toggleLike(bhajans[currentSong]?.id)}
+                        className={`transition p-2 rounded-full hover:bg-white/10 ${liked.includes(bhajans[currentSong]?.id) ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        <Heart className="w-5 h-5" fill={liked.includes(bhajans[currentSong]?.id) ? 'currentColor' : 'none'} />
+                    </button>
+                </div>
+
+                {/* Center: Controls */}
+                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-6">
+                        <button 
+                        onClick={() => setIsShuffle(!isShuffle)}
+                        className={`transition p-2 rounded-full hover:bg-white/10 ${isShuffle ? 'text-orange-400' : 'text-gray-400 hover:text-white'}`}
+                        title="Shuffle"
+                        >
+                        <Shuffle className="w-5 h-5" />
+                        </button>
+
+                        <button 
+                        onClick={handlePrevious}
+                        disabled={bhajans.length === 0}
+                        className="text-gray-200 hover:text-white transition p-2 hover:bg-white/10 rounded-full disabled:opacity-50"
+                        >
+                        <SkipBack className="w-6 h-6" fill="currentColor" />
+                        </button>
+
+                        <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        disabled={isBuffering || bhajans.length === 0}
+                        className="bg-white text-black w-12 h-12 rounded-full flex items-center justify-center hover:scale-110 transition shadow-[0_0_20px_rgba(255,255,255,0.3)] active:scale-95 disabled:opacity-50 disabled:scale-100"
+                        >
+                        {isBuffering ? (
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                        ) : isPlaying ? (
+                            <Pause className="w-6 h-6 fill-current" />
+                        ) : (
+                            <Play className="w-6 h-6 ml-1 fill-current" />
+                        )}
+                        </button>
+
+                        <button 
+                        onClick={handleNext}
+                        disabled={bhajans.length === 0}
+                        className="text-gray-200 hover:text-white transition p-2 hover:bg-white/10 rounded-full disabled:opacity-50"
+                        >
+                        <SkipForward className="w-6 h-6" fill="currentColor" />
+                        </button>
+
+                        <button 
+                        onClick={() => setIsRepeat(!isRepeat)}
+                        className={`transition p-2 rounded-full hover:bg-white/10 ${isRepeat ? 'text-orange-400' : 'text-gray-400 hover:text-white'}`}
+                        title="Repeat"
+                        >
+                        <Repeat className="w-5 h-5" />
+                        </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 text-xs text-gray-400 font-medium font-mono">
+                        <span className="min-w-[40px] text-right">{formatTime(currentTime)}</span>
+                        <span className="text-gray-600">/</span>
+                        <span className="min-w-[40px]">{formatTime(duration)}</span>
+                    </div>
+                </div>
+
+                {/* Right: Volume */}
+                <div className="flex items-center gap-3 flex-1 justify-end max-w-xs">
+                    <button
+                        onClick={() => setIsMuted(!isMuted)}
+                        className="text-gray-400 hover:text-white transition p-2 rounded-full hover:bg-white/10"
+                    >
+                        {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    </button>
+                    <div 
+                        ref={volumeBarRef}
+                        onClick={handleVolumeChange}
+                        className="w-28 h-1.5 bg-white/10 rounded-full cursor-pointer group relative overflow-hidden"
+                    >
+                        <div
+                        className="absolute top-0 left-0 bottom-0 bg-white group-hover:bg-orange-400 transition-colors rounded-full"
+                        style={{ width: `${isMuted ? 0 : volume}%` }}
+                        ></div>
+                    </div>
+                </div>
+            </div>
+            </div>
         </div>
       </div>
     </div>
