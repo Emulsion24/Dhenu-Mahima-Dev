@@ -339,7 +339,7 @@ export default function BhajanMusicPlayer() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 text-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 text-white flex flex-col overflow-hidden relative">
       
       {/* Header */}
       <header className="bg-gradient-to-r from-amber-800 to-orange-600 bg-opacity-95 backdrop-blur-md border-b border-yellow-300 sticky top-0 z-50 shadow-lg">
@@ -533,15 +533,6 @@ export default function BhajanMusicPlayer() {
                             <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-md" fill="white" />
                           )}
                         </div>
-                        
-                        {/* Mobile Equalizer Animation (Optional visual flair) */}
-                        {currentSong === index && isPlaying && (
-                             <div className="absolute -bottom-1 -right-1 flex gap-0.5 items-end h-3 w-3 sm:hidden">
-                                <span className="w-1 bg-yellow-400 animate-[bounce_1s_infinite] h-2 rounded-full"></span>
-                                <span className="w-1 bg-yellow-400 animate-[bounce_1.2s_infinite] h-3 rounded-full"></span>
-                                <span className="w-1 bg-yellow-400 animate-[bounce_0.8s_infinite] h-1 rounded-full"></span>
-                             </div>
-                        )}
                       </div>
 
                       {/* Song Info */}
@@ -558,7 +549,7 @@ export default function BhajanMusicPlayer() {
                         </div>
                       </div>
 
-                      {/* Right Side Actions (Desktop: Duration + Like / Mobile: Heart) */}
+                      {/* Right Side Actions */}
                       <div className="flex items-center gap-3 sm:gap-6 ml-3">
                          <div className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-300 bg-black/20 px-3 py-1 rounded-full border border-white/5">
                            <Clock className="w-3 h-3" />
@@ -579,39 +570,6 @@ export default function BhajanMusicPlayer() {
                   ))}
                 </div>
 
-                {/* Responsive Pagination Island */}
-                {totalPages > 1 && (
-                  <div className="mt-10 mb-20 flex justify-center sticky bottom-24 z-10 pointer-events-none">
-                    <div className="pointer-events-auto flex items-center gap-2 sm:gap-4 bg-black/60 backdrop-blur-xl px-2 py-1.5 sm:px-6 sm:py-2 rounded-full border border-white/10 shadow-2xl transition-transform hover:scale-105">
-                      
-                      <button
-                        onClick={handlePrevPage}
-                        disabled={!hasPrevPage || isLoadingMore}
-                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
-                      </button>
-
-                      <div className="flex flex-col items-center px-2 sm:px-4 min-w-[60px] sm:min-w-[80px]">
-                        <span className="text-[10px] sm:text-xs text-white/50 font-bold uppercase tracking-wider">Page</span>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-sm sm:text-xl font-bold text-white">{currentPage}</span>
-                          <span className="text-xs sm:text-sm text-white/40">/</span>
-                          <span className="text-xs sm:text-lg text-white/40">{totalPages}</span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={handleNextPage}
-                        disabled={!hasNextPage || isLoadingMore}
-                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all disabled:opacity-20 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 {isLoadingMore && (
                   <div className="mt-8 mb-20 flex justify-center">
                     <Loader2 className="w-8 h-8 animate-spin text-white/70" />
@@ -622,6 +580,41 @@ export default function BhajanMusicPlayer() {
           </section>
         </div>
       </main>
+
+      {/* Fixed Pagination - Now positioned explicitly relative to viewport */}
+      {totalPages > 1 && (
+        <div className="fixed bottom-24 sm:bottom-28 left-0 right-0 flex justify-center z-40 pointer-events-none px-4">
+          <div className="pointer-events-auto flex items-center justify-between gap-4 bg-black/80 backdrop-blur-xl px-4 py-2 sm:px-6 sm:py-3 rounded-full border border-white/10 shadow-2xl w-full max-w-md transition-transform hover:scale-105">
+            
+            <button
+              onClick={handlePrevPage}
+              disabled={!hasPrevPage || isLoadingMore}
+              className="flex items-center gap-2 text-sm font-medium text-white transition-colors hover:text-orange-400 disabled:opacity-30 disabled:cursor-not-allowed group"
+            >
+              <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Page</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-base sm:text-lg font-bold text-white">{currentPage}</span>
+                <span className="text-xs text-white/40">/</span>
+                <span className="text-xs text-white/40">{totalPages}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={handleNextPage}
+              disabled={!hasNextPage || isLoadingMore}
+              className="flex items-center gap-2 text-sm font-medium text-white transition-colors hover:text-orange-400 disabled:opacity-30 disabled:cursor-not-allowed group"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Responsive Player Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
