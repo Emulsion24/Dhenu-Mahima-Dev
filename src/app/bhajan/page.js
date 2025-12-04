@@ -58,7 +58,7 @@ export default function BhajanMusicPlayer() {
       
       const queryParams = new URLSearchParams({
         page: page.toString(),
-        limit: '10',
+        limit: '50',
         sortBy: 'order',
         sortOrder: 'desc'
       });
@@ -581,24 +581,24 @@ export default function BhajanMusicPlayer() {
         </div>
       </main>
 
-      {/* Fixed Pagination - Now positioned explicitly relative to viewport */}
+      {/* Fixed Pagination - Updated Color and Labels */}
       {totalPages > 1 && (
         <div className="fixed bottom-24 sm:bottom-28 left-0 right-0 flex justify-center z-40 pointer-events-none px-4">
-          <div className="pointer-events-auto flex items-center justify-between gap-4 bg-black/80 backdrop-blur-xl px-4 py-2 sm:px-6 sm:py-3 rounded-full border border-white/10 shadow-2xl w-full max-w-md transition-transform hover:scale-105">
+          <div className="pointer-events-auto flex items-center justify-between gap-4 bg-gradient-to-r from-amber-950/90 to-orange-950/90 backdrop-blur-xl px-4 py-2 sm:px-6 sm:py-3 rounded-full border border-yellow-500/20 shadow-2xl w-full max-w-md transition-transform hover:scale-105">
             
             <button
               onClick={handlePrevPage}
               disabled={!hasPrevPage || isLoadingMore}
-              className="flex items-center gap-2 text-sm font-medium text-white transition-colors hover:text-orange-400 disabled:opacity-30 disabled:cursor-not-allowed group"
+              className="flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-yellow-400 disabled:opacity-30 disabled:cursor-not-allowed group"
             >
-              <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-              <span className="hidden sm:inline">Previous</span>
+              <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1 text-yellow-500 group-hover:text-yellow-400" />
+              <span className="hidden sm:inline">पीछे देखें</span>
             </button>
 
             <div className="flex flex-col items-center">
-              <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Page</span>
+              <span className="text-[10px] text-yellow-500/80 font-bold uppercase tracking-wider">Page</span>
               <div className="flex items-baseline gap-1">
-                <span className="text-base sm:text-lg font-bold text-white">{currentPage}</span>
+                <span className="text-base sm:text-lg font-bold text-white drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]">{currentPage}</span>
                 <span className="text-xs text-white/40">/</span>
                 <span className="text-xs text-white/40">{totalPages}</span>
               </div>
@@ -607,10 +607,10 @@ export default function BhajanMusicPlayer() {
             <button
               onClick={handleNextPage}
               disabled={!hasNextPage || isLoadingMore}
-              className="flex items-center gap-2 text-sm font-medium text-white transition-colors hover:text-orange-400 disabled:opacity-30 disabled:cursor-not-allowed group"
+              className="flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-yellow-400 disabled:opacity-30 disabled:cursor-not-allowed group"
             >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              <span className="hidden sm:inline">आगे देखें</span>
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1 text-yellow-500 group-hover:text-yellow-400" />
             </button>
           </div>
         </div>
