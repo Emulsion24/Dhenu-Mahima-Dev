@@ -42,6 +42,28 @@ export default function BhajanMusicPlayer() {
   const progressBarRef = useRef(null);
   const volumeBarRef = useRef(null);
 
+  // Custom Styles for Visible Scrollbar
+  const scrollbarStyles = `
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(251, 146, 60, 0.8);
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(234, 88, 12, 1);
+    }
+    /* For Firefox */
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(251, 146, 60, 0.8) rgba(0, 0, 0, 0.1);
+    }
+  `;
+
   // Fetch bhajans from backend with pagination
   useEffect(() => {
     fetchBhajans(1, '');
@@ -339,6 +361,8 @@ export default function BhajanMusicPlayer() {
   }
 
   return (
+    <>
+    <style jsx global>{scrollbarStyles}</style>
     <div className="h-screen bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 text-white flex flex-col overflow-hidden relative">
       
       {/* Header */}
@@ -399,8 +423,8 @@ export default function BhajanMusicPlayer() {
         )}
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-48 sm:pb-36 scroll-smooth">
+      {/* Main Content - Added custom-scrollbar class */}
+      <main className="flex-1 overflow-y-auto pb-48 sm:pb-36 scroll-smooth custom-scrollbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
           
           {/* Featured Section */}
@@ -469,7 +493,7 @@ export default function BhajanMusicPlayer() {
           </section>
 
           {/* List View - Refined & Responsive */}
-          <section className="mb-12">
+          <section className="mb-4">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h3 className="text-lg sm:text-2xl font-bold flex items-center gap-2">
                  <span>{searchQuery ? `खोज परिणाम` : `प्लेलिस्ट`}</span>
@@ -570,51 +594,53 @@ export default function BhajanMusicPlayer() {
                   ))}
                 </div>
 
+                {/* Loading More Spinner */}
                 {isLoadingMore && (
-                  <div className="mt-8 mb-20 flex justify-center">
+                  <div className="mt-8 flex justify-center">
                     <Loader2 className="w-8 h-8 animate-spin text-white/70" />
                   </div>
                 )}
               </>
             )}
           </section>
+
+          {/* Pagination - Now Static at bottom of list */}
+          {totalPages > 1 && (
+             <div className="flex justify-center w-full mt-8 pb-32">
+                <div className="flex items-center justify-between gap-4 bg-gradient-to-r from-amber-950/90 to-orange-950/90 backdrop-blur-xl px-4 py-2 sm:px-6 sm:py-3 rounded-full border border-yellow-500/20 shadow-2xl w-full max-w-md transition-transform hover:scale-105">
+                  
+                  <button
+                    onClick={handlePrevPage}
+                    disabled={!hasPrevPage || isLoadingMore}
+                    className="flex items-center gap-2 text-[10px] sm:text-sm font-semibold text-white transition-colors hover:text-yellow-400 disabled:opacity-30 disabled:cursor-not-allowed group shrink-0"
+                  >
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1 text-yellow-500 group-hover:text-yellow-400" />
+                    <span>पीछे देखें</span>
+                  </button>
+
+                  <div className="flex flex-col items-center min-w-[60px]">
+                    <span className="text-[9px] sm:text-[10px] text-yellow-500/80 font-bold uppercase tracking-wider">Page</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-sm sm:text-lg font-bold text-white drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]">{currentPage}</span>
+                      <span className="text-[10px] sm:text-xs text-white/40">/</span>
+                      <span className="text-[10px] sm:text-xs text-white/40">{totalPages}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleNextPage}
+                    disabled={!hasNextPage || isLoadingMore}
+                    className="flex items-center gap-2 text-[10px] sm:text-sm font-semibold text-white transition-colors hover:text-yellow-400 disabled:opacity-30 disabled:cursor-not-allowed group shrink-0"
+                  >
+                    <span>आगे देखें</span>
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-1 text-yellow-500 group-hover:text-yellow-400" />
+                  </button>
+                </div>
+            </div>
+          )}
+
         </div>
       </main>
-
-      {/* Fixed Pagination - Updated Color and Labels */}
-      {totalPages > 1 && (
-        <div className="fixed bottom-24 sm:bottom-28 left-0 right-0 flex justify-center z-40 pointer-events-none px-4">
-          <div className="pointer-events-auto flex items-center justify-between gap-4 bg-gradient-to-r from-amber-950/90 to-orange-950/90 backdrop-blur-xl px-4 py-2 sm:px-6 sm:py-3 rounded-full border border-yellow-500/20 shadow-2xl w-full max-w-md transition-transform hover:scale-105">
-            
-            <button
-              onClick={handlePrevPage}
-              disabled={!hasPrevPage || isLoadingMore}
-              className="flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-yellow-400 disabled:opacity-30 disabled:cursor-not-allowed group"
-            >
-              <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1 text-yellow-500 group-hover:text-yellow-400" />
-              <span className="hidden sm:inline">पीछे देखें</span>
-            </button>
-
-            <div className="flex flex-col items-center">
-              <span className="text-[10px] text-yellow-500/80 font-bold uppercase tracking-wider">Page</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-base sm:text-lg font-bold text-white drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]">{currentPage}</span>
-                <span className="text-xs text-white/40">/</span>
-                <span className="text-xs text-white/40">{totalPages}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleNextPage}
-              disabled={!hasNextPage || isLoadingMore}
-              className="flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-yellow-400 disabled:opacity-30 disabled:cursor-not-allowed group"
-            >
-              <span className="hidden sm:inline">आगे देखें</span>
-              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1 text-yellow-500 group-hover:text-yellow-400" />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Responsive Player Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
@@ -630,7 +656,6 @@ export default function BhajanMusicPlayer() {
             >
                 {/* Background Track */}
                 <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/20"></div>
-                {/* Buffered/Loaded (Optional - can add if API supports) */}
                 
                 {/* Progress Fill */}
                 <div
@@ -815,5 +840,6 @@ export default function BhajanMusicPlayer() {
         </div>
       </div>
     </div>
+    </>
   );
 }
