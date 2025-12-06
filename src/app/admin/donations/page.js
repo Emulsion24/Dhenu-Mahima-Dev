@@ -67,6 +67,7 @@ export default function DonationsPage() {
       if (response.data) {
         setDonations(response.data.donations || []);
         setTotalCount(response.data.total || 0);
+        console.log('Fetched Donations:', response.data.donations);
       } else {
         alert('Failed to fetch Donations');
       }
@@ -335,6 +336,7 @@ export default function DonationsPage() {
                           <div>
                             <div className="font-bold text-slate-900 text-sm md:text-base">{d.name}</div>
                             <div className="text-xs md:text-sm text-slate-600 font-medium">{d.email}</div>
+                            <div className="text-xs md:text-sm text-slate-600 font-medium">{d.phone}</div>
                           </div>
                         </td>
                         <td className="px-4 md:px-6 py-3 md:py-4">
